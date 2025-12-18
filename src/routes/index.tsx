@@ -1,19 +1,7 @@
 import { lazy, Suspense } from 'react'
-import { createBrowserRouter, RouterProvider, Navigate, useLocation } from 'react-router-dom'
+import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom'
 import { Spin } from 'antd'
 import MainLayout from '@/layouts/MainLayout'
-
-// Auth guard component
-function PrivateRoute({ children }: { children: React.ReactNode }) {
-  const location = useLocation()
-  const token = localStorage.getItem('token')
-
-  if (!token) {
-    return <Navigate to="/login" state={{ from: location }} replace />
-  }
-
-  return <>{children}</>
-}
 
 // 懒加载视图组件
 const Login = lazy(() => import('@/views/Login'))
