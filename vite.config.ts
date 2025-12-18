@@ -11,7 +11,7 @@ export default defineConfig({
     }
   },
   server: {
-    port: 5800,
+    port: 8080,
     proxy: {
       '/base': {
         target: 'http://localhost:8002',
