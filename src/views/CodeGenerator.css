@@ -1,0 +1,10 @@
+.code-generator {
+  padding: 0;
+}
+
+.generate-actions {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}

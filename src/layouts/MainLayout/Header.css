@@ -1,0 +1,66 @@
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #fff;
+  box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
+  padding: 0 16px;
+  height: 60px;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+}
+
+.collapse-btn {
+  font-size: 20px;
+  cursor: pointer;
+  margin-right: 16px;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.3s;
+}
+
+.collapse-btn:hover {
+  color: #1890ff;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.language-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+}
+
+.language-btn:hover {
+  background-color: #f5f7fa;
+}
+
+.user-dropdown {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+}
+
+.user-dropdown:hover {
+  background-color: #f5f7fa;
+}
+
+.username {
+  margin-left: 8px;
+}

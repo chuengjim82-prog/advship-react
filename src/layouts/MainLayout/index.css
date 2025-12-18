@@ -1,0 +1,31 @@
+.main-layout {
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+}
+
+.main-sider {
+  background-color: #304156 !important;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.main-layout > .ant-layout {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-header {
+  padding: 0 !important;
+  height: 60px !important;
+  line-height: 60px !important;
+  flex-shrink: 0;
+}
+
+.main-content {
+  background-color: #f0f2f5;
+  padding: 16px;
+  overflow-y: auto;
+  flex: 1;
+}

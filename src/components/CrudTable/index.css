@@ -1,0 +1,17 @@
+.crud-table {
+  width: 100%;
+}
+
+.crud-table .ant-card-head {
+  background-color: #fafafa;
+}
+
+.crud-table .pagination {
+  margin-top: 16px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.crud-table .ant-table-wrapper {
+  margin-bottom: 0;
+}
