@@ -9,6 +9,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
+  flex-wrap: wrap;
+  min-height: 48px;
 }
 
 .order-follow__header h2 {
