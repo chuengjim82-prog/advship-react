@@ -1,24 +1,36 @@
 import { useState, useEffect, useMemo } from 'react'
 import {
-  Drawer,
-  Form,
-  Input,
-  Button,
-  Card,
-  Row,
-  Col,
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetFooter,
+} from '@/components/ui/sheet'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { Textarea } from '@/components/ui/textarea'
+import { Switch } from '@/components/ui/switch'
+import { Label } from '@/components/ui/label'
+import {
   Select,
-  DatePicker,
-  Switch,
-  InputNumber,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
   Table,
-  Space,
-  Spin,
-  message
-} from 'antd'
-import { PlusOutlined } from '@ant-design/icons'
-import dayjs from 'dayjs'
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { Loading } from '@/components/ui/spinner'
+import { Plus, Trash2 } from 'lucide-react'
 import request from '@/utils/request'
+import { toast } from 'sonner'
 import {
   fetchServices,
   fetchCustAgents,
@@ -30,8 +42,6 @@ import {
   type CustPortItem,
   type CountryItem
 } from '@/api/baseData'
-
-const { TextArea } = Input
 
 interface BaseInfoForm {
   id?: number | null
@@ -192,7 +202,6 @@ export default function OrderCreateDrawer({
         fetchTransAgents(),
         fetchCountries()
       ])
-
       setServiceOptions(services)
       setCustAgentOptions(agents)
       setCustPortOptions(ports)
@@ -264,17 +273,9 @@ export default function OrderCreateDrawer({
       populateFromDetail(data)
     } catch (error) {
       console.error('Failed to load order detail', error)
-      message.error('加载订单详情失败')
+      toast.error('加载订单详情失败')
     } finally {
       setDetailLoading(false)
-    }
-  }
-
-  const initializeForm = async () => {
-    if (isEditMode && orderId) {
-      await loadOrderDetail(orderId)
-    } else {
-      resetForms()
     }
   }
 
@@ -284,13 +285,16 @@ export default function OrderCreateDrawer({
 
   useEffect(() => {
     if (visible) {
-      initializeForm()
+      if (isEditMode && orderId) {
+        loadOrderDetail(orderId)
+      } else {
+        resetForms()
+      }
     } else {
       resetForms()
     }
   }, [visible, orderId])
 
-  // Sync custPort when custPortId changes
   useEffect(() => {
     if (!baseInfoForm.custPortId) {
       setWaybillForm((prev) => ({ ...prev, custPort: '' }))
@@ -305,126 +309,70 @@ export default function OrderCreateDrawer({
     }
   }, [baseInfoForm.custPortId, custPortOptions])
 
-  const formatServiceOption = (item: ServiceItem) => item.name || item.code || `服务${item.id}`
-  const formatAgentOption = (item: AgentItem) => item.name || item.code || `代理${item.id}`
-  const formatCustPortOption = (item: CustPortItem) =>
-    item.cnName || item.enName || item.code || `口岸${item.id}`
-  const formatCountryOption = (item: CountryItem) =>
-    item.cnName || item.enName || item.code2 || item.code3 || `国家${item.id}`
-
-  const addContainer = () => {
-    setContainers([...containers, createContainerForm()])
-  }
-
+  const addContainer = () => setContainers([...containers, createContainerForm()])
   const removeContainer = (index: number) => {
     if (containers.length === 1) return
     setContainers(containers.filter((_, i) => i !== index))
   }
-
   const updateContainer = (index: number, field: keyof ContainerForm, value: any) => {
     const newContainers = [...containers]
     newContainers[index] = { ...newContainers[index], [field]: value }
     setContainers(newContainers)
   }
 
-  const addInvoice = () => {
-    setInvoices([...invoices, createInvoiceForm()])
-  }
-
+  const addInvoice = () => setInvoices([...invoices, createInvoiceForm()])
   const removeInvoice = (index: number) => {
     if (invoices.length === 1) return
     setInvoices(invoices.filter((_, i) => i !== index))
   }
-
   const updateInvoice = (index: number, field: keyof InvoiceForm, value: any) => {
     const newInvoices = [...invoices]
     newInvoices[index] = { ...newInvoices[index], [field]: value }
     setInvoices(newInvoices)
   }
 
-  const normalizeContainers = () =>
-    containers
-      .map((item) => ({
-        ...item,
-        quantity: item.quantity ?? null,
-        weight: item.weight ?? null
-      }))
-      .filter(
-        (item) =>
-          item.number ||
-          item.sizeType ||
-          item.goodsInfo ||
-          item.quantity !== null ||
-          item.weight !== null
-      )
-
-  const normalizeInvoices = () =>
-    invoices
-      .map((item) => ({
-        ...item,
-        ttlAmount: item.ttlAmount ?? null
-      }))
-      .filter(
-        (item) =>
-          item.invoiceNo ||
-          item.bussType ||
-          item.transType ||
-          item.currency ||
-          item.exporter
-      )
-
   const handleSubmit = async () => {
+    const normalizedContainers = containers.filter(
+      (item) => item.number || item.sizeType || item.goodsInfo || item.quantity !== null || item.weight !== null
+    )
+    if (normalizedContainers.length === 0) {
+      toast.warning('请至少添加一条柜型信息')
+      return
+    }
+
+    const normalizedInvoices = invoices.filter(
+      (item) => item.invoiceNo || item.bussType || item.transType || item.currency || item.exporter
+    )
+    if (normalizedInvoices.length === 0) {
+      toast.warning('请至少添加一条发票信息')
+      return
+    }
+
+    setSubmitting(true)
     try {
-      const normalizedContainers = normalizeContainers()
-      if (normalizedContainers.length === 0) {
-        message.warning('请至少添加一条柜型信息')
-        return
+      const payload = {
+        baseInfo: baseInfoForm,
+        waybill: waybillForm,
+        containers: normalizedContainers,
+        invoices: normalizedInvoices
       }
 
-      const normalizedInvoices = normalizeInvoices()
-      if (normalizedInvoices.length === 0) {
-        message.warning('请至少添加一条发票信息')
-        return
+      if (isEditMode) {
+        await request.put<boolean>(`/bzss/api/orderbaseinfo/${orderId}`, payload)
+        toast.success('订单更新成功')
+        onSuccess(orderId!)
+      } else {
+        const response = await request.post<number>('/bzss/api/orderbaseinfo/create', payload)
+        toast.success('订单创建成功')
+        onSuccess(response.data ?? 0)
       }
-
-      setSubmitting(true)
-      try {
-        const payload = {
-          baseInfo: {
-            ...baseInfoForm,
-            orderDate: baseInfoForm.orderDate
-          },
-          waybill: {
-            ...waybillForm,
-            waybillDate: waybillForm.waybillDate
-          },
-          containers: normalizedContainers,
-          invoices: normalizedInvoices
-        }
-
-        if (isEditMode) {
-          if (!orderId) {
-            throw new Error('缺少订单ID，无法更新')
-          }
-          await request.put<boolean>(`/bzss/api/orderbaseinfo/${orderId}`, payload)
-          message.success('订单更新成功')
-          onSuccess(orderId)
-        } else {
-          const response = await request.post<number>('/bzss/api/orderbaseinfo/create', payload)
-          const newOrderId = response.data ?? 0
-          message.success('订单创建成功')
-          onSuccess(newOrderId)
-        }
-        onClose()
-        resetForms()
-      } catch (error) {
-        console.error('订单提交失败', error)
-        message.error('订单提交失败，请稍后重试')
-      } finally {
-        setSubmitting(false)
-      }
+      onClose()
+      resetForms()
     } catch (error) {
-      console.error('Validation failed:', error)
+      console.error('订单提交失败', error)
+      toast.error('订单提交失败，请稍后重试')
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -433,582 +381,235 @@ export default function OrderCreateDrawer({
     resetForms()
   }
 
-  const containerColumns = [
-    {
-      title: '柜号',
-      dataIndex: 'number',
-      width: 140,
-      render: (_: any, __: any, index: number) => (
-        <Input
-          value={containers[index].number}
-          onChange={(e) => updateContainer(index, 'number', e.target.value)}
-          placeholder="柜号"
-        />
-      )
-    },
-    {
-      title: '柜型',
-      dataIndex: 'sizeType',
-      width: 120,
-      render: (_: any, __: any, index: number) => (
-        <Input
-          value={containers[index].sizeType}
-          onChange={(e) => updateContainer(index, 'sizeType', e.target.value)}
-          placeholder="柜型"
-        />
-      )
-    },
-    {
-      title: '数量',
-      dataIndex: 'quantity',
-      width: 100,
-      render: (_: any, __: any, index: number) => (
-        <InputNumber
-          value={containers[index].quantity}
-          onChange={(value) => updateContainer(index, 'quantity', value)}
-          min={0}
-          step={1}
-          style={{ width: '100%' }}
-        />
-      )
-    },
-    {
-      title: '重量(kg)',
-      dataIndex: 'weight',
-      width: 140,
-      render: (_: any, __: any, index: number) => (
-        <InputNumber
-          value={containers[index].weight}
-          onChange={(value) => updateContainer(index, 'weight', value)}
-          min={0}
-          step={0.1}
-          style={{ width: '100%' }}
-        />
-      )
-    },
-    {
-      title: '货物描述',
-      dataIndex: 'goodsInfo',
-      width: 200,
-      render: (_: any, __: any, index: number) => (
-        <Input
-          value={containers[index].goodsInfo}
-          onChange={(e) => updateContainer(index, 'goodsInfo', e.target.value)}
-          placeholder="描述"
-        />
-      )
-    },
-    {
-      title: '备注',
-      dataIndex: 'remark',
-      width: 160,
-      render: (_: any, __: any, index: number) => (
-        <Input
-          value={containers[index].remark}
-          onChange={(e) => updateContainer(index, 'remark', e.target.value)}
-          placeholder="备注"
-        />
-      )
-    },
-    {
-      title: '操作',
-      width: 90,
-      fixed: 'right' as const,
-      render: (_: any, __: any, index: number) => (
-        <Button
-          type="link"
-          danger
-          disabled={containers.length === 1}
-          onClick={() => removeContainer(index)}
-        >
-          删除
-        </Button>
-      )
-    }
-  ]
-
-  const invoiceColumns = [
-    {
-      title: '发票号',
-      dataIndex: 'invoiceNo',
-      width: 140,
-      render: (_: any, __: any, index: number) => (
-        <Input
-          value={invoices[index].invoiceNo}
-          onChange={(e) => updateInvoice(index, 'invoiceNo', e.target.value)}
-          placeholder="发票号"
-        />
-      )
-    },
-    {
-      title: '业务类型',
-      dataIndex: 'bussType',
-      width: 140,
-      render: (_: any, __: any, index: number) => (
-        <Input
-          value={invoices[index].bussType}
-          onChange={(e) => updateInvoice(index, 'bussType', e.target.value)}
-          placeholder="业务类型"
-        />
-      )
-    },
-    {
-      title: '运输方式',
-      dataIndex: 'transType',
-      width: 140,
-      render: (_: any, __: any, index: number) => (
-        <Input
-          value={invoices[index].transType}
-          onChange={(e) => updateInvoice(index, 'transType', e.target.value)}
-          placeholder="运输方式"
-        />
-      )
-    },
-    {
-      title: '币种',
-      dataIndex: 'currency',
-      width: 120,
-      render: (_: any, __: any, index: number) => (
-        <Input
-          value={invoices[index].currency}
-          onChange={(e) => updateInvoice(index, 'currency', e.target.value)}
-          placeholder="SAR/USD..."
-        />
-      )
-    },
-    {
-      title: '金额',
-      dataIndex: 'ttlAmount',
-      width: 140,
-      render: (_: any, __: any, index: number) => (
-        <InputNumber
-          value={invoices[index].ttlAmount}
-          onChange={(value) => updateInvoice(index, 'ttlAmount', value)}
-          min={0}
-          step={0.01}
-          style={{ width: '100%' }}
-        />
-      )
-    },
-    {
-      title: '出口商',
-      dataIndex: 'exporter',
-      width: 200,
-      render: (_: any, __: any, index: number) => (
-        <Input
-          value={invoices[index].exporter}
-          onChange={(e) => updateInvoice(index, 'exporter', e.target.value)}
-          placeholder="出口商"
-        />
-      )
-    },
-    {
-      title: '备注',
-      dataIndex: 'remark',
-      width: 160,
-      render: (_: any, __: any, index: number) => (
-        <Input
-          value={invoices[index].remark}
-          onChange={(e) => updateInvoice(index, 'remark', e.target.value)}
-          placeholder="备注"
-        />
-      )
-    },
-    {
-      title: '操作',
-      width: 90,
-      fixed: 'right' as const,
-      render: (_: any, __: any, index: number) => (
-        <Button
-          type="link"
-          danger
-          disabled={invoices.length === 1}
-          onClick={() => removeInvoice(index)}
-        >
-          删除
-        </Button>
-      )
-    }
-  ]
-
   return (
-    <Drawer
-      title={isEditMode ? '更新订单' : '创建订单'}
-      placement="right"
-      width="80%"
-      open={visible}
-      onClose={handleClose}
-      maskClosable={false}
-      extra={
-        <Button type="primary" loading={submitting} onClick={handleSubmit} icon={<PlusOutlined />}>
-          {isEditMode ? '更新' : '提交'}
-        </Button>
-      }
-      footer={
-        <Space style={{ float: 'right' }}>
-          <Button onClick={handleClose}>取消</Button>
-          <Button type="primary" loading={submitting} onClick={handleSubmit}>
-            {isEditMode ? '保存更新' : '提交'}
+    <Sheet open={visible} onOpenChange={(open: boolean) => !open && handleClose()}>
+      <SheetContent className="w-[80vw] sm:max-w-[80vw] overflow-y-auto">
+        <SheetHeader>
+          <SheetTitle>{isEditMode ? '更新订单' : '创建订单'}</SheetTitle>
+        </SheetHeader>
+
+        <Loading loading={detailLoading}>
+          <div className="space-y-4 py-4">
+            {/* Order Info */}
+            <Card>
+              <CardHeader>
+                <CardTitle>订单信息</CardTitle>
+              </CardHeader>
+              <CardContent className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>目的地海关</Label>
+                  <Select value={String(baseInfoForm.custPortId || '')} onValueChange={(v) => setBaseInfoForm({ ...baseInfoForm, custPortId: v ? Number(v) : null })}>
+                    <SelectTrigger><SelectValue placeholder="选择目的地海关" /></SelectTrigger>
+                    <SelectContent>
+                      {custPortOptions.map((item) => (
+                        <SelectItem key={item.id} value={String(item.id)}>{item.cnName || item.enName || item.code}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>航司名称</Label>
+                  <Select value={String(baseInfoForm.transAgentId || '')} onValueChange={(v) => setBaseInfoForm({ ...baseInfoForm, transAgentId: v ? Number(v) : null })}>
+                    <SelectTrigger><SelectValue placeholder="选择航司" /></SelectTrigger>
+                    <SelectContent>
+                      {transAgentOptions.map((item) => (
+                        <SelectItem key={item.id} value={String(item.id)}>{item.name || item.code}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Switch checked={baseInfoForm.custPickup} onCheckedChange={(checked) => setBaseInfoForm({ ...baseInfoForm, custPickup: checked })} />
+                  <Label>代理清关</Label>
+                </div>
+                <div className="space-y-2">
+                  <Label>清关公司</Label>
+                  <Select value={String(baseInfoForm.custAgentId || '')} onValueChange={(v) => setBaseInfoForm({ ...baseInfoForm, custAgentId: v ? Number(v) : null })}>
+                    <SelectTrigger><SelectValue placeholder="选择清关公司" /></SelectTrigger>
+                    <SelectContent>
+                      {custAgentOptions.map((item) => (
+                        <SelectItem key={item.id} value={String(item.id)}>{item.name || item.code}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>经纪商授权码</Label>
+                  <Input value={baseInfoForm.orderNo} onChange={(e) => setBaseInfoForm({ ...baseInfoForm, orderNo: e.target.value })} placeholder="请输入经纪商授权码" />
+                </div>
+                <div className="space-y-2">
+                  <Label>订单日期</Label>
+                  <Input type="date" value={baseInfoForm.orderDate || ''} onChange={(e) => setBaseInfoForm({ ...baseInfoForm, orderDate: e.target.value || null })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>运输服务</Label>
+                  <Select value={String(baseInfoForm.serviceId || '')} onValueChange={(v) => setBaseInfoForm({ ...baseInfoForm, serviceId: v ? Number(v) : null })}>
+                    <SelectTrigger><SelectValue placeholder="选择运输服务" /></SelectTrigger>
+                    <SelectContent>
+                      {serviceOptions.map((item) => (
+                        <SelectItem key={item.id} value={String(item.id)}>{item.name || item.code}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>目的国家</Label>
+                  <Select value={String(baseInfoForm.countryId || '')} onValueChange={(v) => setBaseInfoForm({ ...baseInfoForm, countryId: v ? Number(v) : null })}>
+                    <SelectTrigger><SelectValue placeholder="选择国家" /></SelectTrigger>
+                    <SelectContent>
+                      {countryOptions.map((item) => (
+                        <SelectItem key={item.id} value={String(item.id)}>{item.cnName || item.enName || item.code2}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="col-span-2 space-y-2">
+                  <Label>备注</Label>
+                  <Textarea value={baseInfoForm.remark} onChange={(e) => setBaseInfoForm({ ...baseInfoForm, remark: e.target.value })} placeholder="请输入备注" rows={2} />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Waybill Info */}
+            <Card>
+              <CardHeader>
+                <CardTitle>提单信息</CardTitle>
+              </CardHeader>
+              <CardContent className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>提单号</Label>
+                  <Input value={waybillForm.waybillNo} onChange={(e) => setWaybillForm({ ...waybillForm, waybillNo: e.target.value })} placeholder="请输入提单号" />
+                </div>
+                <div className="space-y-2">
+                  <Label>提单日期</Label>
+                  <Input type="date" value={waybillForm.waybillDate || ''} onChange={(e) => setWaybillForm({ ...waybillForm, waybillDate: e.target.value || null })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>发货人</Label>
+                  <Input value={waybillForm.shipperName} onChange={(e) => setWaybillForm({ ...waybillForm, shipperName: e.target.value })} placeholder="请输入发货人" />
+                </div>
+                <div className="space-y-2">
+                  <Label>收货人</Label>
+                  <Input value={waybillForm.consigneeName} onChange={(e) => setWaybillForm({ ...waybillForm, consigneeName: e.target.value })} placeholder="请输入收货人" />
+                </div>
+                <div className="space-y-2">
+                  <Label>发货地址</Label>
+                  <Input value={waybillForm.shipperAddress} onChange={(e) => setWaybillForm({ ...waybillForm, shipperAddress: e.target.value })} placeholder="请输入发货地址" />
+                </div>
+                <div className="space-y-2">
+                  <Label>收货地址</Label>
+                  <Input value={waybillForm.consigneeAddress} onChange={(e) => setWaybillForm({ ...waybillForm, consigneeAddress: e.target.value })} placeholder="请输入收货地址" />
+                </div>
+                <div className="space-y-2">
+                  <Label>目的港</Label>
+                  <Input value={waybillForm.custPort} onChange={(e) => setWaybillForm({ ...waybillForm, custPort: e.target.value })} placeholder="请输入目的港" />
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="space-y-2">
+                    <Label>件数</Label>
+                    <Input type="number" value={waybillForm.quantity ?? ''} onChange={(e) => setWaybillForm({ ...waybillForm, quantity: e.target.value ? Number(e.target.value) : null })} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>总重量(kg)</Label>
+                    <Input type="number" value={waybillForm.ttlWeight ?? ''} onChange={(e) => setWaybillForm({ ...waybillForm, ttlWeight: e.target.value ? Number(e.target.value) : null })} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>体积(m3)</Label>
+                    <Input type="number" value={waybillForm.cubicVol ?? ''} onChange={(e) => setWaybillForm({ ...waybillForm, cubicVol: e.target.value ? Number(e.target.value) : null })} />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Containers */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle>柜型信息</CardTitle>
+                <Button variant="outline" size="sm" onClick={addContainer}><Plus className="h-4 w-4 mr-1" />新增</Button>
+              </CardHeader>
+              <CardContent>
+                <div className="border rounded-md">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-[140px]">柜号</TableHead>
+                        <TableHead className="w-[120px]">柜型</TableHead>
+                        <TableHead className="w-[100px]">数量</TableHead>
+                        <TableHead className="w-[120px]">重量(kg)</TableHead>
+                        <TableHead>货物描述</TableHead>
+                        <TableHead className="w-[80px]">操作</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {containers.map((item, index) => (
+                        <TableRow key={index}>
+                          <TableCell><Input value={item.number} onChange={(e) => updateContainer(index, 'number', e.target.value)} placeholder="柜号" /></TableCell>
+                          <TableCell><Input value={item.sizeType} onChange={(e) => updateContainer(index, 'sizeType', e.target.value)} placeholder="柜型" /></TableCell>
+                          <TableCell><Input type="number" value={item.quantity ?? ''} onChange={(e) => updateContainer(index, 'quantity', e.target.value ? Number(e.target.value) : null)} /></TableCell>
+                          <TableCell><Input type="number" value={item.weight ?? ''} onChange={(e) => updateContainer(index, 'weight', e.target.value ? Number(e.target.value) : null)} /></TableCell>
+                          <TableCell><Input value={item.goodsInfo} onChange={(e) => updateContainer(index, 'goodsInfo', e.target.value)} placeholder="描述" /></TableCell>
+                          <TableCell>
+                            <Button variant="ghost" size="icon" disabled={containers.length === 1} onClick={() => removeContainer(index)}>
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Invoices */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle>发票信息</CardTitle>
+                <Button variant="outline" size="sm" onClick={addInvoice}><Plus className="h-4 w-4 mr-1" />新增</Button>
+              </CardHeader>
+              <CardContent>
+                <div className="border rounded-md">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-[140px]">发票号</TableHead>
+                        <TableHead className="w-[120px]">业务类型</TableHead>
+                        <TableHead className="w-[120px]">币种</TableHead>
+                        <TableHead className="w-[120px]">金额</TableHead>
+                        <TableHead>出口商</TableHead>
+                        <TableHead className="w-[80px]">操作</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {invoices.map((item, index) => (
+                        <TableRow key={index}>
+                          <TableCell><Input value={item.invoiceNo} onChange={(e) => updateInvoice(index, 'invoiceNo', e.target.value)} placeholder="发票号" /></TableCell>
+                          <TableCell><Input value={item.bussType} onChange={(e) => updateInvoice(index, 'bussType', e.target.value)} placeholder="业务类型" /></TableCell>
+                          <TableCell><Input value={item.currency} onChange={(e) => updateInvoice(index, 'currency', e.target.value)} placeholder="SAR/USD" /></TableCell>
+                          <TableCell><Input type="number" value={item.ttlAmount ?? ''} onChange={(e) => updateInvoice(index, 'ttlAmount', e.target.value ? Number(e.target.value) : null)} /></TableCell>
+                          <TableCell><Input value={item.exporter} onChange={(e) => updateInvoice(index, 'exporter', e.target.value)} placeholder="出口商" /></TableCell>
+                          <TableCell>
+                            <Button variant="ghost" size="icon" disabled={invoices.length === 1} onClick={() => removeInvoice(index)}>
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </Loading>
+
+        <SheetFooter>
+          <Button variant="outline" onClick={handleClose}>取消</Button>
+          <Button onClick={handleSubmit} disabled={submitting}>
+            {submitting ? '提交中...' : isEditMode ? '保存更新' : '提交'}
           </Button>
-        </Space>
-      }
-    >
-      <Spin spinning={detailLoading}>
-        <Form
-          layout="horizontal"
-          labelCol={{ span: 6 }}
-          wrapperCol={{ span: 18 }}
-        >
-        <Card title="订单信息" style={{ marginBottom: 16 }}>
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item label="目的地海关">
-                <Select
-                  value={baseInfoForm.custPortId}
-                  onChange={(value) => setBaseInfoForm({ ...baseInfoForm, custPortId: value })}
-                  placeholder="选择目的地海关"
-                  allowClear
-                  showSearch
-                  filterOption={(input, option) =>
-                    (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-                  }
-                  options={custPortOptions.map((item) => ({
-                    label: formatCustPortOption(item),
-                    value: item.id
-                  }))}
-                />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item label="航司名称">
-                <Select
-                  value={baseInfoForm.transAgentId}
-                  onChange={(value) => setBaseInfoForm({ ...baseInfoForm, transAgentId: value })}
-                  placeholder="选择航司"
-                  allowClear
-                  showSearch
-                  filterOption={(input, option) =>
-                    (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-                  }
-                  options={transAgentOptions.map((item) => ({
-                    label: formatAgentOption(item),
-                    value: item.id
-                  }))}
-                />
-              </Form.Item>
-            </Col>
-          </Row>
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item label="代理清关">
-                <Switch
-                  checked={baseInfoForm.custPickup}
-                  onChange={(checked) => setBaseInfoForm({ ...baseInfoForm, custPickup: checked })}
-                  checkedChildren="是"
-                  unCheckedChildren="否"
-                />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item label="清关公司">
-                <Select
-                  value={baseInfoForm.custAgentId}
-                  onChange={(value) => setBaseInfoForm({ ...baseInfoForm, custAgentId: value })}
-                  placeholder="选择清关公司"
-                  allowClear
-                  showSearch
-                  filterOption={(input, option) =>
-                    (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-                  }
-                  options={custAgentOptions.map((item) => ({
-                    label: formatAgentOption(item),
-                    value: item.id
-                  }))}
-                />
-              </Form.Item>
-            </Col>
-          </Row>
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                label="经纪商授权码"
-                name="orderNo"
-                rules={[{ required: true, message: '请输入订单编号' }]}
-              >
-                <Input
-                  value={baseInfoForm.orderNo}
-                  onChange={(e) => setBaseInfoForm({ ...baseInfoForm, orderNo: e.target.value })}
-                  placeholder="请输入经纪商授权码"
-                />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item label="申报类型">
-                <Input
-                  value={baseInfoForm.statuss}
-                  onChange={(e) => setBaseInfoForm({ ...baseInfoForm, statuss: e.target.value })}
-                  placeholder="请输入申报类型"
-                />
-              </Form.Item>
-            </Col>
-          </Row>
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                label="订单日期"
-                name="orderDate"
-                rules={[{ required: true, message: '请选择订单日期' }]}
-              >
-                <DatePicker
-                  value={baseInfoForm.orderDate ? dayjs(baseInfoForm.orderDate) : null}
-                  onChange={(date) =>
-                    setBaseInfoForm({
-                      ...baseInfoForm,
-                      orderDate: date ? date.format('YYYY-MM-DD') : null
-                    })
-                  }
-                  format="YYYY-MM-DD"
-                  style={{ width: '100%' }}
-                  placeholder="选择订单日期"
-                />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                label="运输服务"
-                name="serviceId"
-                rules={[{ required: true, message: '请选择运输服务' }]}
-              >
-                <Select
-                  value={baseInfoForm.serviceId}
-                  onChange={(value) => setBaseInfoForm({ ...baseInfoForm, serviceId: value })}
-                  placeholder="选择运输服务"
-                  allowClear
-                  showSearch
-                  filterOption={(input, option) =>
-                    (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-                  }
-                  options={serviceOptions.map((item) => ({
-                    label: formatServiceOption(item),
-                    value: item.id
-                  }))}
-                />
-              </Form.Item>
-            </Col>
-          </Row>
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item label="提单号">
-                <Input
-                  value={baseInfoForm.waybillNo}
-                  onChange={(e) => setBaseInfoForm({ ...baseInfoForm, waybillNo: e.target.value })}
-                  placeholder="请输入提单号"
-                />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item label="目的国家">
-                <Select
-                  value={baseInfoForm.countryId}
-                  onChange={(value) => setBaseInfoForm({ ...baseInfoForm, countryId: value })}
-                  placeholder="选择国家"
-                  allowClear
-                  showSearch
-                  filterOption={(input, option) =>
-                    (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-                  }
-                  options={countryOptions.map((item) => ({
-                    label: formatCountryOption(item),
-                    value: item.id
-                  }))}
-                />
-              </Form.Item>
-            </Col>
-          </Row>
-          <Form.Item label="备注" labelCol={{ span: 3 }} wrapperCol={{ span: 21 }}>
-            <TextArea
-              value={baseInfoForm.remark}
-              onChange={(e) => setBaseInfoForm({ ...baseInfoForm, remark: e.target.value })}
-              placeholder="请输入备注信息"
-              rows={3}
-            />
-          </Form.Item>
-        </Card>
-
-        <Card title="提单信息" style={{ marginBottom: 16 }}>
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                label="提单号"
-                name="waybillNo"
-                rules={[{ required: true, message: '请输入提单号' }]}
-              >
-                <Input
-                  value={waybillForm.waybillNo}
-                  onChange={(e) => setWaybillForm({ ...waybillForm, waybillNo: e.target.value })}
-                  placeholder="请输入提单号"
-                />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item label="提单日期">
-                <DatePicker
-                  value={waybillForm.waybillDate ? dayjs(waybillForm.waybillDate) : null}
-                  onChange={(date) =>
-                    setWaybillForm({
-                      ...waybillForm,
-                      waybillDate: date ? date.format('YYYY-MM-DD') : null
-                    })
-                  }
-                  format="YYYY-MM-DD"
-                  style={{ width: '100%' }}
-                  placeholder="选择日期"
-                />
-              </Form.Item>
-            </Col>
-          </Row>
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item label="发货人">
-                <Input
-                  value={waybillForm.shipperName}
-                  onChange={(e) => setWaybillForm({ ...waybillForm, shipperName: e.target.value })}
-                  placeholder="请输入发货人"
-                />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item label="收货人">
-                <Input
-                  value={waybillForm.consigneeName}
-                  onChange={(e) =>
-                    setWaybillForm({ ...waybillForm, consigneeName: e.target.value })
-                  }
-                  placeholder="请输入收货人"
-                />
-              </Form.Item>
-            </Col>
-          </Row>
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item label="发货地址">
-                <Input
-                  value={waybillForm.shipperAddress}
-                  onChange={(e) =>
-                    setWaybillForm({ ...waybillForm, shipperAddress: e.target.value })
-                  }
-                  placeholder="请输入发货地址"
-                />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item label="收货地址">
-                <Input
-                  value={waybillForm.consigneeAddress}
-                  onChange={(e) =>
-                    setWaybillForm({ ...waybillForm, consigneeAddress: e.target.value })
-                  }
-                  placeholder="请输入收货地址"
-                />
-              </Form.Item>
-            </Col>
-          </Row>
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item label="目的港">
-                <Input
-                  value={waybillForm.custPort}
-                  onChange={(e) => setWaybillForm({ ...waybillForm, custPort: e.target.value })}
-                  placeholder="请输入目的港"
-                />
-              </Form.Item>
-            </Col>
-            <Col span={6}>
-              <Form.Item label="件数" labelCol={{ span: 12 }}>
-                <InputNumber
-                  value={waybillForm.quantity}
-                  onChange={(value) => setWaybillForm({ ...waybillForm, quantity: value })}
-                  min={0}
-                  step={1}
-                  style={{ width: '100%' }}
-                />
-              </Form.Item>
-            </Col>
-            <Col span={6}>
-              <Form.Item label="总重量(kg)" labelCol={{ span: 12 }}>
-                <InputNumber
-                  value={waybillForm.ttlWeight}
-                  onChange={(value) => setWaybillForm({ ...waybillForm, ttlWeight: value })}
-                  min={0}
-                  step={0.1}
-                  style={{ width: '100%' }}
-                />
-              </Form.Item>
-            </Col>
-          </Row>
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item label="体积(m³)">
-                <InputNumber
-                  value={waybillForm.cubicVol}
-                  onChange={(value) => setWaybillForm({ ...waybillForm, cubicVol: value })}
-                  min={0}
-                  step={0.1}
-                  style={{ width: '100%' }}
-                />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item label="备注">
-                <Input
-                  value={waybillForm.remark}
-                  onChange={(e) => setWaybillForm({ ...waybillForm, remark: e.target.value })}
-                  placeholder="请输入提单备注"
-                />
-              </Form.Item>
-            </Col>
-          </Row>
-        </Card>
-
-        <Card
-          title="柜型信息"
-          extra={
-            <Button type="link" onClick={addContainer} icon={<PlusOutlined />}>
-              新增
-            </Button>
-          }
-          style={{ marginBottom: 16 }}
-        >
-          <Table
-            dataSource={containers}
-            columns={containerColumns}
-            pagination={false}
-            bordered
-            rowKey={(_, index) => index!}
-            scroll={{ x: 'max-content' }}
-          />
-        </Card>
-
-        <Card
-          title="发票信息"
-          extra={
-            <Button type="link" onClick={addInvoice} icon={<PlusOutlined />}>
-              新增
-            </Button>
-          }
-          style={{ marginBottom: 16 }}
-        >
-          <Table
-            dataSource={invoices}
-            columns={invoiceColumns}
-            pagination={false}
-            bordered
-            rowKey={(_, index) => index!}
-            scroll={{ x: 'max-content' }}
-          />
-        </Card>
-      </Form>
-      </Spin>
-    </Drawer>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   )
 }

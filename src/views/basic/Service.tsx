@@ -1,9 +1,14 @@
 import { useCallback } from 'react'
-import { Form, Input, Switch, Tag, Table, Row, Col } from 'antd'
-import CrudTable from '@/components/CrudTable'
+import { z } from 'zod'
+import type { ColumnDef } from '@tanstack/react-table'
+import CrudTableV2 from '@/components/crud-table-v2'
+import { Input } from '@/components/ui/input'
+import { Switch } from '@/components/ui/switch'
+import { Badge } from '@/components/ui/badge'
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import type { UseFormReturn } from 'react-hook-form'
 
-const { TextArea } = Input
-
+// Data type
 interface ServiceData {
   id?: number
   code: string
@@ -15,94 +20,171 @@ interface ServiceData {
   remark: string
 }
 
+// Zod validation schema
+const serviceSchema = z.object({
+  id: z.number().optional(),
+  code: z.string().min(1, '请输入编码'),
+  name: z.string().min(1, '请输入名称'),
+  isSale: z.boolean().default(true),
+  isBuy: z.boolean().default(true),
+  statusi: z.number().default(1),
+  statuss: z.string().optional(),
+  remark: z.string().default(''),
+})
+
 export default function Service() {
-  const renderColumns = useCallback(() => (
-    <>
-      <Table.Column dataIndex="id" title="主键" width={80} />
-      <Table.Column dataIndex="code" title="编码" width={120} />
-      <Table.Column dataIndex="name" title="名称" width={180} />
-      <Table.Column
-        title="销售"
-        dataIndex="isSale"
-        width={100}
-        render={(isSale: boolean) =>
-          isSale ? <Tag color="blue">是</Tag> : <Tag color="default">否</Tag>
-        }
-      />
-      <Table.Column
-        title="采购"
-        dataIndex="isBuy"
-        width={80}
-        render={(isBuy: boolean) =>
-          isBuy ? <Tag color="blue">是</Tag> : <Tag color="default">否</Tag>
-        }
-      />
-      <Table.Column
-        title="状态"
-        dataIndex="statusi"
-        width={80}
-        render={(statusi: number) =>
-          statusi === 1 ? <Tag color="success">启用</Tag> : <Tag color="error">停用</Tag>
-        }
-      />
-      <Table.Column dataIndex="remark" title="备注" />
-    </>
-  ), [])
+  // TanStack Table columns
+  const columns: ColumnDef<ServiceData>[] = [
+    { accessorKey: 'id', header: '主键', size: 80 },
+    { accessorKey: 'code', header: '编码', size: 120 },
+    { accessorKey: 'name', header: '名称', size: 180 },
+    {
+      accessorKey: 'isSale',
+      header: '销售',
+      size: 100,
+      cell: ({ getValue }) => (
+        getValue() ? <Badge variant="blue">是</Badge> : <Badge variant="outline">否</Badge>
+      ),
+    },
+    {
+      accessorKey: 'isBuy',
+      header: '采购',
+      size: 80,
+      cell: ({ getValue }) => (
+        getValue() ? <Badge variant="blue">是</Badge> : <Badge variant="outline">否</Badge>
+      ),
+    },
+    {
+      accessorKey: 'statusi',
+      header: '状态',
+      size: 80,
+      cell: ({ getValue }) => (
+        getValue() === 1 ? <Badge variant="success">启用</Badge> : <Badge variant="destructive">停用</Badge>
+      ),
+    },
+    { accessorKey: 'remark', header: '备注' },
+  ]
 
-  const renderForm = useCallback(() => (
+  // Form fields renderer
+  const renderFormFields = useCallback((form: UseFormReturn<ServiceData>) => (
     <>
-      <Form.Item
-        label="编码"
+      <FormField
+        control={form.control}
         name="code"
-        rules={[{ required: true, message: '请输入编码' }]}
-      >
-        <Input placeholder="请输入编码" />
-      </Form.Item>
-      <Form.Item
-        label="名称"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>编码</FormLabel>
+            <FormControl>
+              <Input placeholder="请输入编码" {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+      <FormField
+        control={form.control}
         name="name"
-        rules={[{ required: true, message: '请输入名称' }]}
-      >
-        <Input placeholder="请输入名称" />
-      </Form.Item>
-      <Row gutter={20}>
-        <Col span={12}>
-          <Form.Item label="销售" name="isSale" valuePropName="checked">
-            <Switch />
-          </Form.Item>
-        </Col>
-        <Col span={12}>
-          <Form.Item label="采购" name="isBuy" valuePropName="checked">
-            <Switch />
-          </Form.Item>
-        </Col>
-      </Row>
-      <Form.Item label="状态" name="statusi">
-        <Switch checkedChildren="启用" unCheckedChildren="停用" checked={true} />
-      </Form.Item>
-      <Form.Item label="备注" name="remark">
-        <TextArea placeholder="请输入备注" rows={3} />
-      </Form.Item>
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>名称</FormLabel>
+            <FormControl>
+              <Input placeholder="请输入名称" {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+      <FormField
+        control={form.control}
+        name="isSale"
+        render={({ field }) => (
+          <FormItem className="flex items-center justify-between rounded-lg border p-4">
+            <div className="space-y-0.5">
+              <FormLabel className="text-base">销售</FormLabel>
+            </div>
+            <FormControl>
+              <Switch
+                checked={field.value}
+                onCheckedChange={field.onChange}
+              />
+            </FormControl>
+          </FormItem>
+        )}
+      />
+      <FormField
+        control={form.control}
+        name="isBuy"
+        render={({ field }) => (
+          <FormItem className="flex items-center justify-between rounded-lg border p-4">
+            <div className="space-y-0.5">
+              <FormLabel className="text-base">采购</FormLabel>
+            </div>
+            <FormControl>
+              <Switch
+                checked={field.value}
+                onCheckedChange={field.onChange}
+              />
+            </FormControl>
+          </FormItem>
+        )}
+      />
+      <FormField
+        control={form.control}
+        name="statusi"
+        render={({ field }) => (
+          <FormItem className="col-span-2 flex items-center justify-between rounded-lg border p-4">
+            <div className="space-y-0.5">
+              <FormLabel className="text-base">状态</FormLabel>
+            </div>
+            <FormControl>
+              <Switch
+                checked={field.value === 1}
+                onCheckedChange={(checked) => field.onChange(checked ? 1 : 0)}
+              />
+            </FormControl>
+          </FormItem>
+        )}
+      />
+      <FormField
+        control={form.control}
+        name="remark"
+        render={({ field }) => (
+          <FormItem className="col-span-2">
+            <FormLabel>备注</FormLabel>
+            <FormControl>
+              <textarea
+                className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                placeholder="请输入备注"
+                rows={3}
+                {...field}
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
     </>
   ), [])
 
-  const defaultFormData = useCallback(() => ({
+  // Default form values
+  const defaultValues: ServiceData = {
     code: '',
     name: '',
     isSale: true,
     isBuy: true,
     statusi: 1,
     statuss: '启用',
-    remark: ''
-  }), [])
+    remark: '',
+  }
 
   return (
-    <CrudTable<ServiceData>
+    <CrudTableV2<ServiceData>
       title="服务项目管理"
       apiUrl="/base/api/Service"
-      renderColumns={renderColumns}
-      renderForm={renderForm}
-      defaultFormData={defaultFormData}
+      columns={columns}
+      formSchema={serviceSchema}
+      renderFormFields={renderFormFields}
+      defaultValues={defaultValues}
     />
   )
 }

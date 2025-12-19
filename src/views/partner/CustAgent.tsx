@@ -1,8 +1,11 @@
 import { useCallback } from 'react'
-import { Form, Input, Row, Col, Table } from 'antd'
-import CrudTable from '@/components/CrudTable'
-
-const { TextArea } = Input
+import { z } from 'zod'
+import type { ColumnDef } from '@tanstack/react-table'
+import CrudTableV2 from '@/components/crud-table-v2'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import type { UseFormReturn } from 'react-hook-form'
 
 interface CustAgentData {
   id?: number
@@ -14,78 +17,91 @@ interface CustAgentData {
   remark: string
 }
 
+const custAgentSchema = z.object({
+  id: z.number().optional(),
+  code: z.string().min(1, '请输入编码'),
+  name: z.string().min(1, '请输入名称'),
+  contact: z.string().default(''),
+  phone: z.string().default(''),
+  address: z.string().default(''),
+  remark: z.string().default(''),
+})
+
 export default function CustAgent() {
-  const renderColumns = useCallback(() => (
+  const columns: ColumnDef<CustAgentData>[] = [
+    { accessorKey: 'id', header: '主键', size: 80 },
+    { accessorKey: 'code', header: '编码', size: 120 },
+    { accessorKey: 'name', header: '名称', size: 180 },
+    { accessorKey: 'contact', header: '联系人', size: 120 },
+    { accessorKey: 'phone', header: '联系电话', size: 150 },
+    { accessorKey: 'address', header: '地址' },
+    { accessorKey: 'remark', header: '备注' },
+  ]
+
+  const renderFormFields = useCallback((form: UseFormReturn<CustAgentData>) => (
     <>
-      <Table.Column dataIndex="id" title="主键" width={80} />
-      <Table.Column dataIndex="code" title="编码" width={120} />
-      <Table.Column dataIndex="name" title="名称" width={180} />
-      <Table.Column dataIndex="contact" title="联系人" width={120} />
-      <Table.Column dataIndex="phone" title="联系电话" width={150} />
-      <Table.Column dataIndex="address" title="地址" />
-      <Table.Column dataIndex="remark" title="备注" />
+      <FormField control={form.control} name="code" render={({ field }) => (
+        <FormItem>
+          <FormLabel>编码</FormLabel>
+          <FormControl><Input placeholder="请输入编码" {...field} /></FormControl>
+          <FormMessage />
+        </FormItem>
+      )} />
+      <FormField control={form.control} name="name" render={({ field }) => (
+        <FormItem>
+          <FormLabel>名称</FormLabel>
+          <FormControl><Input placeholder="请输入名称" {...field} /></FormControl>
+          <FormMessage />
+        </FormItem>
+      )} />
+      <FormField control={form.control} name="contact" render={({ field }) => (
+        <FormItem>
+          <FormLabel>联系人</FormLabel>
+          <FormControl><Input placeholder="请输入联系人" {...field} /></FormControl>
+          <FormMessage />
+        </FormItem>
+      )} />
+      <FormField control={form.control} name="phone" render={({ field }) => (
+        <FormItem>
+          <FormLabel>联系电话</FormLabel>
+          <FormControl><Input placeholder="请输入联系电话" {...field} /></FormControl>
+          <FormMessage />
+        </FormItem>
+      )} />
+      <FormField control={form.control} name="address" render={({ field }) => (
+        <FormItem className="col-span-2">
+          <FormLabel>地址</FormLabel>
+          <FormControl><Input placeholder="请输入地址" {...field} /></FormControl>
+          <FormMessage />
+        </FormItem>
+      )} />
+      <FormField control={form.control} name="remark" render={({ field }) => (
+        <FormItem className="col-span-2">
+          <FormLabel>备注</FormLabel>
+          <FormControl><Textarea placeholder="请输入备注" rows={3} {...field} /></FormControl>
+          <FormMessage />
+        </FormItem>
+      )} />
     </>
   ), [])
 
-  const renderForm = useCallback(() => (
-    <>
-      <Row gutter={20}>
-        <Col span={12}>
-          <Form.Item
-            label="编码"
-            name="code"
-            rules={[{ required: true, message: '请输入编码' }]}
-          >
-            <Input placeholder="请输入编码" />
-          </Form.Item>
-        </Col>
-        <Col span={12}>
-          <Form.Item
-            label="名称"
-            name="name"
-            rules={[{ required: true, message: '请输入名称' }]}
-          >
-            <Input placeholder="请输入名称" />
-          </Form.Item>
-        </Col>
-      </Row>
-      <Row gutter={20}>
-        <Col span={12}>
-          <Form.Item label="联系人" name="contact">
-            <Input placeholder="请输入联系人" />
-          </Form.Item>
-        </Col>
-        <Col span={12}>
-          <Form.Item label="联系电话" name="phone">
-            <Input placeholder="请输入联系电话" />
-          </Form.Item>
-        </Col>
-      </Row>
-      <Form.Item label="地址" name="address">
-        <Input placeholder="请输入地址" />
-      </Form.Item>
-      <Form.Item label="备注" name="remark">
-        <TextArea placeholder="请输入备注" rows={3} />
-      </Form.Item>
-    </>
-  ), [])
-
-  const defaultFormData = useCallback(() => ({
+  const defaultValues: CustAgentData = {
     code: '',
     name: '',
     contact: '',
     phone: '',
     address: '',
-    remark: ''
-  }), [])
+    remark: '',
+  }
 
   return (
-    <CrudTable<CustAgentData>
+    <CrudTableV2<CustAgentData>
       title="客户代理管理"
       apiUrl="/base/api/CustAgent"
-      renderColumns={renderColumns}
-      renderForm={renderForm}
-      defaultFormData={defaultFormData}
+      columns={columns}
+      formSchema={custAgentSchema}
+      renderFormFields={renderFormFields}
+      defaultValues={defaultValues}
     />
   )
 }

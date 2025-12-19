@@ -19,6 +19,7 @@ export interface CrudTableV2Props<T extends FieldValues = FieldValues> {
   // Optional props
   searchPlaceholder?: string
   dialogWidth?: string | number
+  dialogClassName?: string
 
   // Callbacks
   onLoaded?: (data: T[]) => void

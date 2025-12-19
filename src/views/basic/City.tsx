@@ -1,12 +1,14 @@
-import { useRef, useCallback } from 'react'
-import { Form, Input, Button, Space, Table } from 'antd'
-import { MoreOutlined } from '@ant-design/icons'
-import CrudTable from '@/components/CrudTable'
-import CountryDialog, { type CountryItem } from '@/components/CountryDialog'
-import type { CrudTableRef } from '@/components/CrudTable/types'
-import type { SelectDialogRef } from '@/components/SelectDialog'
-
-const { TextArea } = Input
+import { useRef, useCallback, useState } from 'react'
+import { z } from 'zod'
+import type { ColumnDef } from '@tanstack/react-table'
+import CrudTableV2 from '@/components/crud-table-v2'
+import SelectDialogV2 from '@/components/select-dialog-v2'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { Textarea } from '@/components/ui/textarea'
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import type { UseFormReturn } from 'react-hook-form'
+import { MoreHorizontal } from 'lucide-react'
 
 interface CityData {
   id?: number
@@ -15,99 +17,129 @@ interface CityData {
   enName: string
   remark: string
   countryId?: number | null
-  countryName?: string
   countryCode2?: string
 }
 
+interface CountryItem {
+  id: number
+  code2: string
+  code3: string
+  cnName: string
+  enName: string
+}
+
+const citySchema = z.object({
+  id: z.number().optional(),
+  code: z.string().min(1, '请输入编码'),
+  cnName: z.string().min(1, '请输入中文名称'),
+  enName: z.string().default(''),
+  remark: z.string().default(''),
+  countryId: z.number().nullable().optional(),
+  countryCode2: z.string().default(''),
+})
+
 export default function City() {
-  const crudTableRef = useRef<CrudTableRef>(null)
-  const countryDialogRef = useRef<SelectDialogRef>(null)
+  const [countryDialogOpen, setCountryDialogOpen] = useState(false)
+  const formRef = useRef<UseFormReturn<CityData> | null>(null)
+
+  const countryColumns: ColumnDef<CountryItem>[] = [
+    { accessorKey: 'code2', header: '二字码', size: 100 },
+    { accessorKey: 'code3', header: '三字码', size: 100 },
+    { accessorKey: 'cnName', header: '中文名称', size: 150 },
+    { accessorKey: 'enName', header: '英文名称' },
+  ]
 
   const handleCountrySelect = useCallback((country: CountryItem) => {
-    const form = crudTableRef.current?.form
-    if (form) {
-      form.setFieldsValue({
-        countryId: country.id,
-        countryCode2: country.code2
-      })
+    if (formRef.current) {
+      formRef.current.setValue('countryId', country.id)
+      formRef.current.setValue('countryCode2', country.code2)
     }
   }, [])
 
-  const renderColumns = useCallback(() => (
-    <>
-      <Table.Column dataIndex="id" title="主键" width={80} />
-      <Table.Column dataIndex="code" title="编码" width={120} />
-      <Table.Column dataIndex="cnName" title="中文名称" width={150} />
-      <Table.Column dataIndex="enName" title="英文名称" />
-      <Table.Column dataIndex="countryCode2" title="国家" width={150} />
-      <Table.Column dataIndex="remark" title="备注" />
-    </>
-  ), [])
+  const columns: ColumnDef<CityData>[] = [
+    { accessorKey: 'id', header: '主键', size: 80 },
+    { accessorKey: 'code', header: '编码', size: 120 },
+    { accessorKey: 'cnName', header: '中文名称', size: 150 },
+    { accessorKey: 'enName', header: '英文名称' },
+    { accessorKey: 'countryCode2', header: '国家', size: 100 },
+    { accessorKey: 'remark', header: '备注' },
+  ]
 
-  const renderForm = useCallback(() => (
-    <>
-      <Form.Item
-        label="编码"
-        name="code"
-        rules={[{ required: true, message: '请输入编码' }]}
-      >
-        <Input placeholder="请输入编码" />
-      </Form.Item>
-      <Form.Item
-        label="中文名称"
-        name="cnName"
-        rules={[{ required: true, message: '请输入中文名称' }]}
-      >
-        <Input placeholder="请输入中文名称" />
-      </Form.Item>
-      <Form.Item label="英文名称" name="enName">
-        <Input placeholder="请输入英文名称" />
-      </Form.Item>
-      <Form.Item
-        label="国家"
-        name="countryId"
-        rules={[{ required: true, message: '请选择国家' }]}
-      >
-        <Space.Compact style={{ width: '100%' }}>
-          <Form.Item noStyle name="countryCode2">
-            <Input placeholder="请选择国家" readOnly />
-          </Form.Item>
-          <Button
-            type="primary"
-            icon={<MoreOutlined />}
-            onClick={() => countryDialogRef.current?.open()}
-          >
-            选择
-          </Button>
-        </Space.Compact>
-      </Form.Item>
-      <Form.Item label="备注" name="remark">
-        <TextArea placeholder="请输入备注" rows={3} />
-      </Form.Item>
-    </>
-  ), [])
+  const renderFormFields = useCallback((form: UseFormReturn<CityData>) => {
+    formRef.current = form
+    return (
+      <>
+        <FormField control={form.control} name="code" render={({ field }) => (
+          <FormItem>
+            <FormLabel>编码</FormLabel>
+            <FormControl><Input placeholder="请输入编码" {...field} /></FormControl>
+            <FormMessage />
+          </FormItem>
+        )} />
+        <FormField control={form.control} name="cnName" render={({ field }) => (
+          <FormItem>
+            <FormLabel>中文名称</FormLabel>
+            <FormControl><Input placeholder="请输入中文名称" {...field} /></FormControl>
+            <FormMessage />
+          </FormItem>
+        )} />
+        <FormField control={form.control} name="enName" render={({ field }) => (
+          <FormItem>
+            <FormLabel>英文名称</FormLabel>
+            <FormControl><Input placeholder="请输入英文名称" {...field} /></FormControl>
+            <FormMessage />
+          </FormItem>
+        )} />
+        <FormField control={form.control} name="countryCode2" render={({ field }) => (
+          <FormItem>
+            <FormLabel>国家</FormLabel>
+            <div className="flex gap-2">
+              <FormControl><Input placeholder="请选择国家" readOnly {...field} /></FormControl>
+              <Button type="button" variant="outline" size="icon" onClick={() => setCountryDialogOpen(true)}>
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </div>
+            <FormMessage />
+          </FormItem>
+        )} />
+        <FormField control={form.control} name="remark" render={({ field }) => (
+          <FormItem className="col-span-2">
+            <FormLabel>备注</FormLabel>
+            <FormControl><Textarea placeholder="请输入备注" rows={3} {...field} /></FormControl>
+            <FormMessage />
+          </FormItem>
+        )} />
+      </>
+    )
+  }, [])
 
-  const defaultFormData = useCallback(() => ({
+  const defaultValues: CityData = {
     code: '',
     cnName: '',
     enName: '',
     remark: '',
     countryId: null,
-    countryName: '',
-    countryCode2: ''
-  }), [])
+    countryCode2: '',
+  }
 
   return (
     <>
-      <CrudTable<CityData>
-        ref={crudTableRef}
+      <CrudTableV2<CityData>
         title="城市管理"
         apiUrl="/base/api/city"
-        renderColumns={renderColumns}
-        renderForm={renderForm}
-        defaultFormData={defaultFormData}
+        columns={columns}
+        formSchema={citySchema}
+        renderFormFields={renderFormFields}
+        defaultValues={defaultValues}
       />
-      <CountryDialog ref={countryDialogRef} onSelect={handleCountrySelect} />
+      <SelectDialogV2<CountryItem>
+        title="选择国家"
+        apiUrl="/base/api/country"
+        columns={countryColumns}
+        open={countryDialogOpen}
+        onOpenChange={setCountryDialogOpen}
+        onSelect={handleCountrySelect}
+      />
     </>
   )
 }

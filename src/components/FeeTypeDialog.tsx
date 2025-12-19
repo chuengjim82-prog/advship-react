@@ -18,7 +18,7 @@ const FeeTypeDialog = forwardRef<SelectDialogRef, FeeTypeDialogProps>((props, re
   const columns = [
     { title: '主键', dataIndex: 'id', width: 80 },
     { title: '中文名称', dataIndex: 'cnName', width: 140 },
-    { title: '英文名称', dataIndex: 'enName', width: 200 },
+    { title: '英文名称', dataIndex: 'enName', width: 300 },
     { title: '备注', dataIndex: 'remark' }
   ]
 

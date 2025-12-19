@@ -1,6 +1,6 @@
 import { lazy, Suspense } from 'react'
 import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom'
-import { Spin } from 'antd'
+import { Loading } from '@/components/ui/spinner'
 import MainLayout from '@/layouts/MainLayout'
 
 // 懒加载视图组件
@@ -9,12 +9,9 @@ const Home = lazy(() => import('@/views/Home'))
 
 // Basic Data Module
 const Country = lazy(() => import('@/views/basic/Country'))
-const CountryV2 = lazy(() => import('@/views/basic/CountryV2'))
 const City = lazy(() => import('@/views/basic/City'))
 const Currency = lazy(() => import('@/views/basic/Currency'))
-const CurrencyV2 = lazy(() => import('@/views/basic/CurrencyV2'))
 const Service = lazy(() => import('@/views/basic/Service'))
-const ServiceV2 = lazy(() => import('@/views/basic/ServiceV2'))
 const FeeType = lazy(() => import('@/views/finis/FeeType'))
 const FeeItem = lazy(() => import('@/views/finis/FeeItem'))
 
@@ -61,11 +58,6 @@ const router = createBrowserRouter([
         handle: { title: '国家管理' }
       },
       {
-        path: 'basic/country-v2',
-        element: <CountryV2 />,
-        handle: { title: '国家管理 (V2)' }
-      },
-      {
         path: 'basic/city',
         element: <City />,
         handle: { title: '城市管理' }
@@ -76,19 +68,9 @@ const router = createBrowserRouter([
         handle: { title: '币种管理' }
       },
       {
-        path: 'basic/currency-v2',
-        element: <CurrencyV2 />,
-        handle: { title: '币种管理 (V2)' }
-      },
-      {
         path: 'basic/service',
         element: <Service />,
         handle: { title: '服务项目管理' }
-      },
-      {
-        path: 'basic/service-v2',
-        element: <ServiceV2 />,
-        handle: { title: '服务项目管理 (V2)' }
       },
       {
         path: 'basic/feeType',
@@ -157,8 +139,8 @@ const router = createBrowserRouter([
 function AppRouter() {
   return (
     <Suspense fallback={
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <Spin size="large" />
+      <div className="flex h-screen items-center justify-center">
+        <Loading tip="加载中..." />
       </div>
     }>
       <RouterProvider router={router} />

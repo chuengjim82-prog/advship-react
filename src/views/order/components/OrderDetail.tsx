@@ -1,61 +1,67 @@
-import { useState, useEffect, useMemo, useCallback } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Button, Table, Space, message, Spin } from 'antd'
-import type { TableColumnsType } from 'antd'
 import request from '@/utils/request'
-import './OrderDetail.css'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { Loading } from '@/components/ui/spinner'
+import { toast } from 'sonner'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 
-// 接口数据类型
-interface OrderDetailField {
-  label: string
-  value: string
-}
-
-interface BillItem {
-  waybillNo: string
+interface ContainerGoodsItem {
+  id: number
+  number: string
   remark: string
-  quantity: string
-  ttlWeight: string
+  sizeType: number
+  weight: number
 }
 
 interface AttachmentDetail {
-  name: string
-  fileKey?: string
+  id: number
+  auditMemo: string
+  auditResult: number
+  auditTime: string
+  creatorNic: string
+  fileName: string
+  dirtType: number
+  fileType: string
+  isAudit: number
+  isExtract: number
+  remark: string
   url?: string
-  status: string
-  remark?: string
-  reviewedAt: string
-  reviewer: string
-}
-
-interface OrderDetailData {
-  completedAt: string
-  declarationFields: OrderDetailField[]
-  blSummary: OrderDetailField[]
-  blItems: BillItem[]
-  transactionFields: OrderDetailField[]
-  goodsSummary: OrderDetailField[]
-  attachments: AttachmentDetail[]
+  fileKey?: string
+  filePath?: string
 }
 
 interface InvoiceGoodsItem {
   id: number
-  Amount: number
-  GoodsSpec: string
-  HsCode: string
-  Price: number
-  Quantity: number
+  amount: number
+  goodsName: string
+  goodsSpec: string | null
+  hsCode: string
+  price: number
+  quantity: number
+  remark: string | null
+  saber: string | null
 }
 
 interface OrderBaseInfoDto {
   id: number
   countryId: number
+  countryName: string | null
   customsCnName: string | null
   creatorNic: string
   custAgentId: number
   custAgentName: string | null
   custPickup: boolean
-  currencyName: string
+  currencyName: string | null
   custPortId: number
   custPortName: string | null
   orderDate: string
@@ -69,6 +75,26 @@ interface OrderBaseInfoDto {
   transAgentName: string | null
 }
 
+interface WaybillDto {
+  id: number
+  consigneeAddress: string
+  consigneeName: string
+  cubicVol: number
+  custPort: string
+  quantity: number
+  remark: string
+  shipperAddress: string
+  shipperName: string
+  ttlWeight: number
+  waybillDate: string
+  waybillNo: string
+}
+
+interface BaseInfoResponse {
+  baseInfo: OrderBaseInfoDto
+  waybill: WaybillDto
+}
+
 export default function OrderDetail() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
@@ -76,54 +102,28 @@ export default function OrderDetail() {
   const orderId = useMemo(() => Number(searchParams.get('id')), [searchParams])
   const displayBillNo = useMemo(() => searchParams.get('billNo') || '-', [searchParams])
 
-  const [detailData] = useState<OrderDetailData>({
-    completedAt: '2025/12/12 14:30',
-    declarationFields: [
-      { label: '海关港口', value: '达曼港' },
-      { label: '申报类型', value: '进口即时清关' },
-      { label: '付款方式', value: '现金政府保险' },
-      { label: '进口国', value: 'SA' },
-      { label: '海关出口口岸', value: '达曼海关' },
-      { label: '经纪商授权码', value: 'xxxxxxxxxxx' },
-    ],
-    blSummary: [{ label: '提单日期', value: '2025/11/28' }],
-    blItems: [],
-    transactionFields: [
-      { label: '交易类型', value: 'C&I' },
-      { label: '发票号码', value: 'RHD202510067' },
-      { label: '发票货币币种', value: 'USD' },
-      { label: '发票共计费用', value: '4,024.65' },
-      { label: '出口公司名称', value: 'SHENZHEN CHUANGGONG IMP&EXP CO. LTD' },
-    ],
-    goodsSummary: [
-      { label: '提单总重量', value: '2142' },
-      { label: '提单总数量', value: '2028' },
-      { label: '业务类型', value: '固定金额已投保 // 商业保险 / 免税' },
-      { label: '货物最终到达位置', value: '达曼' },
-    ],
-    attachments: [
-      { name: '提单文件 (td.pdf)', fileKey: 'td.pdf', url: '', status: '已审核', reviewedAt: '2025/11/22', reviewer: 'steven' },
-      { name: '装箱单 (z.pdf)', fileKey: 'z.pdf', url: '', status: '已审核', remark: '£', reviewedAt: '2025/11/22', reviewer: 'steven' },
-      { name: '发票 (f.pdf)', fileKey: 'f.pdf', url: '', status: '已审核', reviewedAt: '2025/11/22', reviewer: 'steven' },
-      { name: 'SABER (a.pdf; b.pdf)', fileKey: 'saber.pdf', url: '', status: '已审核', reviewedAt: '2025/11/22', reviewer: 'steven' },
-    ],
-  })
-
-  const [waybillList, setWaybillList] = useState<BillItem[]>([])
   const [orderBaseInfo, setOrderBaseInfo] = useState<OrderBaseInfoDto | null>(null)
-  const [invoiceGoods] = useState<InvoiceGoodsItem[]>([])
+  const [waybillInfo, setWaybillInfo] = useState<WaybillDto | null>(null)
+  const [invoiceGoods, setInvoiceGoods] = useState<InvoiceGoodsItem[]>([])
+  const [containerGoods, setContainerGoods] = useState<ContainerGoodsItem[]>([])
+  const [attachments, setAttachments] = useState<AttachmentDetail[]>([])
   const [loading, setLoading] = useState(false)
-  const [selectedAttachments, setSelectedAttachments] = useState<AttachmentDetail[]>([])
+  const [selectedAttachments, setSelectedAttachments] = useState<Set<number>>(new Set())
 
-  const hasSelectedAttachment = selectedAttachments.length > 0
-
-  // 格式化货币
   const formatCurrency = useCallback((value?: number | null) => {
     if (value == null) return '-'
     return value.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
   }, [])
 
-  // 复制文本
+  const formatDate = useCallback((date?: string | null) => {
+    if (!date) return '-'
+    try {
+      return new Date(date).toLocaleDateString('zh-CN')
+    } catch {
+      return '-'
+    }
+  }, [])
+
   const copyText = useCallback(async (text: string) => {
     if (navigator.clipboard) {
       return navigator.clipboard.writeText(text)
@@ -142,13 +142,12 @@ export default function OrderDetail() {
   const handleCopyBillNo = useCallback(async () => {
     try {
       await copyText(displayBillNo)
-      message.success('提单号已复制')
+      toast.success('提单号已复制')
     } catch {
-      message.error('复制失败')
+      toast.error('复制失败')
     }
   }, [copyText, displayBillNo])
 
-  // 下载附件
   const downloadBlob = useCallback((name: string, content: string) => {
     const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
     const link = document.createElement('a')
@@ -160,226 +159,336 @@ export default function OrderDetail() {
   }, [])
 
   const handleDownload = useCallback(() => {
-    selectedAttachments.forEach((file) => {
-      if (file.url) {
+    const selected = attachments.filter(a => selectedAttachments.has(a.id))
+    selected.forEach((file) => {
+      if (file.url || file.filePath) {
         const link = document.createElement('a')
-        link.href = file.url
-        link.download = file.fileKey || file.name
+        link.href = file.url || file.filePath || ''
+        link.download = file.fileName || 'attachment'
         document.body.appendChild(link)
         link.click()
         document.body.removeChild(link)
       } else {
-        downloadBlob(file.fileKey || 'attachment.txt', `模拟下载文件：${file.name}`)
+        downloadBlob(file.fileName || 'attachment.txt', `模拟下载文件：${file.fileName}`)
       }
     })
-    message.success(`已开始下载 ${selectedAttachments.length} 个文件`)
-  }, [selectedAttachments, downloadBlob])
+    toast.success(`已开始下载 ${selected.length} 个文件`)
+  }, [attachments, selectedAttachments, downloadBlob])
 
   const handleBack = useCallback(() => {
     navigate(-1)
   }, [navigate])
 
   const handleSubmit = useCallback(() => {
-    message.success('提交成功')
+    toast.success('提交成功')
   }, [])
-
-  // 加载数据
-  const loadWaybillList = useCallback(async () => {
-    if (!orderId) return
-    setLoading(true)
-    try {
-      const res = await request.get<BillItem[]>(`/api/Waybill/${orderId}GetWaybillOrder`)
-      setWaybillList(res.data ?? [])
-    } catch (err) {
-      console.error(err)
-    } finally {
-      setLoading(false)
-    }
-  }, [orderId])
 
   const loadOrderBaseInfo = useCallback(async () => {
     if (!orderId) return
     setLoading(true)
     try {
-      const res = await request.get<OrderBaseInfoDto>(`/api/BaseInfo/${orderId}GetWaybillOrder`)
-      setOrderBaseInfo(res.data ?? null)
+      const res = await request.get<BaseInfoResponse>(`/bzss/api/BaseInfo/${orderId}GetBaseInfoOrder`)
+      if (res.data) {
+        setOrderBaseInfo(res.data.baseInfo ?? null)
+        setWaybillInfo(res.data.waybill ?? null)
+      }
     } catch (err) {
-      console.error(err)
+      console.error('加载基础信息失败:', err)
+      toast.error('加载基础信息失败')
     } finally {
       setLoading(false)
     }
   }, [orderId])
 
+  const loadContainerGoods = useCallback(async () => {
+    if (!orderId) return
+    try {
+      const res = await request.get<ContainerGoodsItem[]>(`/bzss/api/Containers/${orderId}GetOrderGoodsInfoOrder`)
+      setContainerGoods(res.data ?? [])
+    } catch (err) {
+      console.error('加载货物信息失败:', err)
+    }
+  }, [orderId])
+
+  const loadInvoiceGoods = useCallback(async () => {
+    if (!orderId) return
+    try {
+      const res = await request.get<InvoiceGoodsItem[]>(`/bzss/api/GoodsInfo/${orderId}GetOrderContainerOrder`)
+      setInvoiceGoods(res.data ?? [])
+    } catch (err) {
+      console.error('加载物品规格失败:', err)
+    }
+  }, [orderId])
+
+  const loadAttachments = useCallback(async () => {
+    if (!orderId) return
+    try {
+      const res = await request.get<AttachmentDetail[]>(`/bzss/api/Attachment/${orderId}GetAttachmentOrder`)
+      setAttachments(res.data ?? [])
+    } catch (err) {
+      console.error('加载附件失败:', err)
+    }
+  }, [orderId])
+
   useEffect(() => {
     loadOrderBaseInfo()
-    loadWaybillList()
-  }, [loadOrderBaseInfo, loadWaybillList])
+    loadContainerGoods()
+    loadInvoiceGoods()
+    loadAttachments()
+  }, [loadOrderBaseInfo, loadContainerGoods, loadInvoiceGoods, loadAttachments])
 
-  // 表格列定义
-  const waybillColumns: TableColumnsType<BillItem> = useMemo(() => [
-    { title: '柜号', dataIndex: 'waybillNo', width: 120 },
-    { title: '货物描述', dataIndex: 'remark', width: 160 },
-    { title: '数量', dataIndex: 'quantity', width: 100 },
-    { title: '重量', dataIndex: 'ttlWeight', width: 100 },
-  ], [])
+  const toggleAttachment = (id: number) => {
+    setSelectedAttachments(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) {
+        next.delete(id)
+      } else {
+        next.add(id)
+      }
+      return next
+    })
+  }
 
-  const invoiceGoodsColumns: TableColumnsType<InvoiceGoodsItem> = useMemo(() => [
-    { title: '物品规格', dataIndex: 'GoodsSpec', width: 160 },
-    { title: 'HSCode', dataIndex: 'HsCode', width: 120 },
-    { title: '数量', dataIndex: 'Quantity', width: 100 },
-    {
-      title: '单价(CNF美元)',
-      dataIndex: 'Price',
-      width: 140,
-      render: (value: number) => formatCurrency(value)
-    },
-    {
-      title: '总CNF价格(美元)',
-      dataIndex: 'Amount',
-      width: 160,
-      render: (value: number) => formatCurrency(value)
-    },
-  ], [formatCurrency])
-
-  const attachmentColumns: TableColumnsType<AttachmentDetail> = useMemo(() => [
-    { title: '文件名', dataIndex: 'name', width: 180 },
-    { title: '状态', dataIndex: 'status', width: 120 },
-    { title: '备注', dataIndex: 'remark', width: 140, render: (text) => text || '-' },
-    { title: '审核日期', dataIndex: 'reviewedAt', width: 140 },
-    { title: '审核人', dataIndex: 'reviewer', width: 120 },
-  ], [])
-
-  const attachmentRowSelection = {
-    onChange: (_: React.Key[], selectedRows: AttachmentDetail[]) => {
-      setSelectedAttachments(selectedRows)
-    },
+  const toggleAllAttachments = () => {
+    if (selectedAttachments.size === attachments.length) {
+      setSelectedAttachments(new Set())
+    } else {
+      setSelectedAttachments(new Set(attachments.map(a => a.id)))
+    }
   }
 
   return (
-    <div className="order-detail-page">
-      {/* 头部 */}
-      <div className="detail-header">
-        <div>
-          <p className="detail-header__title">海关申报</p>
-          <p className="detail-header__subtitle">完成海关申报时间 {detailData.completedAt}</p>
+    <Loading loading={loading}>
+      <div className="space-y-4">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold">订单详情</h2>
+            <p className="text-muted-foreground">订单号: {orderBaseInfo?.orderNo || '-'}</p>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={handleBack}>返回</Button>
+            <Button onClick={handleSubmit}>提交</Button>
+          </div>
         </div>
-        <div className="detail-header__actions">
-          <Button onClick={handleBack}>返回</Button>
-          <Button type="primary" onClick={handleSubmit}>提交</Button>
-        </div>
+
+        {/* Order Info */}
+        <Card>
+          <CardHeader>
+            <CardTitle>订单信息</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              <div>
+                <p className="text-sm text-muted-foreground">订单号码</p>
+                <div className="flex items-center gap-2">
+                  <span className="font-medium">{orderBaseInfo?.orderNo || '-'}</span>
+                  <Button variant="link" size="sm" className="h-auto p-0" onClick={handleCopyBillNo}>复制</Button>
+                </div>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">订单日期</p>
+                <p className="font-medium">{formatDate(orderBaseInfo?.orderDate)}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">清关代理</p>
+                <p className="font-medium">{orderBaseInfo?.custAgentName || '-'}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">海关名称</p>
+                <p className="font-medium">{orderBaseInfo?.customsCnName || '-'}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">清关口岸</p>
+                <p className="font-medium">{orderBaseInfo?.custPortName || '-'}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">运输代理</p>
+                <p className="font-medium">{orderBaseInfo?.transAgentName || '-'}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">货币</p>
+                <p className="font-medium">{orderBaseInfo?.currencyName || '-'}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">状态</p>
+                <p className="font-medium">{orderBaseInfo?.statuss || '-'}</p>
+              </div>
+              <div className="col-span-2">
+                <p className="text-sm text-muted-foreground">备注</p>
+                <p className="font-medium">{orderBaseInfo?.remark || '-'}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Waybill Details */}
+        <Card>
+          <CardHeader>
+            <CardTitle>第2步 提单详情 - 添加BL提单信息</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              <div>
+                <p className="text-sm text-muted-foreground">提单号码</p>
+                <p className="font-medium">{waybillInfo?.waybillNo || '-'}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">提单日期</p>
+                <p className="font-medium">{formatDate(waybillInfo?.waybillDate)}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">发件人名称</p>
+                <p className="font-medium">{waybillInfo?.shipperName || '-'}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">发件人地址</p>
+                <p className="font-medium">{waybillInfo?.shipperAddress || '-'}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">收件人名称</p>
+                <p className="font-medium">{waybillInfo?.consigneeName || '-'}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">收件人地址</p>
+                <p className="font-medium">{waybillInfo?.consigneeAddress || '-'}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">清关口岸</p>
+                <p className="font-medium">{waybillInfo?.custPort || '-'}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">总数量</p>
+                <p className="font-medium">{waybillInfo?.quantity || '-'}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">总重量</p>
+                <p className="font-medium">{waybillInfo?.ttlWeight || '-'}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">体积</p>
+                <p className="font-medium">{waybillInfo?.cubicVol || '-'}</p>
+              </div>
+            </div>
+            <div className="border rounded-md">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[120px]">柜号</TableHead>
+                    <TableHead className="w-[160px]">货物描述</TableHead>
+                    <TableHead className="w-[100px]">数量</TableHead>
+                    <TableHead className="w-[100px]">重量</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {containerGoods.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center text-muted-foreground">暂无数据</TableCell>
+                    </TableRow>
+                  ) : containerGoods.map(item => (
+                    <TableRow key={item.id}>
+                      <TableCell>{item.number}</TableCell>
+                      <TableCell>{item.remark}</TableCell>
+                      <TableCell>{item.sizeType}</TableCell>
+                      <TableCell>{item.weight}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Invoice Items */}
+        <Card>
+          <CardHeader>
+            <CardTitle>第3步 发票与物品 - SABER海关编码</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="border rounded-md">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[160px]">物品规格</TableHead>
+                    <TableHead className="w-[120px]">HSCode</TableHead>
+                    <TableHead className="w-[100px]">数量</TableHead>
+                    <TableHead className="w-[140px]">单价(CNF美元)</TableHead>
+                    <TableHead className="w-[160px]">总CNF价格(美元)</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {invoiceGoods.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center text-muted-foreground">暂无数据</TableCell>
+                    </TableRow>
+                  ) : invoiceGoods.map(item => (
+                    <TableRow key={item.id}>
+                      <TableCell>{item.goodsSpec || '-'}</TableCell>
+                      <TableCell>{item.hsCode}</TableCell>
+                      <TableCell>{item.quantity}</TableCell>
+                      <TableCell>{formatCurrency(item.price)}</TableCell>
+                      <TableCell>{formatCurrency(item.amount)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Attachments */}
+        <Card>
+          <CardHeader>
+            <CardTitle>第4步 附加详情 - 提交发票和SABER证书</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="border rounded-md">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[50px]">
+                      <Checkbox
+                        checked={selectedAttachments.size === attachments.length && attachments.length > 0}
+                        onCheckedChange={toggleAllAttachments}
+                      />
+                    </TableHead>
+                    <TableHead className="w-[180px]">文件名</TableHead>
+                    <TableHead className="w-[120px]">状态</TableHead>
+                    <TableHead className="w-[140px]">备注</TableHead>
+                    <TableHead className="w-[140px]">审核日期</TableHead>
+                    <TableHead className="w-[120px]">审核人</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {attachments.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center text-muted-foreground">暂无数据</TableCell>
+                    </TableRow>
+                  ) : attachments.map(item => (
+                    <TableRow key={item.id}>
+                      <TableCell>
+                        <Checkbox
+                          checked={selectedAttachments.has(item.id)}
+                          onCheckedChange={() => toggleAttachment(item.id)}
+                        />
+                      </TableCell>
+                      <TableCell>{item.fileName}</TableCell>
+                      <TableCell>{item.isAudit === 1 ? '已审核' : item.isAudit === 0 ? '待审核' : '-'}</TableCell>
+                      <TableCell>{item.remark || '-'}</TableCell>
+                      <TableCell>{item.auditTime ? new Date(item.auditTime).toLocaleDateString('zh-CN') : '-'}</TableCell>
+                      <TableCell>{item.creatorNic}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" disabled={selectedAttachments.size === 0} onClick={handleDownload}>下载</Button>
+              <Button>选择文件</Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
-
-      {/* 订单信息 */}
-      <section className="detail-section">
-        <h3 className="detail-section__title">订单信息</h3>
-        <div className="detail-grid">
-          <div className="detail-field detail-field--copyable">
-            <span className="detail-label">提单号码</span>
-            <div className="detail-value detail-value--with-action">
-              <span>{orderBaseInfo?.orderNo || displayBillNo}</span>
-              <Button type="link" size="small" onClick={handleCopyBillNo}>
-                复制
-              </Button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 申报详情 */}
-      <section className="detail-section">
-        <h3 className="detail-section__title">第1步 申报详情 - 录入货物信息</h3>
-        <div className="detail-grid">
-          {detailData.declarationFields.map((item) => (
-            <div key={item.label} className="detail-field">
-              <span className="detail-label">{item.label}</span>
-              <span className="detail-value">{item.value}</span>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* 提单详情 */}
-      <section className="detail-section">
-        <h3 className="detail-section__title">第2步 提单详情 - 添加BL提单信息</h3>
-        <div className="detail-grid detail-grid--compact">
-          <div className="detail-field">
-            <span className="detail-label">提单号码</span>
-            <span className="detail-value">{displayBillNo}</span>
-          </div>
-          {detailData.blSummary.map((item) => (
-            <div key={item.label} className="detail-field">
-              <span className="detail-label">{item.label}</span>
-              <span className="detail-value">{item.value}</span>
-            </div>
-          ))}
-        </div>
-
-        <Spin spinning={loading}>
-          <Table
-            dataSource={waybillList}
-            columns={waybillColumns}
-            rowKey="waybillNo"
-            bordered
-            pagination={false}
-            className="detail-table"
-          />
-        </Spin>
-
-        <div className="detail-grid detail-grid--compact">
-          {detailData.transactionFields.map((item) => (
-            <div key={item.label} className="detail-field">
-              <span className="detail-label">{item.label}</span>
-              <span className="detail-value">{item.value}</span>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* 发票物品 */}
-      <section className="detail-section">
-        <h3 className="detail-section__title">第3步 发票与物品 - SABER海关编码</h3>
-        <Spin spinning={loading}>
-          <Table
-            dataSource={invoiceGoods}
-            columns={invoiceGoodsColumns}
-            rowKey="id"
-            bordered
-            pagination={false}
-            className="detail-table"
-          />
-        </Spin>
-
-        <div className="detail-grid detail-grid--compact">
-          {detailData.goodsSummary.map((item) => (
-            <div key={item.label} className="detail-field">
-              <span className="detail-label">{item.label}</span>
-              <span className="detail-value">{item.value}</span>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* 附件 */}
-      <section className="detail-section">
-        <h3 className="detail-section__title">第4步 附加详情 - 提交发票和SABER证书</h3>
-        <Table
-          dataSource={detailData.attachments}
-          columns={attachmentColumns}
-          rowKey="name"
-          rowSelection={attachmentRowSelection}
-          bordered
-          pagination={false}
-          className="detail-table"
-        />
-        <div className="detail-attachments__actions">
-          <Space>
-            <Button disabled={!hasSelectedAttachment} onClick={handleDownload}>
-              下载
-            </Button>
-            <Button type="primary">选择文件</Button>
-          </Space>
-        </div>
-      </section>
-    </div>
+    </Loading>
   )
 }

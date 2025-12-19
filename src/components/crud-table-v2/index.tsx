@@ -42,6 +42,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Form } from '@/components/ui/form'
+import { cn } from '@/lib/utils'
 import request from '@/utils/request'
 import type { PageResult } from '@/utils/request'
 import type { CrudTableV2Props, CrudTableV2Ref } from './types'
@@ -59,6 +60,7 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
     defaultValues,
     searchPlaceholder = '请输入关键词搜索',
     dialogWidth = '600px',
+    dialogClassName,
     onLoaded,
     onBeforeSubmit,
     onAfterSubmit,
@@ -389,7 +391,7 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
 
       {/* Add/Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent style={{ maxWidth: dialogWidth }}>
+        <DialogContent className={cn(dialogClassName)} style={{ maxWidth: dialogWidth }}>
           <DialogHeader>
             <DialogTitle>{isEdit ? '编辑' : '新增'}</DialogTitle>
           </DialogHeader>
