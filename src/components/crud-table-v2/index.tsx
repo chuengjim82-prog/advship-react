@@ -95,11 +95,14 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
   const loadData = useCallback(async () => {
     setLoading(true)
     try {
+      const keyword = appliedKeyword.trim() || undefined
       const res = await request.get<PageResult<T>>(apiUrl, {
         params: {
           pageIndex: pagination.pageIndex + 1, // API uses 1-based index
           pageSize: pagination.pageSize,
-          keyword: appliedKeyword,
+          keyword,
+          Keyword: keyword, //兼容部分后端使用大写参数名
+          keyWord: keyword, //兼容驼峰写法
         },
       })
       const items = res.data?.items || []
