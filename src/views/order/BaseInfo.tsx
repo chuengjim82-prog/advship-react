@@ -11,6 +11,7 @@ import { Pagination } from '@/components/ui/pagination'
 import { Plus, RefreshCw, Search } from 'lucide-react'
 import OrderCreateDrawer from './components/OrderCreateDrawer'
 import OrderAuditDrawer from './components/OrderAuditDrawer'
+import OrderDetailDrawer from './components/OrderDetailDrawer'
 import { useOrderList } from '@/hooks/useOrderList' // 你刚整理的 hook
 import { toast } from 'sonner'
 import request from "@/utils/request";
@@ -33,6 +34,8 @@ export default function BaseInfo() {
   const [currentOrderId, setCurrentOrderId] = useState<number | null>(null)
   const [auditVisible, setAuditVisible] = useState(false)
   const [auditOrderId, setAuditOrderId] = useState<number | null>(null)
+  const [detailVisible, setDetailVisible] = useState(false)
+  const [detailOrderId, setDetailOrderId] = useState<number | null>(null)
 
   const {
     orders,
@@ -92,6 +95,11 @@ export default function BaseInfo() {
   const auditOrder = (row: any) => {
     setAuditOrderId(row.id)
     setAuditVisible(true)
+  }
+
+  const viewOrderDetail = (row: any) => {
+    setDetailOrderId(row.id)
+    setDetailVisible(true)
   }
 
   const detailOrder = (row: any) => {
@@ -229,11 +237,17 @@ export default function BaseInfo() {
                       </TableCell>
                       <TableCell className="sticky left-[140px] bg-background">
                         <div className="flex gap-1">
-                          <Button variant="link" size="sm" className="h-auto p-0" onClick={() => editOrder(row)}>编辑</Button>                       
-                          {row.statusI === 1 && (
-                            <Button variant="link" size="sm" className="h-auto p-0 text-red-500" onClick={() => deleteOrder(row)}  >    删除  </Button>
+                          {row.statusI > 1 ? (
+                            <Button variant="link" size="sm" className="h-auto p-0" onClick={() => viewOrderDetail(row)}>详情</Button>
+                          ) : (
+                            <>
+                              <Button variant="link" size="sm" className="h-auto p-0" onClick={() => editOrder(row)}>编辑</Button>                       
+                              {row.statusI === 1 && (
+                                <Button variant="link" size="sm" className="h-auto p-0 text-red-500" onClick={() => deleteOrder(row)}>删除</Button>
+                              )}
+                              <Button variant="link" size="sm" className="h-auto p-0" onClick={() => auditOrder(row)}>审核</Button>
+                            </>
                           )}
-                           <Button variant="link" size="sm" className="h-auto p-0" onClick={() => auditOrder(row)}>审核</Button>
                         </div>
                       </TableCell>
                       <TableCell>{displayValue(row.containerNo)}</TableCell>
@@ -283,6 +297,15 @@ export default function BaseInfo() {
           setAuditOrderId(null)
         }}
         onSuccess={handleDrawerSuccess}
+      />
+
+      <OrderDetailDrawer
+        visible={detailVisible}
+        orderId={detailOrderId}
+        onClose={() => {
+          setDetailVisible(false)
+          setDetailOrderId(null)
+        }}
       />
     </div>
   )
