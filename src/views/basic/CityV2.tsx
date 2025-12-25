@@ -2,7 +2,7 @@ import { useRef, useCallback, useState } from 'react'
 import { z } from 'zod'
 import type { ColumnDef } from '@tanstack/react-table'
 import { MoreHorizontal } from 'lucide-react'
-import CrudTableV2 from '@/components/crud-table-v2'
+import CrudTableV2, { type SearchField } from '@/components/crud-table-v2'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
@@ -168,6 +168,14 @@ export default function City() {
     countryCode2: '',
   }
 
+  // 多字段搜索配置
+  const searchFields: SearchField[] = [
+    { name: 'code', label: '编码', placeholder: '请输入编码' },
+    { name: 'cnName', label: '中文名', placeholder: '请输入中文名' },
+    { name: 'countryCode2', label: '国家', placeholder: '请输入国家代码' },
+    { name: 'enName', label: '英文名', placeholder: '请输入英文名' },
+  ]
+
   return (
     <>
       <CrudTableV2<CityData>
@@ -177,6 +185,8 @@ export default function City() {
         formSchema={citySchema}
         renderFormFields={renderFormFields}
         defaultValues={defaultValues}
+        searchFields={searchFields}
+        searchVisibleRows={1}
       />
       <CountryDialog ref={countryDialogRef} onSelect={handleCountrySelect} />
     </>
