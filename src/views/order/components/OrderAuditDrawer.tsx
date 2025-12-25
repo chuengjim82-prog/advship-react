@@ -8,9 +8,9 @@ import {
 } from '@/components/ui/sheet'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
 import { Loading } from '@/components/ui/spinner'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Trash2, Download } from 'lucide-react'
 import request from '@/utils/request'
 import { toast } from 'sonner'
 import {
@@ -46,7 +46,6 @@ export default function OrderAuditDrawer({ visible, orderId, onClose, onSuccess 
   const [shippingOptions, setShippingOptions] = useState<ShippingItem[]>([])
   const [custAgentOptions, setCustAgentOptions] = useState<AgentItem[]>([])
   const [attachments, setAttachments] = useState<any[]>([])
-  const [selectedAttachments, setSelectedAttachments] = useState<Set<number>>(new Set())
 
   const loadDetail = async (id?: number | null) => {
     if (!id) {
@@ -97,46 +96,6 @@ export default function OrderAuditDrawer({ visible, orderId, onClose, onSuccess 
     // load base options once when drawer is used
     if (visible) loadBaseOptions()
   }, [visible])
-
-  const toggleAttachment = (id: number) => {
-    setSelectedAttachments((prev) => {
-      const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
-      return next
-    })
-  }
-
-  const toggleAllAttachments = () => {
-    if (selectedAttachments.size === attachments.length) {
-      setSelectedAttachments(new Set())
-    } else {
-      setSelectedAttachments(new Set(attachments.map((a: any) => a.id)))
-    }
-  }
-
-  const handleDownload = () => {
-    const selected = attachments.filter((a: any) => selectedAttachments.has(a.id))
-    selected.forEach((file: any) => {
-      if (file.url || file.filePath) {
-        const link = document.createElement('a')
-        link.href = file.url || file.filePath || ''
-        link.download = file.fileName || 'attachment'
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
-      } else {
-        const blob = new Blob([`模拟下载文件：${file.fileName}`], { type: 'text/plain;charset=utf-8' })
-        const link = document.createElement('a')
-        link.href = URL.createObjectURL(blob)
-        link.download = file.fileName || 'attachment.txt'
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
-      }
-    })
-    toast.success(`已开始下载 ${selected.length} 个文件`)
-  }
 
   const RECEIVABLE_METHOD_FIXED = '固定'
   const RECEIVABLE_METHOD_ACTUAL = '实报'
@@ -239,37 +198,51 @@ export default function OrderAuditDrawer({ visible, orderId, onClose, onSuccess 
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead className="w-[50px]">
-                            <Checkbox
-                              checked={selectedAttachments.size === attachments.length && attachments.length > 0}
-                              onCheckedChange={toggleAllAttachments}
-                            />
-                          </TableHead>
-                          <TableHead className="w-[220px]">文件名</TableHead>
-                          <TableHead className="w-[120px]">类型</TableHead>
-                          <TableHead className="w-[120px]">状态</TableHead>
+                          <TableHead className="w-[200px]">文件类型</TableHead>
+                          <TableHead className="w-[200px]">文件名(新)</TableHead>
+                          <TableHead className="w-[200px]">文件名(原)</TableHead>
+                          <TableHead className="w-[100px]">状态</TableHead>
                           <TableHead>备注</TableHead>
+                          <TableHead className="w-[80px]">操作</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {attachments.map((file: any) => (
                           <TableRow key={file.id}>
                             <TableCell>
-                              <Checkbox checked={selectedAttachments.has(file.id)} onCheckedChange={() => toggleAttachment(file.id)} />
+                              <div className="text-sm">{file.fileName ?? '-'}</div>
                             </TableCell>
                             <TableCell>
-                              {file.fileName}
+                              <div className="text-sm">{file.fileNameN ?? '-'}</div>
                             </TableCell>
-                            <TableCell>{file.fileType ?? '-'}</TableCell>
-                            <TableCell>{file.isAudit === 1 ? '已审核' : file.isAudit === 0 ? '待审核' : '-'}</TableCell>
-                            <TableCell>{file.remark ?? '-'}</TableCell>
+                            <TableCell>
+                              <div className="text-sm">{file.fileNameO ?? '-'}</div>
+                            </TableCell>
+                            <TableCell className="text-sm">{file.isAudit === 1 ? '已审核' : file.isUpload === 1 ? '已上传' : '待上传'}</TableCell>
+                            <TableCell>
+                              <div className="text-sm">{file.remark ?? '-'}</div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex gap-2">
+                                {file.isUpload === 1 && file.fileNameN && (
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    title="下载文件"
+                                    onClick={() => {
+                                      const downloadUrl = `http://hn3.osoosa.com/bzss/order/${orderId}/${file.fileNameN}`
+                                      window.open(downloadUrl, '_blank')
+                                    }}
+                                  >
+                                    <Download className="w-4 h-4 text-blue-500" />
+                                  </Button>
+                                )}
+                              </div>
+                            </TableCell>
                           </TableRow>
                         ))}
                       </TableBody>
                     </Table>
-                  </div>
-                  <div className="flex gap-2 mt-2">
-                    <Button variant="outline" disabled={selectedAttachments.size === 0} onClick={handleDownload}>下载</Button>
                   </div>
                 </CardContent>
               </Card>

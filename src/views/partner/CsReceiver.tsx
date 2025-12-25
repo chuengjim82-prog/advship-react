@@ -78,6 +78,8 @@ export default function City() {
   const customerColumns: ColumnDef<CustomerItem>[] = [
     { accessorKey: 'code', header: '编码', size: 100 },
     { accessorKey: 'name', header: '中文名称', size: 150 },
+    { accessorKey: 'countryName', header: '国家', size: 100 },
+    { accessorKey: 'cityName', header: '城市', size: 100 },
   ]
 
   const handleCustomerSelect = useCallback((customer: CustomerItem) => {

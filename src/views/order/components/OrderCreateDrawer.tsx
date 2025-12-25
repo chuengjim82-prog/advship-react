@@ -961,6 +961,19 @@ useSmartEffect({
     }
   }
 
+  const handleExtractAttachment = async (attachmentId: number) => {
+    try {
+      setUploading(true)
+      await request.post(`/bzss/api/Attachment/${attachmentId}/Extract`)
+      toast.success('文件信息提取成功')
+    } catch (error) {
+      console.error('Extract failed', error)
+      toast.error('文件信息提取失败')
+    } finally {
+      setUploading(false)
+    }
+  }
+
   const handleClose = () => {
     onClose()
     resetForms()
@@ -1157,6 +1170,17 @@ useSmartEffect({
                                 <Upload className="w-3 h-3 mr-1" />
                                 {uploading ? '上传中' : '选择'}
                               </Button>
+                              {file.isUpload === 1 && file.neExtract === true && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleExtractAttachment(file.id)}
+                                  disabled={uploading}
+                                  className="ml-2"
+                                >
+                                  提取
+                                </Button>
+                              )}
                             </TableCell>
                             <TableCell>
                               <Input
@@ -1174,7 +1198,7 @@ useSmartEffect({
                                 placeholder="-"
                               />
                             </TableCell>
-                            <TableCell className="text-sm">{file.isAudit === 1 ? '已审核' : file.isAudit === 0 ? '待审核' : '-'}</TableCell>
+                            <TableCell className="text-sm">{file.isAudit === 1 ? '已审核' : file.isAudit === 1 ? '已审核' : file.isUpload === 1 ? '已上传':'待上传'}</TableCell>
                             <TableCell>
                               <Input
                                 value={file.remark || ''}
@@ -1188,13 +1212,54 @@ useSmartEffect({
                               />
                             </TableCell>
                             <TableCell>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => setAttachments(attachments.filter((_, i) => i !== index))}
-                              >
-                                <Trash2 className="w-4 h-4 text-destructive" />
-                              </Button>
+                              {file.isUpload === 1 && (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={async () => {
+                                    // Clear the file input
+                                    const fileInput = document.getElementById(`file-input-${index}`) as HTMLInputElement
+                                    if (fileInput) {
+                                      fileInput.value = ''
+                                    }
+                                    // Reset attachment fields
+                                    const updatedAttachments = [...attachments]
+                                    updatedAttachments[index] = {
+                                      ...updatedAttachments[index],                                    
+                                      fileNameN: '',
+                                      fileNameO: '',
+                                      fileType: '',
+                                      isUpload: 0
+                                    }
+                                    setAttachments(updatedAttachments)
+                                    
+                                    // Update to backend
+                                    try {
+                                      if (file.id) {
+                                        await request.put('/bzss/api/Attachment', {
+                                          id: file.id,
+                                          orderId: orderId,
+                                          fileName: updatedAttachments[index].fileName,
+                                          fileNameN: '',
+                                          fileNameO: '',
+                                          fileType: updatedAttachments[index].fileType,
+                                          neAudit: updatedAttachments[index].neAudit,
+                                          neExtract: updatedAttachments[index].neExtract,
+                                          dirtType: updatedAttachments[index].dirtType,
+                                          remark: updatedAttachments[index].remark || '',
+                                          isUpload: 0
+                                        })
+                                        toast.success('文件已清除')
+                                      }
+                                    } catch (error) {
+                                      console.error('Failed to clear attachment', error)
+                                      toast.error('清除文件失败')
+                                    }
+                                  }}
+                                >
+                                  <Trash2 className="w-4 h-4 text-destructive" />
+                                </Button>
+                              )}
                             </TableCell>
                           </TableRow>
                         ))}
