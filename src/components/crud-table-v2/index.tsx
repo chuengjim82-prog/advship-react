@@ -118,11 +118,10 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
     loadData()
   }, [loadData])
 
-  // Handle search
+  // Handle search - just reset page, useEffect will trigger loadData
   const handleSearch = useCallback(() => {
     setPagination(prev => ({ ...prev, pageIndex: 0 }))
-    loadData()
-  }, [loadData])
+  }, [])
 
   // Handle refresh
   const handleRefresh = useCallback(() => {
