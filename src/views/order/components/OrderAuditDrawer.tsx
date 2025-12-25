@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Loading } from '@/components/ui/spinner'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Trash2, Download } from 'lucide-react'
+import { Download } from 'lucide-react'
 import request from '@/utils/request'
 import { toast } from 'sonner'
 import {
@@ -199,11 +199,9 @@ export default function OrderAuditDrawer({ visible, orderId, onClose, onSuccess 
                       <TableHeader>
                         <TableRow>
                           <TableHead className="w-[200px]">文件类型</TableHead>
-                          <TableHead className="w-[200px]">文件名(新)</TableHead>
-                          <TableHead className="w-[200px]">文件名(原)</TableHead>
-                          <TableHead className="w-[100px]">状态</TableHead>
+                          <TableHead className="w-[250px]">文件名</TableHead>
+                          <TableHead className="w-[120px]">审核结果</TableHead>
                           <TableHead>备注</TableHead>
-                          <TableHead className="w-[80px]">操作</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -213,31 +211,24 @@ export default function OrderAuditDrawer({ visible, orderId, onClose, onSuccess 
                               <div className="text-sm">{file.fileName ?? '-'}</div>
                             </TableCell>
                             <TableCell>
-                              <div className="text-sm">{file.fileNameN ?? '-'}</div>
-                            </TableCell>
-                            <TableCell>
-                              <div className="text-sm">{file.fileNameO ?? '-'}</div>
+                              {file.isUpload === 1 && file.fileNameN ? (
+                                <button
+                                  className="text-sm text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1"
+                                  onClick={() => {
+                                    const downloadUrl = `http://hn3.osoosa.com/bzss/order/${orderId}/${file.fileNameN}`
+                                    window.open(downloadUrl, '_blank')
+                                  }}
+                                >
+                                  <Download className="w-3 h-3" />
+                                  {file.fileNameO ?? '-'}
+                                </button>
+                              ) : (
+                                <div className="text-sm">{file.fileNameO ?? '-'}</div>
+                              )}
                             </TableCell>
                             <TableCell className="text-sm">{file.isAudit === 1 ? '已审核' : file.isUpload === 1 ? '已上传' : '待上传'}</TableCell>
                             <TableCell>
                               <div className="text-sm">{file.remark ?? '-'}</div>
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex gap-2">
-                                {file.isUpload === 1 && file.fileNameN && (
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    title="下载文件"
-                                    onClick={() => {
-                                      const downloadUrl = `http://hn3.osoosa.com/bzss/order/${orderId}/${file.fileNameN}`
-                                      window.open(downloadUrl, '_blank')
-                                    }}
-                                  >
-                                    <Download className="w-4 h-4 text-blue-500" />
-                                  </Button>
-                                )}
-                              </div>
                             </TableCell>
                           </TableRow>
                         ))}
