@@ -101,8 +101,11 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
           pageIndex: pagination.pageIndex + 1, // API uses 1-based index
           pageSize: pagination.pageSize,
           keyword,
-          Keyword: keyword, //兼容部分后端使用大写参数名
-          keyWord: keyword, //兼容驼峰写法
+          Keyword: keyword, // 兼容部分后端使用大写参数名
+          keyWord: keyword, // 兼容驼峰写法
+          search: keyword, // 兼容 search
+          q: keyword, // 兼容 q
+          query: keyword, // 兼容 query
         },
       })
       const items = res.data?.items || []
