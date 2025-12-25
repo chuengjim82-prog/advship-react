@@ -34,7 +34,7 @@ interface OrderAuditDrawerProps {
   onSuccess?: (orderId?: number) => void;
 }
 
-export default function OrderAuditDrawer({ visible, orderId, onClose, onSuccess: _onSuccess }: OrderAuditDrawerProps) {
+export default function OrderAuditDrawer({ visible, orderId, onClose, onSuccess }: OrderAuditDrawerProps) {
   const [loading, setLoading] = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [detail, setDetail] = useState<any>(null);
@@ -52,6 +52,31 @@ export default function OrderAuditDrawer({ visible, orderId, onClose, onSuccess:
   const [auditResult, setAuditResult] = useState<string>("1"); // '1' 通过, '0' 不通过
   const [auditMemo, setAuditMemo] = useState("");
   const [auditLoading, setAuditLoading] = useState(false);
+  const [submitLoading, setSubmitLoading] = useState(false);
+
+  // 完成审核并提交
+  const handleSubmitAudit = async () => {
+    if (!orderId) return;
+    setSubmitLoading(true);
+    try {
+      await request.post("/bzss/api/BaseInfo/ChangeStatus", {
+        id: orderId,
+        statusi: 2,
+        statuss: "资料已审核",
+        updateTime: new Date().toISOString(),
+        updaterId: 0,
+        updaterNic: "当前用户",
+      });
+      toast.success("审核提交成功");
+      onSuccess?.(orderId);
+      onClose();
+    } catch (err) {
+      console.error("submit audit failed", err);
+      toast.error("审核提交失败");
+    } finally {
+      setSubmitLoading(false);
+    }
+  };
 
   // 审核文件
   const handleAuditFile = async () => {
@@ -177,8 +202,15 @@ export default function OrderAuditDrawer({ visible, orderId, onClose, onSuccess:
   return (
     <Sheet open={visible} onOpenChange={(open: boolean) => !open && onClose()}>
       <SheetContent className="w-[80vw] sm:max-w-[80vw] overflow-y-auto">
-        <SheetHeader>
+        <SheetHeader className="flex flex-row items-center justify-between pr-8">
           <SheetTitle>订单审核</SheetTitle>
+          <Button 
+            onClick={handleSubmitAudit} 
+            disabled={submitLoading}
+            className="ml-auto"
+          >
+            {submitLoading ? "提交中..." : "完成审核并提交"}
+          </Button>
         </SheetHeader>
 
         <Loading loading={loading}>
