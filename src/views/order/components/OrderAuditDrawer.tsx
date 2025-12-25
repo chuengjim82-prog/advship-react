@@ -263,7 +263,6 @@ export default function OrderAuditDrawer({ visible, orderId, onClose, onSuccess:
                         <TableRow>
                           <TableHead className="w-[160px]">文件类型</TableHead>
                           <TableHead className="w-[200px]">文件名</TableHead>
-                          <TableHead className="w-[80px] text-center">需审核</TableHead>
                           <TableHead className="w-[100px] text-center">审核结果</TableHead>
                           <TableHead className="w-[200px]">审核意见</TableHead>
                           <TableHead className="w-[100px]">审核人</TableHead>
@@ -294,34 +293,21 @@ export default function OrderAuditDrawer({ visible, orderId, onClose, onSuccess:
                               )}
                             </TableCell>
                             <TableCell className="text-center">
-                              {file.neAudit === 1 ? (
-                                <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
-                                  <AlertCircle className="w-3 h-3 mr-1" />
-                                  需审核
+                              {file.auditResult === 1 ? (
+                                <Badge className="bg-green-100 text-green-700 border-green-200">
+                                  <Check className="w-3 h-3 mr-1" />
+                                  通过
+                                </Badge>
+                              ) : file.auditResult === 0 ? (
+                                <Badge variant="destructive">
+                                  <X className="w-3 h-3 mr-1" />
+                                  未通过
                                 </Badge>
                               ) : (
-                                <span className="text-muted-foreground text-sm">-</span>
-                              )}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              {file.isAudit === 1 ? (
-                                file.auditResult === 1 ? (
-                                  <Badge className="bg-green-100 text-green-700 border-green-200">
-                                    <Check className="w-3 h-3 mr-1" />
-                                    通过
-                                  </Badge>
-                                ) : file.auditResult === 0 ? (
-                                  <Badge variant="destructive">
-                                    <X className="w-3 h-3 mr-1" />
-                                    拒绝
-                                  </Badge>
-                                ) : (
-                                  <span className="text-muted-foreground text-sm">-</span>
-                                )
-                              ) : file.isUpload === 1 ? (
-                                <Badge variant="secondary">待审核</Badge>
-                              ) : (
-                                <span className="text-muted-foreground text-sm">-</span>
+                                <Badge variant="secondary">
+                                  <AlertCircle className="w-3 h-3 mr-1" />
+                                  待审核
+                                </Badge>
                               )}
                             </TableCell>
                             <TableCell>
