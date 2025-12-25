@@ -12,7 +12,9 @@ import { Loading } from '@/components/ui/spinner'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Textarea } from '@/components/ui/textarea'
-import { Download, Check, X, AlertCircle } from 'lucide-react'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { Label } from '@/components/ui/label'
+import { Download, Check, X, AlertCircle, ClipboardCheck } from 'lucide-react'
 import request from '@/utils/request'
 import { toast } from 'sonner'
 import dayjs from 'dayjs'
@@ -51,25 +53,25 @@ export default function OrderAuditDrawer({ visible, orderId, onClose, onSuccess:
   const [custAgentOptions, setCustAgentOptions] = useState<AgentItem[]>([])
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [attachments, setAttachments] = useState<any[]>([])
-  const [rejectDialogOpen, setRejectDialogOpen] = useState(false)
-  const [rejectingFile, setRejectingFile] = useState<any>(null)
-  const [rejectMemo, setRejectMemo] = useState('')
+  const [auditDialogOpen, setAuditDialogOpen] = useState(false)
+  const [auditingFile, setAuditingFile] = useState<any>(null)
+  const [auditResult, setAuditResult] = useState<string>('1') // '1' 通过, '0' 不通过
+  const [auditMemo, setAuditMemo] = useState('')
   const [auditLoading, setAuditLoading] = useState(false)
 
   // 审核文件
-  const handleAuditFile = async (fileId: number, result: number, memo: string) => {
+  const handleAuditFile = async () => {
+    if (!auditingFile) return
     setAuditLoading(true)
     try {
-      await request.post(`/bzss/api/orderattachment/${fileId}/audit`, {
-        auditResult: result,
-        auditMemo: memo
+      await request.post(`/bzss/api/orderattachment/${auditingFile.id}/audit`, {
+        auditResult: parseInt(auditResult),
+        auditMemo: auditMemo
       })
-      toast.success(result === 1 ? '审核通过' : '已拒绝')
+      toast.success(auditResult === '1' ? '审核通过' : '审核不通过')
       // 刷新附件列表
       loadDetail(orderId)
-      setRejectDialogOpen(false)
-      setRejectMemo('')
-      setRejectingFile(null)
+      closeAuditDialog()
     } catch (err) {
       console.error('audit failed', err)
       toast.error('审核操作失败')
@@ -78,11 +80,20 @@ export default function OrderAuditDrawer({ visible, orderId, onClose, onSuccess:
     }
   }
 
-  // 打开拒绝弹窗
-  const openRejectDialog = (file: any) => {
-    setRejectingFile(file)
-    setRejectMemo('')
-    setRejectDialogOpen(true)
+  // 打开审核弹窗
+  const openAuditDialog = (file: any) => {
+    setAuditingFile(file)
+    setAuditResult('1')
+    setAuditMemo('')
+    setAuditDialogOpen(true)
+  }
+
+  // 关闭审核弹窗
+  const closeAuditDialog = () => {
+    setAuditDialogOpen(false)
+    setAuditingFile(null)
+    setAuditResult('1')
+    setAuditMemo('')
   }
 
   const loadDetail = async (id?: number | null) => {
@@ -312,28 +323,17 @@ export default function OrderAuditDrawer({ visible, orderId, onClose, onSuccess:
                                 {file.auditTime ? dayjs(file.auditTime).format('YYYY-MM-DD HH:mm') : '-'}
                               </div>
                             </TableCell>
-                            <TableCell>
+                            <TableCell className="text-center">
                               {file.neAudit === 1 && file.isUpload === 1 && file.isAudit !== 1 && (
-                                <div className="flex gap-1 justify-center">
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    className="h-7 px-2 text-green-600 hover:text-green-700 hover:bg-green-50"
-                                    onClick={() => handleAuditFile(file.id, 1, '')}
-                                  >
-                                    <Check className="w-3 h-3 mr-1" />
-                                    通过
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    className="h-7 px-2 text-red-600 hover:text-red-700 hover:bg-red-50"
-                                    onClick={() => openRejectDialog(file)}
-                                  >
-                                    <X className="w-3 h-3 mr-1" />
-                                    拒绝
-                                  </Button>
-                                </div>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-7 px-3"
+                                  onClick={() => openAuditDialog(file)}
+                                >
+                                  <ClipboardCheck className="w-3 h-3 mr-1" />
+                                  审核
+                                </Button>
                               )}
                               {file.isAudit === 1 && (
                                 <span className="text-muted-foreground text-xs">已处理</span>
@@ -575,39 +575,64 @@ export default function OrderAuditDrawer({ visible, orderId, onClose, onSuccess:
           <Button variant="outline" onClick={onClose}>关闭</Button>
         </SheetFooter>
 
-        {/* 拒绝原因弹窗 */}
-        {rejectDialogOpen && (
+        {/* 审核弹窗 */}
+        {auditDialogOpen && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-background rounded-lg p-6 w-[400px] shadow-lg">
-              <h3 className="text-lg font-semibold mb-4">拒绝原因</h3>
-              <p className="text-sm text-muted-foreground mb-2">
-                文件: {rejectingFile?.fileNameO ?? rejectingFile?.fileName}
+            <div className="bg-background rounded-lg p-6 w-[450px] shadow-lg">
+              <h3 className="text-lg font-semibold mb-4">文件审核</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                文件: {auditingFile?.fileNameO ?? auditingFile?.fileName}
               </p>
-              <Textarea
-                placeholder="请输入拒绝原因..."
-                value={rejectMemo}
-                onChange={(e) => setRejectMemo(e.target.value)}
-                className="mb-4"
-                rows={4}
-              />
+              
+              {/* 审核结果选择 */}
+              <div className="mb-4">
+                <Label className="text-sm font-medium mb-2 block">审核结果</Label>
+                <RadioGroup
+                  value={auditResult}
+                  onValueChange={setAuditResult}
+                  className="flex gap-6"
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="1" id="audit-pass" />
+                    <Label htmlFor="audit-pass" className="flex items-center gap-1 cursor-pointer text-green-600">
+                      <Check className="w-4 h-4" />
+                      通过
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="0" id="audit-reject" />
+                    <Label htmlFor="audit-reject" className="flex items-center gap-1 cursor-pointer text-red-600">
+                      <X className="w-4 h-4" />
+                      不通过
+                    </Label>
+                  </div>
+                </RadioGroup>
+              </div>
+
+              {/* 审核意见 */}
+              <div className="mb-4">
+                <Label className="text-sm font-medium mb-2 block">审核意见</Label>
+                <Textarea
+                  placeholder="请输入审核意见..."
+                  value={auditMemo}
+                  onChange={(e) => setAuditMemo(e.target.value)}
+                  rows={4}
+                />
+              </div>
+
               <div className="flex justify-end gap-2">
                 <Button
                   variant="outline"
-                  onClick={() => {
-                    setRejectDialogOpen(false)
-                    setRejectMemo('')
-                    setRejectingFile(null)
-                  }}
+                  onClick={closeAuditDialog}
                   disabled={auditLoading}
                 >
                   取消
                 </Button>
                 <Button
-                  variant="destructive"
-                  onClick={() => handleAuditFile(rejectingFile?.id, 0, rejectMemo)}
-                  disabled={auditLoading || !rejectMemo.trim()}
+                  onClick={handleAuditFile}
+                  disabled={auditLoading || (auditResult === '0' && !auditMemo.trim())}
                 >
-                  确认拒绝
+                  确认提交
                 </Button>
               </div>
             </div>
