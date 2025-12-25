@@ -1,16 +1,16 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
-import { message } from 'antd'
+import { toast } from 'sonner'
 import request from '@/utils/request'
 import type { PageResult } from '@/utils/request'
 
 interface UseTableDataOptions {
   apiUrl: string
-  onLoaded?: (data: any[]) => void
+  onLoaded?: (data: unknown[]) => void
 }
 
 export function useTableData({ apiUrl, onLoaded }: UseTableDataOptions) {
   const [loading, setLoading] = useState(false)
-  const [tableData, setTableData] = useState<any[]>([])
+  const [tableData, setTableData] = useState<unknown[]>([])
   const [total, setTotal] = useState(0)
   const [pageIndex, setPageIndex] = useState(1)
   const [pageSize, setPageSize] = useState(10)
@@ -25,7 +25,7 @@ export function useTableData({ apiUrl, onLoaded }: UseTableDataOptions) {
   const loadData = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await request.get<PageResult<any>>(apiUrl, {
+      const res = await request.get<PageResult<unknown>>(apiUrl, {
         params: {
           pageIndex,
           pageSize,
@@ -46,7 +46,7 @@ export function useTableData({ apiUrl, onLoaded }: UseTableDataOptions) {
   const handleDelete = useCallback(async (id: string | number) => {
     try {
       await request.delete(`${apiUrl}/${id}`)
-      message.success('删除成功')
+      toast.success('删除成功')
       await loadData()
     } catch (error) {
       console.error('Failed to delete:', error)

@@ -35,9 +35,10 @@ interface OrderAuditDrawerProps {
   onSuccess?: (orderId?: number) => void
 }
 
-export default function OrderAuditDrawer({ visible, orderId, onClose, onSuccess }: OrderAuditDrawerProps) {
+export default function OrderAuditDrawer({ visible, orderId, onClose, onSuccess: _onSuccess }: OrderAuditDrawerProps) {
   const [loading, setLoading] = useState(false)
-  const [detail, setDetail] = useState<any | null>(null)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [detail, setDetail] = useState<any>(null)
 
   const [customerOptions, setCustomerOptions] = useState<CustomerItem[]>([])
   const [countryOptions, setCountryOptions] = useState<CountryItem[]>([])
@@ -45,6 +46,7 @@ export default function OrderAuditDrawer({ visible, orderId, onClose, onSuccess 
   const [customsOptions, setCustomsOptions] = useState<CustomsItem[]>([])
   const [shippingOptions, setShippingOptions] = useState<ShippingItem[]>([])
   const [custAgentOptions, setCustAgentOptions] = useState<AgentItem[]>([])
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [attachments, setAttachments] = useState<any[]>([])
 
   const loadDetail = async (id?: number | null) => {
@@ -55,9 +57,9 @@ export default function OrderAuditDrawer({ visible, orderId, onClose, onSuccess 
     }
     setLoading(true)
     try {
-      const res = await request.get(`/bzss/api/orderbaseinfo/${id}/detail`)
+      const res = await request.get<{ attachments?: unknown[] }>(`/bzss/api/orderbaseinfo/${id}/detail`)
       setDetail(res.data)
-      setAttachments(res.data?.attachments ?? [])
+      setAttachments((res.data as { attachments?: unknown[] })?.attachments ?? [])
     } catch (err) {
       console.error('load detail failed', err)
       toast.error('加载订单详情失败')
