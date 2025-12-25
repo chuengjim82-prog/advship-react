@@ -9,13 +9,14 @@ import {
   type ColumnDef,
   type PaginationState,
 } from '@tanstack/react-table'
-import { Search, Plus, RefreshCw, Edit, Trash2 } from 'lucide-react'
+import { Search, Plus, RefreshCw, Edit, Trash2, ChevronDown, ChevronUp, X } from 'lucide-react'
 import { toast } from 'sonner'
 import dayjs from 'dayjs'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import {
   Dialog,
   DialogContent,
@@ -45,7 +46,7 @@ import { Form } from '@/components/ui/form'
 import { cn } from '@/lib/utils'
 import request from '@/utils/request'
 import type { PageResult } from '@/utils/request'
-import type { CrudTableV2Props, CrudTableV2Ref } from './types'
+import type { CrudTableV2Props, CrudTableV2Ref, SearchField } from './types'
 
 function CrudTableV2<T extends FieldValues = FieldValues>(
   props: CrudTableV2Props<T>,
@@ -61,10 +62,15 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
     searchPlaceholder = '请输入关键词搜索',
     dialogWidth = '600px',
     dialogClassName,
+    searchFields,
+    searchVisibleRows = 2,
     onLoaded,
     onBeforeSubmit,
     onAfterSubmit,
   } = props
+
+  // 每行显示的搜索字段数量（基于每个字段约 200px 宽度）
+  const FIELDS_PER_ROW = 4
 
   // State
   const [loading, setLoading] = useState(false)
@@ -77,6 +83,16 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
   const [submitLoading, setSubmitLoading] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [recordToDelete, setRecordToDelete] = useState<T | null>(null)
+
+  // 多字段搜索状态
+  const [searchValues, setSearchValues] = useState<Record<string, string>>({})
+  const [appliedSearchValues, setAppliedSearchValues] = useState<Record<string, string>>({})
+  const [searchExpanded, setSearchExpanded] = useState(false)
+
+  // 判断是否需要展开/收起按钮
+  const hasMultiSearch = searchFields && searchFields.length > 0
+  const visibleFieldCount = searchVisibleRows * FIELDS_PER_ROW
+  const needsExpand = hasMultiSearch && searchFields.length > visibleFieldCount
 
   // Pagination state
   const [pagination, setPagination] = useState<PaginationState>({
@@ -95,19 +111,33 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
   const loadData = useCallback(async () => {
     setLoading(true)
     try {
-      const keyword = appliedKeyword.trim() || undefined
-      const res = await request.get<PageResult<T>>(apiUrl, {
-        params: {
-          pageIndex: pagination.pageIndex + 1, // API uses 1-based index
-          pageSize: pagination.pageSize,
-          keyword,
-          Keyword: keyword, // 兼容部分后端使用大写参数名
-          keyWord: keyword, // 兼容驼峰写法
-          search: keyword, // 兼容 search
-          q: keyword, // 兼容 q
-          query: keyword, // 兼容 query
-        },
-      })
+      // 构建搜索参数
+      const searchParams: Record<string, unknown> = {
+        pageIndex: pagination.pageIndex + 1, // API uses 1-based index
+        pageSize: pagination.pageSize,
+      }
+
+      if (hasMultiSearch) {
+        // 多字段搜索模式
+        Object.entries(appliedSearchValues).forEach(([key, value]) => {
+          if (value && value.trim()) {
+            searchParams[key] = value.trim()
+          }
+        })
+      } else {
+        // 单关键词搜索模式（保持兼容）
+        const keyword = appliedKeyword.trim() || undefined
+        if (keyword) {
+          searchParams.keyword = keyword
+          searchParams.Keyword = keyword // 兼容部分后端使用大写参数名
+          searchParams.keyWord = keyword // 兼容驼峰写法
+          searchParams.search = keyword // 兼容 search
+          searchParams.q = keyword // 兼容 q
+          searchParams.query = keyword // 兼容 query
+        }
+      }
+
+      const res = await request.get<PageResult<T>>(apiUrl, { params: searchParams })
       const items = res.data?.items || []
       setTableData(items)
       setTotal(res.data?.total || 0)
@@ -118,7 +148,7 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
     } finally {
       setLoading(false)
     }
-  }, [apiUrl, pagination.pageIndex, pagination.pageSize, appliedKeyword, onLoaded])
+  }, [apiUrl, pagination.pageIndex, pagination.pageSize, appliedKeyword, appliedSearchValues, hasMultiSearch, onLoaded])
 
   // Load data on mount and when pagination/search changes
   useEffect(() => {
@@ -127,9 +157,30 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
 
   // Handle search - apply keyword and reset page
   const handleSearch = useCallback(() => {
-    setAppliedKeyword(searchKeyword)
+    if (hasMultiSearch) {
+      setAppliedSearchValues({ ...searchValues })
+    } else {
+      setAppliedKeyword(searchKeyword)
+    }
     setPagination(prev => ({ ...prev, pageIndex: 0 }))
-  }, [searchKeyword])
+  }, [hasMultiSearch, searchKeyword, searchValues])
+
+  // Handle clear search
+  const handleClearSearch = useCallback(() => {
+    if (hasMultiSearch) {
+      setSearchValues({})
+      setAppliedSearchValues({})
+    } else {
+      setSearchKeyword('')
+      setAppliedKeyword('')
+    }
+    setPagination(prev => ({ ...prev, pageIndex: 0 }))
+  }, [hasMultiSearch])
+
+  // Handle search field value change
+  const handleSearchFieldChange = useCallback((fieldName: string, value: string) => {
+    setSearchValues(prev => ({ ...prev, [fieldName]: value }))
+  }, [])
 
   // Handle refresh
   const handleRefresh = useCallback(() => {
@@ -278,23 +329,10 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
   return (
     <div className="crud-table-v2">
       <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
+        <CardHeader className="pb-2">
+          <div className="flex items-center justify-between mb-3">
             <CardTitle>{title}</CardTitle>
             <div className="flex gap-2">
-              <div className="flex gap-2">
-                <Input
-                  placeholder={searchPlaceholder}
-                  value={searchKeyword}
-                  onChange={(e) => setSearchKeyword(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                  className="w-[200px]"
-                />
-                <Button variant="default" size="sm" onClick={handleSearch}>
-                  <Search className="mr-1 h-4 w-4" />
-                  搜索
-                </Button>
-              </div>
               <Button variant="default" size="sm" onClick={handleAdd}>
                 <Plus className="mr-1 h-4 w-4" />
                 新增
@@ -305,6 +343,100 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
               </Button>
             </div>
           </div>
+
+          {/* 搜索区域 */}
+          {hasMultiSearch && searchFields ? (
+            <div className="space-y-3">
+              <div
+                className={cn(
+                  "grid gap-3 overflow-hidden transition-all duration-300",
+                  "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
+                )}
+                style={{
+                  maxHeight: searchExpanded || !needsExpand
+                    ? `${Math.ceil(searchFields.length / FIELDS_PER_ROW) * 56}px`
+                    : `${searchVisibleRows * 56}px`,
+                }}
+              >
+                {searchFields.map((field: SearchField) => (
+                  <div key={field.name} className="flex items-center gap-2">
+                    <label className="text-sm text-muted-foreground whitespace-nowrap min-w-[60px]">
+                      {field.label}
+                    </label>
+                    {field.type === 'select' && field.options ? (
+                      <Select
+                        value={searchValues[field.name] || ''}
+                        onValueChange={(value) => handleSearchFieldChange(field.name, value)}
+                      >
+                        <SelectTrigger className="flex-1 h-8">
+                          <SelectValue placeholder={field.placeholder || `请选择${field.label}`} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {field.options.map((opt) => (
+                            <SelectItem key={String(opt.value)} value={String(opt.value)}>
+                              {opt.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <Input
+                        placeholder={field.placeholder || `请输入${field.label}`}
+                        value={searchValues[field.name] || ''}
+                        onChange={(e) => handleSearchFieldChange(field.name, e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                        className="flex-1 h-8"
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
+              <div className="flex items-center gap-2">
+                <Button variant="default" size="sm" onClick={handleSearch}>
+                  <Search className="mr-1 h-4 w-4" />
+                  搜索
+                </Button>
+                <Button variant="outline" size="sm" onClick={handleClearSearch}>
+                  <X className="mr-1 h-4 w-4" />
+                  清空
+                </Button>
+                {needsExpand && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSearchExpanded(!searchExpanded)}
+                    className="ml-auto"
+                  >
+                    {searchExpanded ? (
+                      <>
+                        <ChevronUp className="mr-1 h-4 w-4" />
+                        收起
+                      </>
+                    ) : (
+                      <>
+                        <ChevronDown className="mr-1 h-4 w-4" />
+                        展开
+                      </>
+                    )}
+                  </Button>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="flex gap-2">
+              <Input
+                placeholder={searchPlaceholder}
+                value={searchKeyword}
+                onChange={(e) => setSearchKeyword(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                className="w-[200px]"
+              />
+              <Button variant="default" size="sm" onClick={handleSearch}>
+                <Search className="mr-1 h-4 w-4" />
+                搜索
+              </Button>
+            </div>
+          )}
         </CardHeader>
         <CardContent>
           {/* Table */}
