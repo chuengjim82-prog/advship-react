@@ -28,7 +28,6 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Loading } from '@/components/ui/spinner'
-import { Checkbox } from '@/components/ui/checkbox'
 import { Plus, Trash2, Upload } from 'lucide-react'
 import request from '@/utils/request'
 import { toast } from 'sonner'

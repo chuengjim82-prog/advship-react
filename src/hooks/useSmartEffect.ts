@@ -13,7 +13,7 @@ interface SmartEffectOptions<T extends Key = Key> {
   key?: T | null;
 
   /** 副作用逻辑 */
-  effect: (key?: T) => void;
+  effect: (key?: T | undefined) => void;
 
   /** 关闭 / 禁用时触发 */
   onReset?: () => void;
@@ -41,7 +41,7 @@ export function useSmartEffect<T extends Key = Key>({
     if (once) {
       if (onceRef.current) return;
       onceRef.current = true;
-      effect(key);
+      effect(key ?? undefined);
       return;
     }
 
@@ -60,6 +60,6 @@ export function useSmartEffect<T extends Key = Key>({
     }
 
     // 普通 enabled 模式
-    effect(key);
+    effect(key ?? undefined);
   }, [enabled, once, key, effect, onReset]);
 }

@@ -53,8 +53,6 @@ export default function DeliveryList() {
   const [isSearchExpanded, setIsSearchExpanded] = useState(true)
   const [showPickup, setShowPickup] = useState(false)
   const [selectedItem, setSelectedItem] = useState<DeliveryItem | null>(null)
-  const [showCustomerDelivery, setShowCustomerDelivery] = useState(false)
-  const [selectedDeliveryItem, setSelectedDeliveryItem] = useState<DeliveryItem | null>(null)
   const [showColumnDialog, setShowColumnDialog] = useState(false)
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
   const [sortConfig, setSortConfig] = useState<{ key: keyof DeliveryItem | null; direction: 'asc' | 'desc' }>({ key: null, direction: 'asc' })
@@ -155,11 +153,6 @@ export default function DeliveryList() {
     navigate('/delivery/CustomerDelivery', { state: { deliveryItem: item } })
   }
 
-  // 处理缴费操作
-  const handlePayment = (item: DeliveryItem) => {
-    console.log('缴费:', item)
-  }
-
   // 处理排序
   const handleSort = (key: keyof DeliveryItem) => {
     let direction: 'asc' | 'desc' = 'asc'
@@ -174,6 +167,7 @@ export default function DeliveryList() {
     if (!sortConfig.key) return 0
     const aValue = a[sortConfig.key]
     const bValue = b[sortConfig.key]
+    if (aValue == null || bValue == null) return 0
     if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1
     if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1
     return 0

@@ -275,26 +275,15 @@ export default function Customer() {
   }, [])
 
   // 自定义客户主表单提交处理
-  const handleCustomerSubmit = useCallback(async (data: CustomerData, isEdit: boolean) => {
-    //console.log(isEdit);
-    // try {
-    //   await request.post(`/base/api/Customer/CreateCustomer`, data)
-    //   toast.success('预约提柜成功')
-    //   // setShowPickupDialog(false)
-    //   // fetchClearanceList()
-    // } catch (error) {
-    //   console.error('预约提柜失败:', error)
-    //   toast.error('预约提柜失败')
-    // }
-
-    // setIsSubmitting(true)
-    // //await request.post(`/base/api/Customer/CreateCustomer?`, data)
-
+  // 自定义客户主表单提交处理
+  const handleCustomerSubmit = useCallback(async (data: CustomerData): Promise<CustomerData> => {
     try {
       const apiConfig = {
         create: '/base/api/Customer/CreateCustomer',
         update: '/base/api/Customer/CreateCustomer'
       }
+
+      const isEdit = !!data.id
 
       let result
       if (isEdit && data.id) {
@@ -308,18 +297,17 @@ export default function Customer() {
         result = await request.post(
           apiConfig.update,
           data,
-
         )
       }
 
       if (result) {
         toast.success(isEdit ? '客户信息更新成功' : '客户创建成功')
-        return result.data
+        return result.data as CustomerData
       }
 
-      return null
-    } finally {
-      //setIsSubmitting(false)
+      return data
+    } catch {
+      return data
     }
   }, [])
 
@@ -597,8 +585,7 @@ export default function Customer() {
         defaultValues={defaultValues}
         dialogWidth="1024px"
         dialogClassName="max-w-5xl max-h-[85vh] overflow-y-auto"
-        onSubmit={handleCustomerSubmit}
-
+        onBeforeSubmit={handleCustomerSubmit}
       />
 
       {/* Recipient Dialog - 大弹窗 */}

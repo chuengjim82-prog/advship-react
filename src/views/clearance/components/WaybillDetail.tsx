@@ -3,11 +3,32 @@
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
-import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import type { ContainerGoodsItem, WaybillDto } from '@/models/order.model'
 import { Calendar, Copy, Package, Scale, Ship } from 'lucide-react'
 import { toast } from 'sonner'
+
+interface WaybillDto {
+  id?: number
+  waybillNo?: string
+  waybillDate?: string
+  shipperName?: string
+  shipperAddress?: string
+  consigneeName?: string
+  consigneeAddress?: string
+  quantity?: number
+  ttlWeight?: number
+  cubicVol?: number
+  custPort?: string
+  remark?: string
+}
+
+interface ContainerGoodsItem {
+  id: number
+  number?: string
+  sizeType?: string
+  weight?: number
+  remark?: string
+}
 
 interface WaybillDetailProps {
   waybillInfo: WaybillDto | null
@@ -38,7 +59,7 @@ export default function WaybillDetail({ waybillInfo, loading, containerGoods, fo
         </CardHeader>
         <CardContent className="space-y-6">
           {[1, 2, 3, 4].map((i) => (
-            <Skeleton key={i} className="h-32 w-full" />
+            <div key={i} className="h-32 w-full bg-muted animate-pulse rounded" />
           ))}
         </CardContent>
       </Card>
