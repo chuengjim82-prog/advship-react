@@ -382,14 +382,6 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
                 ))}
               </div>
               <div className="flex items-center gap-2">
-                <Button variant="default" size="sm" onClick={handleAdd}>
-                  <Plus className="mr-1 h-4 w-4" />
-                  新增
-                </Button>
-                <Button variant="outline" size="sm" onClick={handleRefresh}>
-                  <RefreshCw className="mr-1 h-4 w-4" />
-                  刷新
-                </Button>
                 <Button variant="default" size="sm" onClick={handleSearch}>
                   <Search className="mr-1 h-4 w-4" />
                   搜索
@@ -397,6 +389,14 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
                 <Button variant="outline" size="sm" onClick={handleClearSearch}>
                   <X className="mr-1 h-4 w-4" />
                   清空
+                </Button>
+                <Button variant="default" size="sm" onClick={handleAdd}>
+                  <Plus className="mr-1 h-4 w-4" />
+                  新增
+                </Button>
+                <Button variant="outline" size="sm" onClick={handleRefresh}>
+                  <RefreshCw className="mr-1 h-4 w-4" />
+                  刷新
                 </Button>
                 {needsExpand && (
                   <Button
@@ -422,14 +422,6 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
             </div>
           ) : (
             <div className="flex gap-2">
-              <Button variant="default" size="sm" onClick={handleAdd}>
-                <Plus className="mr-1 h-4 w-4" />
-                新增
-              </Button>
-              <Button variant="outline" size="sm" onClick={handleRefresh}>
-                <RefreshCw className="mr-1 h-4 w-4" />
-                刷新
-              </Button>
               <Input
                 placeholder={searchPlaceholder}
                 value={searchKeyword}
@@ -440,6 +432,14 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
               <Button variant="default" size="sm" onClick={handleSearch}>
                 <Search className="mr-1 h-4 w-4" />
                 搜索
+              </Button>
+              <Button variant="default" size="sm" onClick={handleAdd}>
+                <Plus className="mr-1 h-4 w-4" />
+                新增
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleRefresh}>
+                <RefreshCw className="mr-1 h-4 w-4" />
+                刷新
               </Button>
             </div>
           )}
