@@ -71,6 +71,7 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
   const [tableData, setTableData] = useState<T[]>([])
   const [total, setTotal] = useState(0)
   const [searchKeyword, setSearchKeyword] = useState('')
+  const [appliedKeyword, setAppliedKeyword] = useState('') // Actually used in API call
   const [dialogOpen, setDialogOpen] = useState(false)
   const [isEdit, setIsEdit] = useState(false)
   const [submitLoading, setSubmitLoading] = useState(false)
@@ -98,7 +99,7 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
         params: {
           pageIndex: pagination.pageIndex + 1, // API uses 1-based index
           pageSize: pagination.pageSize,
-          keyword: searchKeyword,
+          keyword: appliedKeyword,
         },
       })
       const items = res.data?.items || []
@@ -111,17 +112,18 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
     } finally {
       setLoading(false)
     }
-  }, [apiUrl, pagination.pageIndex, pagination.pageSize, searchKeyword, onLoaded])
+  }, [apiUrl, pagination.pageIndex, pagination.pageSize, appliedKeyword, onLoaded])
 
   // Load data on mount and when pagination/search changes
   useEffect(() => {
     loadData()
   }, [loadData])
 
-  // Handle search - just reset page, useEffect will trigger loadData
+  // Handle search - apply keyword and reset page
   const handleSearch = useCallback(() => {
+    setAppliedKeyword(searchKeyword)
     setPagination(prev => ({ ...prev, pageIndex: 0 }))
-  }, [])
+  }, [searchKeyword])
 
   // Handle refresh
   const handleRefresh = useCallback(() => {
