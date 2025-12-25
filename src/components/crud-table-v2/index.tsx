@@ -575,6 +575,9 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
   )
 }
 
-export default forwardRef(CrudTableV2) as <T extends FieldValues = FieldValues>(
+const CrudTableV2Component = forwardRef(CrudTableV2) as <T extends FieldValues = FieldValues>(
   props: CrudTableV2Props<T> & { ref?: React.Ref<CrudTableV2Ref> }
 ) => React.ReactElement
+
+export type { CrudTableV2Props, CrudTableV2Ref, SearchField }
+export default CrudTableV2Component
