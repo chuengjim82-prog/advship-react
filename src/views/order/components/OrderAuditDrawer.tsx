@@ -64,9 +64,12 @@ export default function OrderAuditDrawer({ visible, orderId, onClose, onSuccess:
     if (!auditingFile) return
     setAuditLoading(true)
     try {
-      await request.post(`/bzss/api/orderattachment/${auditingFile.id}/audit`, {
-        auditResult: parseInt(auditResult),
-        auditMemo: auditMemo
+      await request.post('/api/Attachment/Audit', {
+        id: auditingFile.id,
+        auditTime: new Date().toISOString(),
+        auditerId: 0,
+        auditMemo: auditMemo,
+        auditResult: parseInt(auditResult)
       })
       toast.success(auditResult === '1' ? '审核通过' : '审核不通过')
       // 刷新附件列表
