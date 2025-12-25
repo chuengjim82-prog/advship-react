@@ -19,6 +19,7 @@ interface CustPortData {
   countryCode2?: string
   cityId?: number | null
   cityCode?: string
+  cityName?: string
   contact: string
   phone: string
   address: string
@@ -48,6 +49,7 @@ const custPortSchema = z.object({
   countryCode2: z.string().default(''),
   cityId: z.number().nullable().optional(),
   cityCode: z.string().default(''),
+  cityName: z.string().default(''),
   contact: z.string().default(''),
   phone: z.string().default(''),
   address: z.string().default(''),
@@ -82,6 +84,7 @@ export default function CustPort() {
     if (formRef.current) {
       formRef.current.setValue('cityId', city.id)
       formRef.current.setValue('cityCode', city.code)
+      formRef.current.setValue('cityName', city.cnName)
     }
   }, [])
 
@@ -91,7 +94,7 @@ export default function CustPort() {
     { accessorKey: 'cnName', header: '中文名称', size: 150 },
     { accessorKey: 'enName', header: '英文名称' },
     { accessorKey: 'countryCode2', header: '国家', size: 100 },
-    { accessorKey: 'cityCode', header: '城市', size: 100 },
+    { accessorKey: 'cityName', header: '城市', size: 100 },
     { accessorKey: 'contact', header: '联系人', size: 100 },
     { accessorKey: 'phone', header: '联系电话', size: 150 },
     { accessorKey: 'address', header: '地址' },
@@ -135,7 +138,7 @@ export default function CustPort() {
             <FormMessage />
           </FormItem>
         )} />
-        <FormField control={form.control} name="cityCode" render={({ field }) => (
+        <FormField control={form.control} name="cityName" render={({ field }) => (
           <FormItem>
             <FormLabel>城市</FormLabel>
             <div className="flex gap-2">

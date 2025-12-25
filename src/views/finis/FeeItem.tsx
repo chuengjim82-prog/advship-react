@@ -124,6 +124,14 @@ export default function FeeItem() {
             <FormMessage />
           </FormItem>
         )} />
+
+        <FormField control={form.control} name="itemUnit" render={({ field }) => (
+          <FormItem>
+            <FormLabel>费用单位</FormLabel>
+            <FormControl><Input placeholder="请输入费用单位" {...field} /></FormControl>
+            <FormMessage />
+          </FormItem>
+        )} />
         <FormField control={form.control} name="itemType" render={({ field }) => (
           <FormItem>
             <FormLabel>费用方式</FormLabel>
@@ -139,13 +147,6 @@ export default function FeeItem() {
                 </div>
               </RadioGroup>
             </FormControl>
-            <FormMessage />
-          </FormItem>
-        )} />
-        <FormField control={form.control} name="itemUnit" render={({ field }) => (
-          <FormItem>
-            <FormLabel>费用单位</FormLabel>
-            <FormControl><Input placeholder="请输入费用单位" {...field} /></FormControl>
             <FormMessage />
           </FormItem>
         )} />

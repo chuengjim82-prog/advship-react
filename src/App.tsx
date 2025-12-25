@@ -1,11 +1,11 @@
-import AppRouter from '@/routes'
 import { Toaster } from '@/components/ui/sonner'
+import AppRouter from '@/routes'
 
 function App() {
   return (
     <>
       <AppRouter />
-      <Toaster />
+      <Toaster position="top-center" />
     </>
   )
 }

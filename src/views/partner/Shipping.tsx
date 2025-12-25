@@ -6,6 +6,8 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import type { UseFormReturn } from 'react-hook-form'
+import { Badge } from '@/components/ui/badge'
+import { Switch } from '@/components/ui/switch'
 
 interface ShippingData {
   id?: number
@@ -15,6 +17,7 @@ interface ShippingData {
   contact: string
   phone: string
   address: string
+  statusi: number
   remark: string
 }
 
@@ -26,6 +29,7 @@ const shippingSchema = z.object({
   contact: z.string().default(''),
   phone: z.string().default(''),
   address: z.string().default(''),
+  statusi: z.number().default(1),
   remark: z.string().default(''),
 })
 
@@ -38,6 +42,12 @@ export default function Shipping() {
     { accessorKey: 'contact', header: '联系人', size: 120 },
     { accessorKey: 'phone', header: '联系电话', size: 150 },
     { accessorKey: 'address', header: '地址' },
+    {
+      accessorKey: 'statusi',
+      header: '状态',
+      size: 80,
+      cell: ({ getValue }) => getValue() === 1 ? <Badge variant="success">启用</Badge> : <Badge variant="destructive">停用</Badge>,
+    },
     { accessorKey: 'remark', header: '备注' },
   ]
 
@@ -85,6 +95,14 @@ export default function Shipping() {
           <FormMessage />
         </FormItem>
       )} />
+      <div className="col-span-2 grid grid-cols-2 gap-4">
+        <FormField control={form.control} name="statusi" render={({ field }) => (
+          <FormItem className="flex items-center justify-between rounded-lg border p-3">
+            <FormLabel className="text-sm">状态</FormLabel>
+            <FormControl><Switch checked={field.value === 1} onCheckedChange={(checked) => field.onChange(checked ? 1 : 0)} /></FormControl>
+          </FormItem>
+        )} />
+      </div>
       <FormField control={form.control} name="remark" render={({ field }) => (
         <FormItem className="col-span-2">
           <FormLabel>备注</FormLabel>
@@ -102,6 +120,7 @@ export default function Shipping() {
     contact: '',
     phone: '',
     address: '',
+    statusi: 1,
     remark: '',
   }
 

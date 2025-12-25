@@ -21,10 +21,10 @@ interface CountryData {
 // Zod validation schema
 const countrySchema = z.object({
   id: z.number().optional(),
-  code2: z.string().min(1, '请输入二字码').max(2, '二字码最多2个字符'),
-  code3: z.string().min(1, '请输入三字码').max(3, '三字码最多3个字符'),
   cnName: z.string().min(1, '请输入中文名称'),
   enName: z.string().default(''),
+  code2: z.string().min(1, '请输入二字码').max(2, '二字码最多2个字符'),
+  code3: z.string().min(1, '请输入三字码').max(3, '三字码最多3个字符'),
   currency: z.string().default(''),
   timeZone: z.number().min(-12).max(12),
   remark: z.string().default(''),
@@ -39,16 +39,6 @@ export default function Country() {
       size: 80,
     },
     {
-      accessorKey: 'code2',
-      header: '二字码',
-      size: 120,
-    },
-    {
-      accessorKey: 'code3',
-      header: '三字码',
-      size: 120,
-    },
-    {
       accessorKey: 'cnName',
       header: '中文名称',
       size: 150,
@@ -57,6 +47,16 @@ export default function Country() {
       accessorKey: 'enName',
       header: '英文名称',
       size: 200,
+    },
+    {
+      accessorKey: 'code2',
+      header: '二字码',
+      size: 120,
+    },
+    {
+      accessorKey: 'code3',
+      header: '三字码',
+      size: 120,
     },
     {
       accessorKey: 'currency',
@@ -79,32 +79,6 @@ export default function Country() {
     <>
       <FormField
         control={form.control}
-        name="code2"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>二字码</FormLabel>
-            <FormControl>
-              <Input placeholder="请输入二字码" maxLength={2} {...field} />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-      <FormField
-        control={form.control}
-        name="code3"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>三字码</FormLabel>
-            <FormControl>
-              <Input placeholder="请输入三字码" maxLength={3} {...field} />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-      <FormField
-        control={form.control}
         name="cnName"
         render={({ field }) => (
           <FormItem>
@@ -124,6 +98,32 @@ export default function Country() {
             <FormLabel>英文名称</FormLabel>
             <FormControl>
               <Input placeholder="请输入英文名称" {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+      <FormField
+        control={form.control}
+        name="code2"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>二字码</FormLabel>
+            <FormControl>
+              <Input placeholder="请输入二字码" maxLength={2} {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+      <FormField
+        control={form.control}
+        name="code3"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>三字码</FormLabel>
+            <FormControl>
+              <Input placeholder="请输入三字码" maxLength={3} {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>

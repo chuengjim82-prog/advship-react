@@ -17,6 +17,9 @@ const FeeItem = lazy(() => import('@/views/finis/FeeItem'))
 
 // Partner Module
 const Customer = lazy(() => import('@/views/partner/Customer'))
+const CsReceiver = lazy(() => import('@/views/partner/CsReceiver'))
+const CsShipper = lazy(() => import('@/views/partner/CsShipper'))
+const CsConsignee = lazy(() => import('@/views/partner/CsConsignee'))
 const Supplier = lazy(() => import('@/views/partner/Supplier'))
 const Shipping = lazy(() => import('@/views/partner/Shipping'))
 const CustAgent = lazy(() => import('@/views/partner/CustAgent'))
@@ -74,6 +77,11 @@ const router = createBrowserRouter([
         handle: { title: '服务项目管理' }
       },
       {
+        path: 'basic/serviceAttn',
+        element: <ServiceAttn />,
+        handle: { title: '产品服务附件' }
+      },
+      {
         path: 'basic/feeType',
         element: <FeeType />,
         handle: { title: '费用类别' }
@@ -83,11 +91,34 @@ const router = createBrowserRouter([
         element: <FeeItem />,
         handle: { title: '费用项目管理' }
       },
+      {
+        path: 'basic/bankAccountO',
+        element: <BankAccountO />,
+        handle: { title: '银行账户' }
+      },
+      {
+        path: 'basic/bankAccountT',
+        element: <BankAccountT />,
+        handle: { title: '往来账户' }
+      },
       // Partner Routes
       {
         path: 'partner/customer',
         element: <Customer />,
         handle: { title: '客户管理' }
+      },
+      {
+        path: 'partner/csReceiver',
+        element: <CsReceiver />,
+        handle: { title: '客户收件人' }
+      },{
+        path: 'partner/csShipper',
+        element: <CsShipper />,
+        handle: { title: '客户发件人' }
+      },{
+        path: 'partner/csConsignee',
+        element: <CsConsignee />,
+        handle: { title: '客户收货地址' }
       },
       {
         path: 'partner/supplier',

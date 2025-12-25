@@ -21,6 +21,7 @@ interface FeeTypeData {
   isSale: boolean
   isBuy: boolean
   statusi: number
+  statuss?: string
   remark: string
 }
 
@@ -39,6 +40,7 @@ const feeTypeSchema = z.object({
   isSale: z.boolean().default(true),
   isBuy: z.boolean().default(true),
   statusi: z.number().default(1),
+  statuss: z.string().optional(),
   remark: z.string().default(''),
 })
 
@@ -61,8 +63,8 @@ export default function FeeType() {
   const columns: ColumnDef<FeeTypeData>[] = [
     { accessorKey: 'id', header: '主键', size: 80 },
     { accessorKey: 'cnName', header: '类别名称', size: 200 },
-    { accessorKey: 'enName', header: '英文名称' },
-    { accessorKey: 'serviceName', header: '产品服务', size: 150 },
+    { accessorKey: 'enName', header: '英文名称', size: 250 },
+    { accessorKey: 'serviceName', header: '产品服务', size: 120 },
     {
       accessorKey: 'isSale',
       header: '销售',
@@ -153,8 +155,14 @@ export default function FeeType() {
     isSale: true,
     isBuy: true,
     statusi: 1,
+    statuss: '启用',
     remark: '',
   }
+
+  const syncStatusText = useCallback((values: FeeTypeData) => ({
+    ...values,
+    statuss: values.statusi === 1 ? '启用' : '停用',
+  }), [])
 
   return (
     <>
@@ -165,6 +173,7 @@ export default function FeeType() {
         formSchema={feeTypeSchema}
         renderFormFields={renderFormFields}
         defaultValues={defaultValues}
+        onBeforeSubmit={syncStatusText}
       />
       <SelectDialogV2<ServiceItem>
         title="选择产品服务"

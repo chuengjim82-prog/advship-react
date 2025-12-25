@@ -16,7 +16,7 @@ export default {
     action: '操作',
     refresh: '刷新',
     export: '导出',
-    import: '导入'
+    import: '导入',
   },
   menu: {
     home: '首页',
@@ -25,10 +25,16 @@ export default {
     city: '城市管理',
     currency: '币种管理',
     service: '服务项目',
+    serviceAttn: '产品服务附件',
     feeType: '费用类别',
     feeItem: '费用项目',
+    bankAccountO: '银行账户',
+    bankAccountT: '往来账户',
     partnerManagement: '客商管理',
     customer: '客户管理',
+    csReceiver: '客户收件人',
+    csShipper: '客户发件人',
+    csConsignee: '客户收货地址',
     supplier: '供应商管理',
     shipping: '船公司管理',
     custAgent: '客户代理',
@@ -37,8 +43,10 @@ export default {
     customs: '海关管理',
     orderManagement: '订单管理',
     orderList: '订单列表',
+    clearanceList: '清关列表',
+    deliveryList: '提柜列表',
     systemTools: '系统工具',
-    codeGenerator: '代码生成器'
+    codeGenerator: '代码生成器',
   },
   country: {
     title: '国家管理',
@@ -53,7 +61,7 @@ export default {
     cnNamePlaceholder: '请输入中文名称',
     enNamePlaceholder: '请输入英文名称',
     currencyPlaceholder: '请输入币种',
-    cnNameRequired: '请输入中文名称'
+    cnNameRequired: '请输入中文名称',
   },
   city: {
     title: '城市管理',
@@ -63,7 +71,7 @@ export default {
     codePlaceholder: '请输入编码',
     cnNamePlaceholder: '请输入中文名称',
     enNamePlaceholder: '请输入英文名称',
-    cnNameRequired: '请输入中文名称'
+    cnNameRequired: '请输入中文名称',
   },
   currency: {
     title: '币种管理',
@@ -74,7 +82,7 @@ export default {
     namePlaceholder: '请输入名称，如 美元',
     symbolPlaceholder: '请输入符号，如 $',
     codeRequired: '请输入编码',
-    nameRequired: '请输入名称'
+    nameRequired: '请输入名称',
   },
   service: {
     title: '服务项目管理',
@@ -89,7 +97,7 @@ export default {
     codePlaceholder: '请输入编码',
     namePlaceholder: '请输入名称',
     codeRequired: '请输入编码',
-    nameRequired: '请输入名称'
+    nameRequired: '请输入名称',
   },
   customer: {
     title: '客户管理',
@@ -106,7 +114,7 @@ export default {
     phonePlaceholder: '请输入联系电话',
     addressPlaceholder: '请输入地址',
     codeRequired: '请输入编码',
-    nameRequired: '请输入名称'
+    nameRequired: '请输入名称',
   },
   supplier: {
     title: '供应商管理',
@@ -117,7 +125,7 @@ export default {
     sNamePlaceholder: '请输入简称',
     fNamePlaceholder: '请输入全称',
     codeRequired: '请输入编码',
-    sNameRequired: '请输入简称'
+    sNameRequired: '请输入简称',
   },
   shipping: {
     title: '船公司管理',
@@ -134,7 +142,7 @@ export default {
     phonePlaceholder: '请输入联系电话',
     addressPlaceholder: '请输入地址',
     codeRequired: '请输入编码',
-    sNameRequired: '请输入简称'
+    sNameRequired: '请输入简称',
   },
   custAgent: {
     title: '客户代理管理',
@@ -149,7 +157,7 @@ export default {
     phonePlaceholder: '请输入联系电话',
     addressPlaceholder: '请输入地址',
     codeRequired: '请输入编码',
-    nameRequired: '请输入名称'
+    nameRequired: '请输入名称',
   },
   custPort: {
     title: '港口管理',
@@ -166,7 +174,7 @@ export default {
     phonePlaceholder: '请输入联系电话',
     addressPlaceholder: '请输入地址',
     codeRequired: '请输入编码',
-    cnNameRequired: '请输入中文名称'
+    cnNameRequired: '请输入中文名称',
   },
   customs: {
     title: '海关管理',
@@ -183,7 +191,7 @@ export default {
     phonePlaceholder: '请输入联系电话',
     addressPlaceholder: '请输入地址',
     codeRequired: '请输入编码',
-    cnNameRequired: '请输入中文名称'
+    cnNameRequired: '请输入中文名称',
   },
   order: {
     title: '订单管理',
@@ -207,15 +215,15 @@ export default {
     selectStatus: '请选择状态',
     orderNoPlaceholder: '请输入订单编号',
     waybillNoPlaceholder: '请输入提单编号',
-    orderNoRequired: '请输入订单编号'
+    orderNoRequired: '请输入订单编号',
   },
   user: {
     profile: '个人中心',
     logout: '退出登录',
-    admin: '管理员'
+    admin: '管理员',
   },
   language: {
     zhCn: '简体中文',
-    enUs: 'English'
-  }
+    enUs: 'English',
+  },
 }

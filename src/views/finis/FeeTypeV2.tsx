@@ -237,6 +237,11 @@ export default function FeeType() {
     remark: '',
   }
 
+  const syncStatusText = useCallback((values: FeeTypeData) => ({
+    ...values,
+    statuss: values.statusi === 1 ? '启用' : '停用',
+  }), [])
+
   return (
     <>
       <CrudTableV2<FeeTypeData>
@@ -246,6 +251,7 @@ export default function FeeType() {
         formSchema={feeTypeSchema}
         renderFormFields={renderFormFields}
         defaultValues={defaultValues}
+        onBeforeSubmit={syncStatusText}
       />
       <ServiceDialog ref={serviceDialogRef} onSelect={handleServiceSelect} />
     </>

@@ -166,9 +166,9 @@ function SelectDialogV2Inner<T extends object>(
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                     </TableHead>
                   ))}
                 </TableRow>
@@ -188,11 +188,10 @@ function SelectDialogV2Inner<T extends object>(
                 table.getRowModel().rows.map((row) => (
                   <TableRow
                     key={row.id}
-                    className={`cursor-pointer ${
-                      selectedRow && (selectedRow as any).id === (row.original as any).id
-                        ? 'bg-primary/10'
-                        : ''
-                    }`}
+                    className={`cursor-pointer ${selectedRow && (selectedRow as any).id === (row.original as any).id
+                      ? 'bg-primary/10'
+                      : ''
+                      }`}
                     onClick={() => handleRowClick(row.original)}
                     onDoubleClick={() => {
                       setSelectedRow(row.original)
