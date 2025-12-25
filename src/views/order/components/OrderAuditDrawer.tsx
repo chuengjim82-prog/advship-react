@@ -10,9 +10,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Loading } from '@/components/ui/spinner'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Download } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { Textarea } from '@/components/ui/textarea'
+import { Download, Check, X, AlertCircle } from 'lucide-react'
 import request from '@/utils/request'
 import { toast } from 'sonner'
+import dayjs from 'dayjs'
 import {
   fetchCustoms,
   fetchShippings,
@@ -48,6 +51,39 @@ export default function OrderAuditDrawer({ visible, orderId, onClose, onSuccess:
   const [custAgentOptions, setCustAgentOptions] = useState<AgentItem[]>([])
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [attachments, setAttachments] = useState<any[]>([])
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false)
+  const [rejectingFile, setRejectingFile] = useState<any>(null)
+  const [rejectMemo, setRejectMemo] = useState('')
+  const [auditLoading, setAuditLoading] = useState(false)
+
+  // 审核文件
+  const handleAuditFile = async (fileId: number, result: number, memo: string) => {
+    setAuditLoading(true)
+    try {
+      await request.post(`/bzss/api/orderattachment/${fileId}/audit`, {
+        auditResult: result,
+        auditMemo: memo
+      })
+      toast.success(result === 1 ? '审核通过' : '已拒绝')
+      // 刷新附件列表
+      loadDetail(orderId)
+      setRejectDialogOpen(false)
+      setRejectMemo('')
+      setRejectingFile(null)
+    } catch (err) {
+      console.error('audit failed', err)
+      toast.error('审核操作失败')
+    } finally {
+      setAuditLoading(false)
+    }
+  }
+
+  // 打开拒绝弹窗
+  const openRejectDialog = (file: any) => {
+    setRejectingFile(file)
+    setRejectMemo('')
+    setRejectDialogOpen(true)
+  }
 
   const loadDetail = async (id?: number | null) => {
     if (!id) {
@@ -196,14 +232,18 @@ export default function OrderAuditDrawer({ visible, orderId, onClose, onSuccess:
                   <CardTitle>附件(文件审核)</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="border rounded-md">
+                  <div className="border rounded-md overflow-x-auto">
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead className="w-[200px]">文件类型</TableHead>
-                          <TableHead className="w-[250px]">文件名</TableHead>
-                          <TableHead className="w-[120px]">审核结果</TableHead>
-                          <TableHead>备注</TableHead>
+                          <TableHead className="w-[160px]">文件类型</TableHead>
+                          <TableHead className="w-[200px]">文件名</TableHead>
+                          <TableHead className="w-[80px] text-center">需审核</TableHead>
+                          <TableHead className="w-[100px] text-center">审核结果</TableHead>
+                          <TableHead className="w-[200px]">审核意见</TableHead>
+                          <TableHead className="w-[100px]">审核人</TableHead>
+                          <TableHead className="w-[150px]">审核时间</TableHead>
+                          <TableHead className="w-[140px] text-center">操作</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -225,12 +265,79 @@ export default function OrderAuditDrawer({ visible, orderId, onClose, onSuccess:
                                   {file.fileNameO ?? '-'}
                                 </button>
                               ) : (
-                                <div className="text-sm">{file.fileNameO ?? '-'}</div>
+                                <div className="text-sm text-muted-foreground">{file.fileNameO ?? '未上传'}</div>
                               )}
                             </TableCell>
-                            <TableCell className="text-sm">{file.isAudit === 1 ? '已审核' : file.isUpload === 1 ? '已上传' : '待上传'}</TableCell>
+                            <TableCell className="text-center">
+                              {file.neAudit === 1 ? (
+                                <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
+                                  <AlertCircle className="w-3 h-3 mr-1" />
+                                  需审核
+                                </Badge>
+                              ) : (
+                                <span className="text-muted-foreground text-sm">-</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              {file.isAudit === 1 ? (
+                                file.auditResult === 1 ? (
+                                  <Badge className="bg-green-100 text-green-700 border-green-200">
+                                    <Check className="w-3 h-3 mr-1" />
+                                    通过
+                                  </Badge>
+                                ) : file.auditResult === 0 ? (
+                                  <Badge variant="destructive">
+                                    <X className="w-3 h-3 mr-1" />
+                                    拒绝
+                                  </Badge>
+                                ) : (
+                                  <span className="text-muted-foreground text-sm">-</span>
+                                )
+                              ) : file.isUpload === 1 ? (
+                                <Badge variant="secondary">待审核</Badge>
+                              ) : (
+                                <span className="text-muted-foreground text-sm">-</span>
+                              )}
+                            </TableCell>
                             <TableCell>
-                              <div className="text-sm">{file.remark ?? '-'}</div>
+                              <div className="text-sm max-w-[200px] truncate" title={file.auditMemo ?? ''}>
+                                {file.auditMemo ?? '-'}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="text-sm">{file.auditerName ?? '-'}</div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="text-sm">
+                                {file.auditTime ? dayjs(file.auditTime).format('YYYY-MM-DD HH:mm') : '-'}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              {file.neAudit === 1 && file.isUpload === 1 && file.isAudit !== 1 && (
+                                <div className="flex gap-1 justify-center">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="h-7 px-2 text-green-600 hover:text-green-700 hover:bg-green-50"
+                                    onClick={() => handleAuditFile(file.id, 1, '')}
+                                  >
+                                    <Check className="w-3 h-3 mr-1" />
+                                    通过
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="h-7 px-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                    onClick={() => openRejectDialog(file)}
+                                  >
+                                    <X className="w-3 h-3 mr-1" />
+                                    拒绝
+                                  </Button>
+                                </div>
+                              )}
+                              {file.isAudit === 1 && (
+                                <span className="text-muted-foreground text-xs">已处理</span>
+                              )}
                             </TableCell>
                           </TableRow>
                         ))}
@@ -467,6 +574,45 @@ export default function OrderAuditDrawer({ visible, orderId, onClose, onSuccess:
         <SheetFooter>
           <Button variant="outline" onClick={onClose}>关闭</Button>
         </SheetFooter>
+
+        {/* 拒绝原因弹窗 */}
+        {rejectDialogOpen && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-background rounded-lg p-6 w-[400px] shadow-lg">
+              <h3 className="text-lg font-semibold mb-4">拒绝原因</h3>
+              <p className="text-sm text-muted-foreground mb-2">
+                文件: {rejectingFile?.fileNameO ?? rejectingFile?.fileName}
+              </p>
+              <Textarea
+                placeholder="请输入拒绝原因..."
+                value={rejectMemo}
+                onChange={(e) => setRejectMemo(e.target.value)}
+                className="mb-4"
+                rows={4}
+              />
+              <div className="flex justify-end gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setRejectDialogOpen(false)
+                    setRejectMemo('')
+                    setRejectingFile(null)
+                  }}
+                  disabled={auditLoading}
+                >
+                  取消
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={() => handleAuditFile(rejectingFile?.id, 0, rejectMemo)}
+                  disabled={auditLoading || !rejectMemo.trim()}
+                >
+                  确认拒绝
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </SheetContent>
     </Sheet>
   )
