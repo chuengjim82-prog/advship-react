@@ -188,6 +188,15 @@ export default function Customer() {
     remark: '',
   }
 
+  const searchFields = [
+    { name: 'code', label: '编码', placeholder: '请输入编码' },
+    { name: 'name', label: '名称', placeholder: '请输入名称' },
+    { name: 'countryCode2', label: '国家', placeholder: '请输入国家代码' },
+    { name: 'cityName', label: '城市', placeholder: '请输入城市' },
+    { name: 'contact', label: '联系人', placeholder: '请输入联系人' },
+    { name: 'phone', label: '联系电话', placeholder: '请输入电话' },
+  ]
+
   return (
     <>
       <CrudTableV2<CustomerData>
@@ -199,6 +208,8 @@ export default function Customer() {
         defaultValues={defaultValues}
         dialogWidth="1024px"
         dialogClassName="max-w-5xl max-h-[85vh] overflow-y-auto"
+        searchFields={searchFields}
+        searchVisibleRows={1}
       />
 
       <SelectDialogV2<CountryItem>
