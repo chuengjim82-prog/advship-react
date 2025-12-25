@@ -324,7 +324,7 @@ export default function OrderAuditDrawer({ visible, orderId, onClose, onSuccess:
                               </div>
                             </TableCell>
                             <TableCell className="text-center">
-                              {file.neAudit === 1 && file.isUpload === 1 && file.isAudit !== 1 && (
+                              {file.isUpload === 1 && file.isAudit !== 1 ? (
                                 <Button
                                   size="sm"
                                   variant="outline"
@@ -334,9 +334,10 @@ export default function OrderAuditDrawer({ visible, orderId, onClose, onSuccess:
                                   <ClipboardCheck className="w-3 h-3 mr-1" />
                                   审核
                                 </Button>
-                              )}
-                              {file.isAudit === 1 && (
+                              ) : file.isAudit === 1 ? (
                                 <span className="text-muted-foreground text-xs">已处理</span>
+                              ) : (
+                                <span className="text-muted-foreground text-xs">-</span>
                               )}
                             </TableCell>
                           </TableRow>
