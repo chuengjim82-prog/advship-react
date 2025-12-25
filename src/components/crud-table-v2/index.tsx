@@ -332,16 +332,6 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between mb-3">
             <CardTitle>{title}</CardTitle>
-            <div className="flex gap-2">
-              <Button variant="default" size="sm" onClick={handleAdd}>
-                <Plus className="mr-1 h-4 w-4" />
-                新增
-              </Button>
-              <Button variant="outline" size="sm" onClick={handleRefresh}>
-                <RefreshCw className="mr-1 h-4 w-4" />
-                刷新
-              </Button>
-            </div>
           </div>
 
           {/* 搜索区域 */}
@@ -392,6 +382,14 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
                 ))}
               </div>
               <div className="flex items-center gap-2">
+                <Button variant="default" size="sm" onClick={handleAdd}>
+                  <Plus className="mr-1 h-4 w-4" />
+                  新增
+                </Button>
+                <Button variant="outline" size="sm" onClick={handleRefresh}>
+                  <RefreshCw className="mr-1 h-4 w-4" />
+                  刷新
+                </Button>
                 <Button variant="default" size="sm" onClick={handleSearch}>
                   <Search className="mr-1 h-4 w-4" />
                   搜索
@@ -424,6 +422,14 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
             </div>
           ) : (
             <div className="flex gap-2">
+              <Button variant="default" size="sm" onClick={handleAdd}>
+                <Plus className="mr-1 h-4 w-4" />
+                新增
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleRefresh}>
+                <RefreshCw className="mr-1 h-4 w-4" />
+                刷新
+              </Button>
               <Input
                 placeholder={searchPlaceholder}
                 value={searchKeyword}
