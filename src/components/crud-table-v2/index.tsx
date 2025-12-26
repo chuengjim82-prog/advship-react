@@ -132,10 +132,18 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
     loadData()
   }, [loadData])
 
+  // 用于存储待搜索的参数（解决自定义字段异步更新问题）
+  const pendingSearchRef = React.useRef<Record<string, string> | null>(null)
+
   // Handle search
-  const handleSearch = useCallback(() => {
+  const handleSearch = useCallback((immediateParams?: Record<string, string>) => {
+    // 如果传入了立即参数，先更新 searchParams
+    if (immediateParams) {
+      setSearchParams(prev => ({ ...prev, ...immediateParams }))
+      pendingSearchRef.current = { ...searchParams, ...immediateParams }
+    }
     setPagination(prev => ({ ...prev, pageIndex: 0 }))
-  }, [])
+  }, [searchParams])
 
   // Handle clear search
   const handleClearSearch = useCallback(() => {
@@ -330,7 +338,7 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
                   ))}
                 </div>
                 <div className="flex gap-2 items-center">
-                  <Button variant="default" size="sm" onClick={handleSearch}>
+                  <Button variant="default" size="sm" onClick={() => handleSearch()}>
                     <Search className="mr-1 h-4 w-4" />
                     搜索
                   </Button>
@@ -365,7 +373,7 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
                   onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                   className="w-[200px]"
                 />
-                <Button variant="default" size="sm" onClick={handleSearch}>
+                <Button variant="default" size="sm" onClick={() => handleSearch()}>
                   <Search className="mr-1 h-4 w-4" />
                   搜索
                 </Button>

@@ -9,8 +9,8 @@ export interface SearchField {
   placeholder?: string
   type?: 'text' | 'select' | 'custom'
   options?: { label: string; value: string }[]
-  /** 自定义渲染函数，onSearch用于选择后自动触发搜索 */
-  render?: (value: string, onChange: (value: string) => void, onSearch: () => void) => ReactNode
+  /** 自定义渲染函数，onSearch用于选择后自动触发搜索，可传入立即应用的参数 */
+  render?: (value: string, onChange: (value: string) => void, onSearch: (immediateParams?: Record<string, string>) => void) => ReactNode
 }
 
 export interface CrudTableV2Props<T extends FieldValues = FieldValues> {

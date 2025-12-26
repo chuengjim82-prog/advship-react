@@ -125,7 +125,7 @@ export default function City() {
 
   // 保存搜索区国家选择的回调
   const searchCountryOnChangeRef = useRef<((value: string) => void) | null>(null)
-  const searchCountryOnSearchRef = useRef<(() => void) | null>(null)
+  const searchCountryOnSearchRef = useRef<((immediateParams?: Record<string, string>) => void) | null>(null)
 
   // 多字段搜索配置
   const searchFields: SearchField[] = [
@@ -190,16 +190,10 @@ export default function City() {
         open={searchCountryDialogOpen}
         onOpenChange={setSearchCountryDialogOpen}
         onSelect={(country) => {
-          // 通过保存的回调更新搜索参数并触发搜索
-          if (searchCountryOnChangeRef.current) {
-            searchCountryOnChangeRef.current(country.code2)
+          // 直接调用搜索，传入国家代码作为立即参数
+          if (searchCountryOnSearchRef.current) {
+            searchCountryOnSearchRef.current({ countryCode2: country.code2 })
           }
-          // 延迟执行搜索，确保状态已更新
-          setTimeout(() => {
-            if (searchCountryOnSearchRef.current) {
-              searchCountryOnSearchRef.current()
-            }
-          }, 0)
         }}
       />
     </>
