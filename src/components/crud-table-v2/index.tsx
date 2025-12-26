@@ -450,8 +450,8 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
           {/* Table */}
           <div className="rounded-md border">
             <Table
-              className="w-max"
-              style={{ width: Math.max(table.getTotalSize(), 100), tableLayout: 'fixed' }}
+              className="w-full"
+              style={{ minWidth: Math.max(table.getTotalSize(), 100), tableLayout: 'fixed' }}
             >
               <TableHeader>
                 {table.getHeaderGroups().map((headerGroup) => (
