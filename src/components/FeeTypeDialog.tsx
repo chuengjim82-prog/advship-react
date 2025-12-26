@@ -1,5 +1,5 @@
-import { forwardRef } from 'react'
-import SelectDialog, { type SelectDialogRef } from '@/components/SelectDialog'
+import type { ColumnDef } from '@tanstack/react-table'
+import SelectDialogV2 from '@/components/select-dialog-v2'
 
 export interface FeeTypeItem {
   id: number
@@ -9,31 +9,28 @@ export interface FeeTypeItem {
 }
 
 interface FeeTypeDialogProps {
+  open: boolean
+  onOpenChange: (open: boolean) => void
   onSelect: (feeType: FeeTypeItem) => void
 }
 
-const FeeTypeDialog = forwardRef<SelectDialogRef, FeeTypeDialogProps>((props, ref) => {
-  const { onSelect } = props
+const feeTypeColumns: ColumnDef<FeeTypeItem>[] = [
+  { accessorKey: 'id', header: '主键', size: 80 },
+  { accessorKey: 'cnName', header: '中文名称', size: 140 },
+  { accessorKey: 'enName', header: '英文名称', size: 300 },
+  { accessorKey: 'remark', header: '备注' }
+]
 
-  const columns = [
-    { title: '主键', dataIndex: 'id', width: 80 },
-    { title: '中文名称', dataIndex: 'cnName', width: 140 },
-    { title: '英文名称', dataIndex: 'enName', width: 300 },
-    { title: '备注', dataIndex: 'remark' }
-  ]
-
+export default function FeeTypeDialog({ open, onOpenChange, onSelect }: FeeTypeDialogProps) {
   return (
-    <SelectDialog<FeeTypeItem>
-      ref={ref}
+    <SelectDialogV2<FeeTypeItem>
       title="选择费用类别"
       apiUrl="/base/api/FeeType"
-      columns={columns}
-      placeholder="请输入费用类别"
+      columns={feeTypeColumns}
+      open={open}
+      onOpenChange={onOpenChange}
       onSelect={onSelect}
+      searchPlaceholder="请输入费用类别"
     />
   )
-})
-
-FeeTypeDialog.displayName = 'FeeTypeDialog'
-
-export default FeeTypeDialog
+}

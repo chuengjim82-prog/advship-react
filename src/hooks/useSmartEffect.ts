@@ -41,7 +41,7 @@ export function useSmartEffect<T extends Key = Key>({
     if (once) {
       if (onceRef.current) return;
       onceRef.current = true;
-      effect(key);
+      effect(key as T);
       return;
     }
 

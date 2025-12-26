@@ -1,5 +1,5 @@
-import { forwardRef } from 'react'
-import SelectDialog, { type SelectDialogRef } from '@/components/SelectDialog'
+import type { ColumnDef } from '@tanstack/react-table'
+import SelectDialogV2 from '@/components/select-dialog-v2'
 
 export interface CityItem {
   id: number
@@ -10,32 +10,29 @@ export interface CityItem {
 }
 
 interface CityDialogProps {
+  open: boolean
+  onOpenChange: (open: boolean) => void
   onSelect: (city: CityItem) => void
 }
 
-const CityDialog = forwardRef<SelectDialogRef, CityDialogProps>((props, ref) => {
-  const { onSelect } = props
+const cityColumns: ColumnDef<CityItem>[] = [
+  { accessorKey: 'id', header: '主键', size: 80 },
+  { accessorKey: 'code', header: '编码', size: 120 },
+  { accessorKey: 'cnName', header: '中文名称', size: 140 },
+  { accessorKey: 'enName', header: '英文名称', size: 140 },
+  { accessorKey: 'remark', header: '备注' }
+]
 
-  const columns = [
-    { title: '主键', dataIndex: 'id', width: 80 },
-    { title: '编码', dataIndex: 'code', width: 120 },
-    { title: '中文名称', dataIndex: 'cnName', width: 140 },
-    { title: '英文名称', dataIndex: 'enName', width: 140 },
-    { title: '备注', dataIndex: 'remark' }
-  ]
-
+export default function CityDialog({ open, onOpenChange, onSelect }: CityDialogProps) {
   return (
-    <SelectDialog<CityItem>
-      ref={ref}
+    <SelectDialogV2<CityItem>
       title="选择城市"
       apiUrl="/base/api/City"
-      columns={columns}
-      placeholder="请输入城市名称或代码"
+      columns={cityColumns}
+      open={open}
+      onOpenChange={onOpenChange}
       onSelect={onSelect}
+      searchPlaceholder="请输入城市名称或代码"
     />
   )
-})
-
-CityDialog.displayName = 'CityDialog'
-
-export default CityDialog
+}
