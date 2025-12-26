@@ -136,14 +136,25 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
   const pendingSearchRef = React.useRef<Record<string, string> | null>(null)
 
   // Handle search
-  const handleSearch = useCallback((immediateParams?: Record<string, string>) => {
-    // 如果传入了立即参数，先更新 searchParams
-    if (immediateParams) {
-      setSearchParams(prev => ({ ...prev, ...immediateParams }))
-      pendingSearchRef.current = { ...searchParams, ...immediateParams }
-    }
-    setPagination(prev => ({ ...prev, pageIndex: 0 }))
-  }, [searchParams])
+  const handleSearch = useCallback(
+    (immediateParams?: Record<string, string>) => {
+      // 如果传入了立即参数，先更新 searchParams
+      if (immediateParams) {
+        setSearchParams((prev) => ({ ...prev, ...immediateParams }))
+        pendingSearchRef.current = { ...searchParams, ...immediateParams }
+      }
+
+      setPagination((prev) => {
+        // 如果本来就在第一页，pageIndex 不变会导致 useEffect 不触发；这里直接请求一次
+        if (prev.pageIndex === 0) {
+          queueMicrotask(() => loadData())
+          return prev
+        }
+        return { ...prev, pageIndex: 0 }
+      })
+    },
+    [searchParams, loadData]
+  )
 
   // Handle clear search
   const handleClearSearch = useCallback(() => {
