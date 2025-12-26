@@ -446,8 +446,11 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
         </CardHeader>
         <CardContent>
           {/* Table */}
-          <div className="rounded-md border overflow-x-auto">
-            <Table style={{ width: 'max-content', minWidth: '100%' }}>
+          <div className="rounded-md border max-w-full">
+            <Table
+              className="min-w-full"
+              style={{ width: table.getTotalSize(), tableLayout: 'fixed' }}
+            >
               <TableHeader>
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow key={headerGroup.id}>
@@ -456,18 +459,21 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
                       return (
                         <TableHead
                           key={header.id}
-                          style={{ 
+                          style={{
                             width: header.column.getSize(),
                             minWidth: header.column.getSize(),
-                            ...(isActionsColumn ? {
-                              position: 'sticky',
-                              right: 0,
-                              zIndex: 10,
-                            } : {}),
+                            ...(isActionsColumn
+                              ? {
+                                  position: 'sticky',
+                                  right: 0,
+                                  zIndex: 10,
+                                }
+                              : {}),
                           }}
                           className={cn(
-                            "whitespace-nowrap",
-                            isActionsColumn && "bg-background shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.1)]"
+                            'whitespace-nowrap',
+                            isActionsColumn &&
+                              'bg-background shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.1)]'
                           )}
                         >
                           {header.isPlaceholder
