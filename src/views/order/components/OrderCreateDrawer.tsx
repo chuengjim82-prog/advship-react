@@ -28,7 +28,6 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Loading } from '@/components/ui/spinner'
-import { Checkbox } from '@/components/ui/checkbox'
 import { Plus, Trash2, Upload } from 'lucide-react'
 import request from '@/utils/request'
 import { toast } from 'sonner'
@@ -1134,7 +1133,6 @@ useSmartEffect({
                         <TableRow>
                           <TableHead className="w-[200px]">文件类型</TableHead>
                           <TableHead className="w-[240px]">文件上传</TableHead>
-                          <TableHead className="w-[200px]">文件名(新)</TableHead>
                           <TableHead className="w-[200px]">文件名(原)</TableHead>
                           <TableHead className="w-[100px]">状态</TableHead>
                           <TableHead>备注</TableHead>
@@ -1181,14 +1179,6 @@ useSmartEffect({
                                   提取
                                 </Button>
                               )}
-                            </TableCell>
-                            <TableCell>
-                              <Input
-                                value={file.fileNameN || ''}
-                                readOnly
-                                className="text-xs"
-                                placeholder="-"
-                              />
                             </TableCell>
                             <TableCell>
                               <Input
