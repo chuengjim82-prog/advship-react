@@ -337,22 +337,24 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
                     </div>
                   ))}
                 </div>
-                <div className="flex gap-2 items-center">
-                  <Button variant="default" size="sm" onClick={() => handleSearch()}>
-                    <Search className="mr-1 h-4 w-4" />
-                    搜索
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={handleClearSearch}>
-                    清空
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={handleRefresh}>
-                    <RefreshCw className="mr-1 h-4 w-4" />
-                    刷新
-                  </Button>
-                  <Button variant="default" size="sm" onClick={handleAdd}>
-                    <Plus className="mr-1 h-4 w-4" />
-                    新增
-                  </Button>
+                <div className="flex gap-2 items-center justify-between flex-1">
+                  <div className="flex gap-2 items-center">
+                    <Button variant="default" size="sm" onClick={() => handleSearch()}>
+                      <Search className="mr-1 h-4 w-4" />
+                      搜索
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={handleClearSearch}>
+                      清空
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={handleRefresh}>
+                      <RefreshCw className="mr-1 h-4 w-4" />
+                      刷新
+                    </Button>
+                    <Button variant="default" size="sm" onClick={handleAdd}>
+                      <Plus className="mr-1 h-4 w-4" />
+                      新增
+                    </Button>
+                  </div>
                   {hasMoreFields && (
                     <Button 
                       variant="ghost" 
