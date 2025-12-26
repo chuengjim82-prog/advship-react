@@ -451,23 +451,34 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
               <TableHeader>
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => (
-                      <TableHead
-                        key={header.id}
-                        style={{ 
-                          width: header.column.getSize(),
-                          minWidth: header.column.getSize(),
-                        }}
-                        className="whitespace-nowrap"
-                      >
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
-                            )}
-                      </TableHead>
-                    ))}
+                    {headerGroup.headers.map((header) => {
+                      const isActionsColumn = header.id === 'actions'
+                      return (
+                        <TableHead
+                          key={header.id}
+                          style={{ 
+                            width: header.column.getSize(),
+                            minWidth: header.column.getSize(),
+                            ...(isActionsColumn ? {
+                              position: 'sticky',
+                              right: 0,
+                              zIndex: 10,
+                            } : {}),
+                          }}
+                          className={cn(
+                            "whitespace-nowrap",
+                            isActionsColumn && "bg-background shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.1)]"
+                          )}
+                        >
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(
+                                header.column.columnDef.header,
+                                header.getContext()
+                              )}
+                        </TableHead>
+                      )
+                    })}
                   </TableRow>
                 ))}
               </TableHeader>
@@ -484,21 +495,32 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
                 ) : table.getRowModel().rows?.length ? (
                   table.getRowModel().rows.map((row) => (
                     <TableRow key={row.id}>
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell 
-                          key={cell.id}
-                          style={{ 
-                            width: cell.column.getSize(),
-                            minWidth: cell.column.getSize(),
-                          }}
-                          className="whitespace-nowrap"
-                        >
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
-                        </TableCell>
-                      ))}
+                      {row.getVisibleCells().map((cell) => {
+                        const isActionsColumn = cell.column.id === 'actions'
+                        return (
+                          <TableCell 
+                            key={cell.id}
+                            style={{ 
+                              width: cell.column.getSize(),
+                              minWidth: cell.column.getSize(),
+                              ...(isActionsColumn ? {
+                                position: 'sticky',
+                                right: 0,
+                                zIndex: 5,
+                              } : {}),
+                            }}
+                            className={cn(
+                              "whitespace-nowrap",
+                              isActionsColumn && "bg-background shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.1)]"
+                            )}
+                          >
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext()
+                            )}
+                          </TableCell>
+                        )
+                      })}
                     </TableRow>
                   ))
                 ) : (
