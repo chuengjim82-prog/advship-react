@@ -143,10 +143,10 @@ export default function BankAccountT() {
   }, [])
 
   const columns: ColumnDef<BankAccountTData>[] = [
-    { accessorKey: 'id', header: '主键', size: 60 },
+    { accessorKey: 'id', header: () => <span className="whitespace-nowrap">主键</span>, size: 60 },
     {
       accessorKey: 'ownerType',
-      header: () => <span className="flex items-center gap-1.5"><Building2 className="h-3.5 w-3.5 text-primary" />账户类型</span>,
+      header: () => <span className="flex items-center gap-1.5 whitespace-nowrap"><Building2 className="h-3.5 w-3.5 text-primary" />账户类型</span>,
       size: 100,
       cell: ({ getValue }) => {
         const val = getValue() as string
@@ -167,7 +167,7 @@ export default function BankAccountT() {
     },
     { 
       accessorKey: 'ownerName', 
-      header: '所属对象',
+      header: () => <span className="whitespace-nowrap">所属对象</span>,
       size: 140,
       cell: ({ getValue }) => (
         <span className="font-medium text-foreground">{getValue() as string || '-'}</span>
@@ -175,12 +175,12 @@ export default function BankAccountT() {
     },
     { 
       accessorKey: 'accountName', 
-      header: () => <span className="flex items-center gap-1.5"><CreditCard className="h-3.5 w-3.5 text-muted-foreground" />账户名称</span>,
+      header: () => <span className="flex items-center gap-1.5 whitespace-nowrap"><CreditCard className="h-3.5 w-3.5 text-muted-foreground" />账户名称</span>,
       size: 180,
     },
     { 
       accessorKey: 'depositBank', 
-      header: () => <span className="flex items-center gap-1.5"><Landmark className="h-3.5 w-3.5 text-blue-500" />开户银行</span>,
+      header: () => <span className="flex items-center gap-1.5 whitespace-nowrap"><Landmark className="h-3.5 w-3.5 text-blue-500" />开户银行</span>,
       size: 200,
       cell: ({ getValue }) => (
         <span className="text-muted-foreground">{getValue() as string || '-'}</span>
@@ -188,7 +188,7 @@ export default function BankAccountT() {
     },
     { 
       accessorKey: 'accountNo', 
-      header: () => <span className="flex items-center gap-1.5"><Hash className="h-3.5 w-3.5 text-muted-foreground" />账户号码</span>,
+      header: () => <span className="flex items-center gap-1.5 whitespace-nowrap"><Hash className="h-3.5 w-3.5 text-muted-foreground" />账户号码</span>,
       size: 200,
       cell: ({ getValue }) => {
         const val = getValue() as string
@@ -201,7 +201,7 @@ export default function BankAccountT() {
     },
     { 
       accessorKey: 'currency', 
-      header: () => <span className="flex items-center gap-1.5"><CircleDollarSign className="h-3.5 w-3.5 text-green-500" />币种</span>,
+      header: () => <span className="flex items-center gap-1.5 whitespace-nowrap"><CircleDollarSign className="h-3.5 w-3.5 text-green-500" />币种</span>,
       size: 80,
       cell: ({ getValue }) => {
         const val = getValue() as string
@@ -211,7 +211,7 @@ export default function BankAccountT() {
     },
     { 
       accessorKey: 'bankCode', 
-      header: '银行号码',
+      header: () => <span className="whitespace-nowrap">银行号码</span>,
       size: 120,
       cell: ({ getValue }) => {
         const val = getValue() as string
@@ -220,7 +220,7 @@ export default function BankAccountT() {
     },
     { 
       accessorKey: 'branchCode', 
-      header: '分行代码',
+      header: () => <span className="whitespace-nowrap">分行代码</span>,
       size: 120,
       cell: ({ getValue }) => {
         const val = getValue() as string
@@ -229,7 +229,7 @@ export default function BankAccountT() {
     },
     { 
       accessorKey: 'swiftCode', 
-      header: () => <span className="flex items-center gap-1.5"><Globe className="h-3.5 w-3.5 text-violet-500" />Swift</span>,
+      header: () => <span className="flex items-center gap-1.5 whitespace-nowrap"><Globe className="h-3.5 w-3.5 text-violet-500" />Swift</span>,
       size: 100,
       cell: ({ getValue }) => {
         const val = getValue() as string
@@ -238,7 +238,7 @@ export default function BankAccountT() {
     },
     { 
       accessorKey: 'countryCode2', 
-      header: () => <span className="flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5 text-orange-500" />地点</span>,
+      header: () => <span className="flex items-center gap-1.5 whitespace-nowrap"><MapPin className="h-3.5 w-3.5 text-orange-500" />地点</span>,
       size: 80,
       cell: ({ getValue }) => {
         const val = getValue() as string
@@ -247,22 +247,22 @@ export default function BankAccountT() {
     },
     { 
       accessorKey: 'cityName', 
-      header: '城市',
+      header: () => <span className="whitespace-nowrap">城市</span>,
       size: 100 
     },
     { 
       accessorKey: 'latestTime', 
-      header: '最近交易',
+      header: () => <span className="whitespace-nowrap">最近交易</span>,
       size: 120 
     },
     { 
       accessorKey: 'dataSource', 
-      header: '来源',
+      header: () => <span className="whitespace-nowrap">来源</span>,
       size: 80 
     },
     {
       accessorKey: 'statusi',
-      header: '状态',
+      header: () => <span className="whitespace-nowrap">状态</span>,
       size: 80,
       cell: ({ getValue }) => getValue() === 1 
         ? <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-200 hover:bg-emerald-500/20">启用</Badge> 
@@ -270,7 +270,7 @@ export default function BankAccountT() {
     },
     { 
       accessorKey: 'remark', 
-      header: () => <span className="flex items-center gap-1.5"><FileText className="h-3.5 w-3.5 text-muted-foreground" />备注</span>,
+      header: () => <span className="flex items-center gap-1.5 whitespace-nowrap"><FileText className="h-3.5 w-3.5 text-muted-foreground" />备注</span>,
       size: 150,
       cell: ({ getValue }) => {
         const val = getValue() as string
