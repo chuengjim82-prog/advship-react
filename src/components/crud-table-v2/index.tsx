@@ -345,13 +345,13 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
                   <Button variant="outline" size="sm" onClick={handleClearSearch}>
                     清空
                   </Button>
-                  <Button variant="default" size="sm" onClick={handleAdd}>
-                    <Plus className="mr-1 h-4 w-4" />
-                    新增
-                  </Button>
                   <Button variant="outline" size="sm" onClick={handleRefresh}>
                     <RefreshCw className="mr-1 h-4 w-4" />
                     刷新
+                  </Button>
+                  <Button variant="default" size="sm" onClick={handleAdd}>
+                    <Plus className="mr-1 h-4 w-4" />
+                    新增
                   </Button>
                   {hasMoreFields && (
                     <Button 
@@ -377,13 +377,13 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
                   <Search className="mr-1 h-4 w-4" />
                   搜索
                 </Button>
-                <Button variant="default" size="sm" onClick={handleAdd}>
-                  <Plus className="mr-1 h-4 w-4" />
-                  新增
-                </Button>
                 <Button variant="outline" size="sm" onClick={handleRefresh}>
                   <RefreshCw className="mr-1 h-4 w-4" />
                   刷新
+                </Button>
+                <Button variant="default" size="sm" onClick={handleAdd}>
+                  <Plus className="mr-1 h-4 w-4" />
+                  新增
                 </Button>
               </div>
             )}
