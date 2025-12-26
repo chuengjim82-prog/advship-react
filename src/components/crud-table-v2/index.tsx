@@ -454,7 +454,11 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
                     {headerGroup.headers.map((header) => (
                       <TableHead
                         key={header.id}
-                        style={{ width: header.column.getSize() }}
+                        style={{ 
+                          width: header.column.getSize(),
+                          minWidth: header.column.getSize(),
+                        }}
+                        className="whitespace-nowrap"
                       >
                         {header.isPlaceholder
                           ? null
@@ -481,7 +485,14 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
                   table.getRowModel().rows.map((row) => (
                     <TableRow key={row.id}>
                       {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>
+                        <TableCell 
+                          key={cell.id}
+                          style={{ 
+                            width: cell.column.getSize(),
+                            minWidth: cell.column.getSize(),
+                          }}
+                          className="whitespace-nowrap"
+                        >
                           {flexRender(
                             cell.column.columnDef.cell,
                             cell.getContext()
