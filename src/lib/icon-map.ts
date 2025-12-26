@@ -39,6 +39,7 @@ import {
   Info,
   Tags,
   Landmark,
+  Receipt,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -73,6 +74,7 @@ export const iconMap: Record<string, LucideIcon> = {
   PercentageOutlined: Percent,
   TagsOutlined: Tags,
   LandmarkOutlined: Landmark,
+  ReceiptOutlined: Receipt,
 
   // Action icons
   LeftOutlined: ChevronLeft,
