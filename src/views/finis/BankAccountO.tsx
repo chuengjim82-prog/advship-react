@@ -255,12 +255,8 @@ export default function BankAccountO() {
         formSchema={bankAccountOSchema}
         renderFormFields={renderFormFields}
         defaultValues={defaultValues}
-        // 3. 关键：提交前转换数据（适配CrudTableV2的通用钩子）
+        actionButtonsOnNewLine={true}
         onBeforeSubmit={transformSubmitData}
-      // 如果CrudTableV2不支持onBeforeSubmit，尝试以下备选方案：
-      // requestOptions={{
-      //   transformRequest: (data) => transformSubmitData(data)
-      // }}
       />
       <SelectDialogV2<CountryItem>
         title="选择国家"
