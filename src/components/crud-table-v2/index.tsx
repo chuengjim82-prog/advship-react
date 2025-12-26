@@ -312,12 +312,20 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
                   {visibleSearchFields?.map((field) => (
                     <div key={field.name} className="flex flex-col gap-1">
                       <label className="text-sm text-muted-foreground">{field.label}</label>
-                      <Input
-                        placeholder={field.placeholder || `请输入${field.label}`}
-                        value={searchParams[field.name] || ''}
-                        onChange={(e) => setSearchParams(prev => ({ ...prev, [field.name]: e.target.value }))}
-                        onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                      />
+                      {field.type === 'custom' && field.render ? (
+                        field.render(
+                          searchParams[field.name] || '',
+                          (value) => setSearchParams(prev => ({ ...prev, [field.name]: value })),
+                          () => {} // onOpenDialog placeholder - handled by custom render
+                        )
+                      ) : (
+                        <Input
+                          placeholder={field.placeholder || `请输入${field.label}`}
+                          value={searchParams[field.name] || ''}
+                          onChange={(e) => setSearchParams(prev => ({ ...prev, [field.name]: e.target.value }))}
+                          onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                        />
+                      )}
                     </div>
                   ))}
                 </div>
