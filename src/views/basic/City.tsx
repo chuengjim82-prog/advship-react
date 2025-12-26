@@ -124,27 +124,28 @@ export default function City() {
   }
 
   // 保存搜索区国家选择的回调
-  const searchCountryOnChangeRef = useRef<((value: string) => void) | null>(null)
   const searchCountryOnSearchRef = useRef<((immediateParams?: Record<string, string>) => void) | null>(null)
+
+  // 搜索区显示的国家名称
+  const [searchCountryName, setSearchCountryName] = useState('')
 
   // 多字段搜索配置
   const searchFields: SearchField[] = [
     { name: 'code', label: '编码', placeholder: '请输入编码' },
     { name: 'cnName', label: '中文名', placeholder: '请输入中文名' },
     { 
-      name: 'countryCode2', 
+      name: 'countryId', 
       label: '国家', 
       type: 'custom',
-      render: (value, onChange, onSearch) => {
+      render: (_value, _onChange, onSearch) => {
         // 保存回调引用以便在弹窗选择后调用
-        searchCountryOnChangeRef.current = onChange
         searchCountryOnSearchRef.current = onSearch
         return (
           <div className="flex gap-1">
             <Input 
               placeholder="请选择国家" 
               readOnly 
-              value={value || ''}
+              value={searchCountryName}
               className="flex-1"
             />
             <Button 
@@ -190,9 +191,11 @@ export default function City() {
         open={searchCountryDialogOpen}
         onOpenChange={setSearchCountryDialogOpen}
         onSelect={(country) => {
-          // 直接调用搜索，传入国家代码作为立即参数
+          // 更新显示的国家名称
+          setSearchCountryName(country.cnName)
+          // 直接调用搜索，传入国家ID作为立即参数
           if (searchCountryOnSearchRef.current) {
-            searchCountryOnSearchRef.current({ countryCode2: country.code2 })
+            searchCountryOnSearchRef.current({ countryId: String(country.id) })
           }
         }}
       />
