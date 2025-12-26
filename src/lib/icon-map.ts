@@ -37,6 +37,8 @@ import {
   X,
   AlertCircle,
   Info,
+  Tags,
+  Landmark,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -69,6 +71,8 @@ export const iconMap: Record<string, LucideIcon> = {
   SettingOutlined: Settings,
   FileTextOutlined: FileText,
   PercentageOutlined: Percent,
+  TagsOutlined: Tags,
+  LandmarkOutlined: Landmark,
 
   // Action icons
   LeftOutlined: ChevronLeft,
