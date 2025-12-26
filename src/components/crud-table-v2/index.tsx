@@ -446,8 +446,8 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
         </CardHeader>
         <CardContent>
           {/* Table */}
-          <div className="rounded-md border overflow-x-auto max-w-full">
-            <Table className="table-fixed" style={{ minWidth: 'max-content' }}>
+          <div className="rounded-md border overflow-x-auto">
+            <Table style={{ width: 'max-content', minWidth: '100%' }}>
               <TableHeader>
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow key={headerGroup.id}>
