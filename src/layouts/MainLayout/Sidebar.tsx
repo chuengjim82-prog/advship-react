@@ -42,7 +42,7 @@ export default function Sidebar({ collapsed }: SidebarProps) {
         { key: '/basic/service', icon: 'CustomerServiceOutlined', label: t('menu.service'), path: '/basic/service' },
         { key: '/basic/serviceAttn', icon: 'FileProtectOutlined', label: t('menu.serviceAttn'), path: '/basic/serviceAttn' },
         { key: '/basic/feeType', icon: 'TagsOutlined', label: t('menu.feeType'), path: '/basic/feeType' },
-        { key: '/basic/feeItem', icon: 'PercentageOutlined', label: t('menu.feeItem'), path: '/basic/feeItem' },
+        { key: '/basic/feeItem', icon: 'ReceiptOutlined', label: t('menu.feeItem'), path: '/basic/feeItem' },
         { key: '/basic/bankAccountO', icon: 'LandmarkOutlined', label: t('menu.bankAccountO'), path: '/basic/bankAccountO' },
         { key: '/basic/bankAccountT', icon: 'LandmarkOutlined', label: t('menu.bankAccountT'), path: '/basic/bankAccountT' },
       ],
