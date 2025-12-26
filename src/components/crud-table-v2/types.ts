@@ -3,6 +3,14 @@ import type { ColumnDef } from '@tanstack/react-table'
 import type { UseFormReturn, FieldValues } from 'react-hook-form'
 import type { z } from 'zod'
 
+export interface SearchField {
+  name: string
+  label: string
+  placeholder?: string
+  type?: 'text' | 'select'
+  options?: { label: string; value: string }[]
+}
+
 export interface CrudTableV2Props<T extends FieldValues = FieldValues> {
   // Required props
   title: string
@@ -20,6 +28,10 @@ export interface CrudTableV2Props<T extends FieldValues = FieldValues> {
   searchPlaceholder?: string
   dialogWidth?: string | number
   dialogClassName?: string
+
+  // Multi-field search
+  searchFields?: SearchField[]
+  searchVisibleRows?: number
 
   // Callbacks
   onLoaded?: (data: T[]) => void
