@@ -16,7 +16,7 @@ export default defineConfig(({ mode }) => ({
   },
   server: {
     host: '::',
-    port: 8090,
+    port: 8080,
     proxy: {
       '/base': {
         target: 'http://8.134.159.144:8001',
