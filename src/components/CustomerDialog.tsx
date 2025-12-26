@@ -1,5 +1,5 @@
-import { forwardRef } from 'react'
-import SelectDialog, { type SelectDialogRef } from '@/components/SelectDialog'
+import type { ColumnDef } from '@tanstack/react-table'
+import SelectDialogV2 from '@/components/select-dialog-v2'
 
 export interface CustomerItem {
   id: number
@@ -9,31 +9,28 @@ export interface CustomerItem {
 }
 
 interface CustomerDialogProps {
+  open: boolean
+  onOpenChange: (open: boolean) => void
   onSelect: (customer: CustomerItem) => void
 }
 
-const CustomerDialog = forwardRef<SelectDialogRef, CustomerDialogProps>((props, ref) => {
-  const { onSelect } = props
+const customerColumns: ColumnDef<CustomerItem>[] = [
+  { accessorKey: 'id', header: '主键', size: 80 },
+  { accessorKey: 'code', header: '编码', size: 120 },
+  { accessorKey: 'name', header: '中文名称', size: 140 },
+  { accessorKey: 'remark', header: '备注' }
+]
 
-  const columns = [
-    { title: '主键', dataIndex: 'id', width: 80 },
-    { title: '编码', dataIndex: 'code', width: 120 },
-    { title: '中文名称', dataIndex: 'name', width: 140 },
-    { title: '备注', dataIndex: 'remark' }
-  ]
-
+export default function CustomerDialog({ open, onOpenChange, onSelect }: CustomerDialogProps) {
   return (
-    <SelectDialog<CustomerItem>
-      ref={ref}
+    <SelectDialogV2<CustomerItem>
       title="选择客户"
       apiUrl="/base/api/customer"
-      columns={columns}
-      placeholder="请输入客户名称或代码"
+      columns={customerColumns}
+      open={open}
+      onOpenChange={onOpenChange}
       onSelect={onSelect}
+      searchPlaceholder="请输入客户名称或代码"
     />
   )
-})
-
-CustomerDialog.displayName = 'CustomerDialog'
-
-export default CustomerDialog
+}

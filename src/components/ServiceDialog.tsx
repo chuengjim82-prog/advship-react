@@ -1,6 +1,6 @@
-import { forwardRef } from 'react'
-import { Tag } from 'antd'
-import SelectDialog, { type SelectDialogRef } from '@/components/SelectDialog'
+import type { ColumnDef } from '@tanstack/react-table'
+import SelectDialogV2 from '@/components/select-dialog-v2'
+import { Badge } from '@/components/ui/badge'
 
 export interface ServiceItem {
   id: number
@@ -12,43 +12,44 @@ export interface ServiceItem {
 }
 
 interface ServiceDialogProps {
+  open: boolean
+  onOpenChange: (open: boolean) => void
   onSelect: (service: ServiceItem) => void
 }
 
-const ServiceDialog = forwardRef<SelectDialogRef, ServiceDialogProps>((props, ref) => {
-  const { onSelect } = props
+const serviceColumns: ColumnDef<ServiceItem>[] = [
+  { accessorKey: 'id', header: '主键', size: 80 },
+  { accessorKey: 'code', header: '编码', size: 120 },
+  { accessorKey: 'name', header: '名称', size: 180 },
+  {
+    accessorKey: 'isSale',
+    header: '销售',
+    size: 100,
+    cell: ({ getValue }) => (
+      getValue() ? <Badge variant="blue">是</Badge> : <Badge variant="outline">否</Badge>
+    )
+  },
+  {
+    accessorKey: 'isBuy',
+    header: '采购',
+    size: 80,
+    cell: ({ getValue }) => (
+      getValue() ? <Badge variant="blue">是</Badge> : <Badge variant="outline">否</Badge>
+    )
+  },
+  { accessorKey: 'remark', header: '备注' }
+]
 
-  const columns = [
-    { title: '主键', dataIndex: 'id', width: 80 },
-    { title: '编码', dataIndex: 'code', width: 120 },
-    { title: '名称', dataIndex: 'name', width: 180 },
-    {
-      title: '销售',
-      dataIndex: 'isSale',
-      width: 100,
-      render: (isSale: boolean) => (isSale ? <Tag color="blue">是</Tag> : <Tag color="default">否</Tag>)
-    },
-    {
-      title: '采购',
-      dataIndex: 'isBuy',
-      width: 80,
-      render: (isBuy: boolean) => (isBuy ? <Tag color="blue">是</Tag> : <Tag color="default">否</Tag>)
-    },
-    { title: '备注', dataIndex: 'remark' }
-  ]
-
+export default function ServiceDialog({ open, onOpenChange, onSelect }: ServiceDialogProps) {
   return (
-    <SelectDialog<ServiceItem>
-      ref={ref}
+    <SelectDialogV2<ServiceItem>
       title="选择产品服务"
       apiUrl="/base/api/Service"
-      columns={columns}
-      placeholder="请输入产品服务名称或代码"
+      columns={serviceColumns}
+      open={open}
+      onOpenChange={onOpenChange}
       onSelect={onSelect}
+      searchPlaceholder="请输入产品服务名称或代码"
     />
   )
-})
-
-ServiceDialog.displayName = 'ServiceDialog'
-
-export default ServiceDialog
+}

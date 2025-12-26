@@ -1,4 +1,4 @@
-import { useRef, useCallback, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { z } from 'zod'
 import type { ColumnDef } from '@tanstack/react-table'
 import { MoreHorizontal } from 'lucide-react'
@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import type { UseFormReturn } from 'react-hook-form'
 import CountryDialog, { type CountryItem } from '@/components/CountryDialog'
-import type { SelectDialogRef } from '@/components/SelectDialog'
 
 // Data type
 interface CityData {
@@ -35,7 +34,7 @@ const citySchema = z.object({
 })
 
 export default function City() {
-  const countryDialogRef = useRef<SelectDialogRef>(null)
+  const [countryDialogOpen, setCountryDialogOpen] = useState(false)
   const [currentForm, setCurrentForm] = useState<UseFormReturn<CityData> | null>(null)
 
   // TanStack Table columns
@@ -124,7 +123,7 @@ export default function City() {
                   />
                   <Button
                     type="button"
-                    onClick={() => countryDialogRef.current?.open()}
+                    onClick={() => setCountryDialogOpen(true)}
                   >
                     <MoreHorizontal className="mr-1 h-4 w-4" />
                     选择
@@ -155,7 +154,7 @@ export default function City() {
         />
       </>
     )
-  }, [currentForm])
+  }, [])
 
   // Default form values
   const defaultValues: CityData = {
@@ -178,7 +177,11 @@ export default function City() {
         renderFormFields={renderFormFields}
         defaultValues={defaultValues}
       />
-      <CountryDialog ref={countryDialogRef} onSelect={handleCountrySelect} />
+      <CountryDialog 
+        open={countryDialogOpen} 
+        onOpenChange={setCountryDialogOpen} 
+        onSelect={handleCountrySelect} 
+      />
     </>
   )
 }

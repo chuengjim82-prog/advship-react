@@ -1,5 +1,5 @@
-import { forwardRef } from 'react'
-import SelectDialog, { type SelectDialogRef } from '@/components/SelectDialog'
+import type { ColumnDef } from '@tanstack/react-table'
+import SelectDialogV2 from '@/components/select-dialog-v2'
 
 export interface CountryItem {
   id: number
@@ -12,34 +12,31 @@ export interface CountryItem {
 }
 
 interface CountryDialogProps {
+  open: boolean
+  onOpenChange: (open: boolean) => void
   onSelect: (country: CountryItem) => void
 }
 
-const CountryDialog = forwardRef<SelectDialogRef, CountryDialogProps>((props, ref) => {
-  const { onSelect } = props
+const countryColumns: ColumnDef<CountryItem>[] = [
+  { accessorKey: 'id', header: '主键', size: 80 },
+  { accessorKey: 'cnName', header: '中文名称', size: 140 },
+  { accessorKey: 'enName', header: '英文名称', size: 140 },
+  { accessorKey: 'code2', header: '二字码', size: 120 },
+  { accessorKey: 'code3', header: '三字码', size: 140 },
+  { accessorKey: 'timeZone', header: '时区', size: 100 },
+  { accessorKey: 'remark', header: '备注' }
+]
 
-  const columns = [
-    { title: '主键', dataIndex: 'id', width: 80 },
-    { title: '中文名称', dataIndex: 'cnName', width: 140 },
-    { title: '英文名称', dataIndex: 'enName', width: 140 },
-    { title: '二字码', dataIndex: 'code2', width: 120 },
-    { title: '三字码', dataIndex: 'code3', width: 140 },
-    { title: '时区', dataIndex: 'timeZone', width: 100 },
-    { title: '备注', dataIndex: 'remark' }
-  ]
-
+export default function CountryDialog({ open, onOpenChange, onSelect }: CountryDialogProps) {
   return (
-    <SelectDialog<CountryItem>
-      ref={ref}
+    <SelectDialogV2<CountryItem>
       title="选择国家"
       apiUrl="/base/api/Country"
-      columns={columns}
-      placeholder="请输入国家名称或代码"
+      columns={countryColumns}
+      open={open}
+      onOpenChange={onOpenChange}
       onSelect={onSelect}
+      searchPlaceholder="请输入国家名称或代码"
     />
   )
-})
-
-CountryDialog.displayName = 'CountryDialog'
-
-export default CountryDialog
+}
