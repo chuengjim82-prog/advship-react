@@ -446,11 +446,11 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
             </div>
           )}
         </CardHeader>
-        <CardContent className="overflow-hidden">
+        <CardContent>
           {/* Table */}
-          <div className="rounded-md border overflow-x-auto">
+          <div className="rounded-md border">
             <Table
-              className="min-w-full"
+              className="w-max"
               style={{ width: Math.max(table.getTotalSize(), 100), tableLayout: 'fixed' }}
             >
               <TableHeader>
