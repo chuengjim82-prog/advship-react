@@ -331,7 +331,6 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
                           placeholder={field.placeholder || `请输入${field.label}`}
                           value={searchParams[field.name] || ''}
                           onChange={(e) => setSearchParams(prev => ({ ...prev, [field.name]: e.target.value }))}
-                          onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                         />
                       )}
                     </div>
@@ -372,7 +371,6 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
                   placeholder={searchPlaceholder}
                   value={searchKeyword}
                   onChange={(e) => setSearchKeyword(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                   className="w-[200px]"
                 />
                 <Button variant="default" size="sm" onClick={() => handleSearch()}>
