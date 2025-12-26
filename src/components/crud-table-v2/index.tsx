@@ -45,7 +45,9 @@ import { Form } from '@/components/ui/form'
 import { cn } from '@/lib/utils'
 import request from '@/utils/request'
 import type { PageResult } from '@/utils/request'
-import type { CrudTableV2Props, CrudTableV2Ref } from './types'
+import type { CrudTableV2Props, CrudTableV2Ref, SearchField } from './types'
+
+export type { SearchField }
 
 function CrudTableV2<T extends FieldValues = FieldValues>(
   props: CrudTableV2Props<T>,
@@ -61,6 +63,8 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
     searchPlaceholder = '请输入关键词搜索',
     dialogWidth = '600px',
     dialogClassName,
+    searchFields,
+    searchVisibleRows = 2,
     onLoaded,
     onBeforeSubmit,
     onAfterSubmit,
@@ -71,6 +75,8 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
   const [tableData, setTableData] = useState<T[]>([])
   const [total, setTotal] = useState(0)
   const [searchKeyword, setSearchKeyword] = useState('')
+  const [searchParams, setSearchParams] = useState<Record<string, string>>({})
+  const [searchExpanded, setSearchExpanded] = useState(false)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [isEdit, setIsEdit] = useState(false)
   const [submitLoading, setSubmitLoading] = useState(false)
@@ -94,13 +100,21 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
   const loadData = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await request.get<PageResult<T>>(apiUrl, {
-        params: {
-          pageIndex: pagination.pageIndex + 1, // API uses 1-based index
-          pageSize: pagination.pageSize,
-          keyword: searchKeyword,
-        },
-      })
+      const params: Record<string, any> = {
+        pageIndex: pagination.pageIndex + 1, // API uses 1-based index
+        pageSize: pagination.pageSize,
+      }
+      
+      // Use multi-field search if searchFields is configured
+      if (searchFields && searchFields.length > 0) {
+        Object.entries(searchParams).forEach(([key, value]) => {
+          if (value) params[key] = value
+        })
+      } else {
+        params.keyword = searchKeyword
+      }
+      
+      const res = await request.get<PageResult<T>>(apiUrl, { params })
       const items = res.data?.items || []
       setTableData(items)
       setTotal(res.data?.total || 0)
@@ -111,7 +125,7 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
     } finally {
       setLoading(false)
     }
-  }, [apiUrl, pagination.pageIndex, pagination.pageSize, searchKeyword, onLoaded])
+  }, [apiUrl, pagination.pageIndex, pagination.pageSize, searchKeyword, searchParams, searchFields, onLoaded])
 
   // Load data on mount and when pagination/search changes
   useEffect(() => {
@@ -121,8 +135,14 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
   // Handle search
   const handleSearch = useCallback(() => {
     setPagination(prev => ({ ...prev, pageIndex: 0 }))
-    loadData()
-  }, [loadData])
+  }, [])
+
+  // Handle clear search
+  const handleClearSearch = useCallback(() => {
+    setSearchKeyword('')
+    setSearchParams({})
+    setPagination(prev => ({ ...prev, pageIndex: 0 }))
+  }, [])
 
   // Handle refresh
   const handleRefresh = useCallback(() => {
@@ -268,13 +288,67 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
     openEditDialog: handleEdit,
   }), [loadData, handleAdd, handleEdit])
 
+  // Calculate visible fields based on searchVisibleRows
+  const fieldsPerRow = 4 // fields per row
+  const maxVisibleFields = searchVisibleRows * fieldsPerRow
+  const visibleSearchFields = searchFields && !searchExpanded 
+    ? searchFields.slice(0, maxVisibleFields) 
+    : searchFields
+  const hasMoreFields = searchFields && searchFields.length > maxVisibleFields
+
   return (
     <div className="crud-table-v2">
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>{title}</CardTitle>
-            <div className="flex gap-2">
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center justify-between">
+              <CardTitle>{title}</CardTitle>
+            </div>
+            
+            {/* Search Area */}
+            {searchFields && searchFields.length > 0 ? (
+              <div className="flex flex-col gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                  {visibleSearchFields?.map((field) => (
+                    <div key={field.name} className="flex flex-col gap-1">
+                      <label className="text-sm text-muted-foreground">{field.label}</label>
+                      <Input
+                        placeholder={field.placeholder || `请输入${field.label}`}
+                        value={searchParams[field.name] || ''}
+                        onChange={(e) => setSearchParams(prev => ({ ...prev, [field.name]: e.target.value }))}
+                        onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                      />
+                    </div>
+                  ))}
+                </div>
+                <div className="flex gap-2 items-center">
+                  <Button variant="default" size="sm" onClick={handleSearch}>
+                    <Search className="mr-1 h-4 w-4" />
+                    搜索
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={handleClearSearch}>
+                    清空
+                  </Button>
+                  <Button variant="default" size="sm" onClick={handleAdd}>
+                    <Plus className="mr-1 h-4 w-4" />
+                    新增
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={handleRefresh}>
+                    <RefreshCw className="mr-1 h-4 w-4" />
+                    刷新
+                  </Button>
+                  {hasMoreFields && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => setSearchExpanded(!searchExpanded)}
+                    >
+                      {searchExpanded ? '收起' : '展开'}
+                    </Button>
+                  )}
+                </div>
+              </div>
+            ) : (
               <div className="flex gap-2">
                 <Input
                   placeholder={searchPlaceholder}
@@ -287,16 +361,16 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
                   <Search className="mr-1 h-4 w-4" />
                   搜索
                 </Button>
+                <Button variant="default" size="sm" onClick={handleAdd}>
+                  <Plus className="mr-1 h-4 w-4" />
+                  新增
+                </Button>
+                <Button variant="outline" size="sm" onClick={handleRefresh}>
+                  <RefreshCw className="mr-1 h-4 w-4" />
+                  刷新
+                </Button>
               </div>
-              <Button variant="default" size="sm" onClick={handleAdd}>
-                <Plus className="mr-1 h-4 w-4" />
-                新增
-              </Button>
-              <Button variant="outline" size="sm" onClick={handleRefresh}>
-                <RefreshCw className="mr-1 h-4 w-4" />
-                刷新
-              </Button>
-            </div>
+            )}
           </div>
         </CardHeader>
         <CardContent>
