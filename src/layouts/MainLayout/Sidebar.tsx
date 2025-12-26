@@ -164,9 +164,9 @@ export default function Sidebar({ collapsed }: SidebarProps) {
   return (
     <div className="flex h-screen flex-col bg-sidebar">
       {/* Logo */}
-      <div className="flex h-[60px] shrink-0 items-center justify-center bg-[#2b3649]">
-        <img src="/vite.svg" alt="logo" className="h-8 w-8" />
-        {!collapsed && <span className="ml-3 text-lg font-bold text-white">AdvShip</span>}
+      <div className="flex h-[60px] shrink-0 items-center justify-center bg-[#2b3649] px-3">
+        <img src="/8459af27e5bd32253f9b7c65dfc069b8.png" alt="logo" className="max-h-[56px] w-full max-w-[230px] object-contain" />
+        {/* {!collapsed && <span className="ml-3 text-lg font-bold text-white">AdvShip11</span>} */}
       </div>
 
       {/* Menu */}

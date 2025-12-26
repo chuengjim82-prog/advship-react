@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
+import CopyButton from '@/components/ui/CopyButton'
 import { Loading } from '@/components/ui/spinner'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import request from '@/utils/request'
@@ -208,7 +209,7 @@ export default function OrderDetail() {
   const loadInvoiceGoods = useCallback(async () => {
     if (!orderId) return
     try {
-      const res = await request.get<InvoiceGoodsItem[]>(`/bzss/api/GoodsInfo/${orderId}GetOrderContainerOrder`)
+      const res = await request.get<InvoiceGoodsItem[]>(`/bzss/api/GoodsInfo/${orderId}GetGoodsInfoOrder`)
       setInvoiceGoods(res.data ?? [])
     } catch (err) {
       console.error('加载物品规格失败:', err)
@@ -280,25 +281,36 @@ export default function OrderDetail() {
                 <p className="text-sm text-muted-foreground">订单号码</p>
                 <div className="flex items-center gap-2">
                   <span className="font-medium">{orderBaseInfo?.orderNo || '-'}</span>
-                  <Button variant="link" size="sm" className="h-auto p-0" onClick={handleCopyBillNo}>
-                    复制
-                  </Button>
+                  <CopyButton text={orderBaseInfo?.orderNo || '-'} />
                 </div>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">订单日期</p>
-                <p className="font-medium">{formatDate(orderBaseInfo?.orderDate)}</p>
+                {/* <p className="font-medium">{formatDate(orderBaseInfo?.orderDate)}</p> */}
+                <div className="flex items-center gap-2">
+                  <span className="font-medium">{orderBaseInfo?.orderDate || '-'}</span>
+                  <CopyButton text={orderBaseInfo?.orderDate || '-'} />
+                </div>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">清关代理</p>
-                <p className="font-medium">{orderBaseInfo?.custAgentName || '-'}</p>
+                <div className="flex items-center gap-2">
+                  <span className="font-medium">{orderBaseInfo?.custAgentName || '-'}</span>
+                  <CopyButton text={orderBaseInfo?.custAgentName || '-'} />
+                </div>
+                {/* <p className="font-medium">{orderBaseInfo?.custAgentName || '-'}</p> */}
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">海关名称</p>
-                <p className="font-medium">{orderBaseInfo?.customsCnName || '-'}</p>
+                <div className="flex items-center gap-2">
+                  <span className="font-medium">{orderBaseInfo?.customsCnName || '-'}</span>
+                  <CopyButton text={orderBaseInfo?.customsCnName || '-'} />
+                </div>
+                {/* <p className="font-medium">{orderBaseInfo?.customsCnName || '-'}</p> */}
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">清关口岸</p>
+
                 <p className="font-medium">{orderBaseInfo?.custPortName || '-'}</p>
               </div>
               <div>

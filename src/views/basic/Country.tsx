@@ -1,7 +1,7 @@
 import { useCallback } from 'react'
 import { z } from 'zod'
 import type { ColumnDef } from '@tanstack/react-table'
-import CrudTableV2 from '@/components/crud-table-v2'
+import CrudTableV2, { type SearchField } from '@/components/crud-table-v2'
 import { Input } from '@/components/ui/input'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import type { UseFormReturn } from 'react-hook-form'
@@ -193,6 +193,12 @@ export default function Country() {
     timeZone: 8,
     remark: '',
   }
+  // 多字段搜索配置
+  const searchFields: SearchField[] = [
+    { name: 'code2', label: '二字码', placeholder: '请输入二字码' },
+    { name: 'code3', label: '三字码', placeholder: '请输入三字码' },
+    { name: 'cnName', label: '国家', placeholder: '请输入国家' },
+  ]
 
   return (
     <CrudTableV2<CountryData>
@@ -202,6 +208,8 @@ export default function Country() {
       formSchema={countrySchema}
       renderFormFields={renderFormFields}
       defaultValues={defaultValues}
+      searchFields={searchFields}
+      searchVisibleRows={1}
     />
   )
 }

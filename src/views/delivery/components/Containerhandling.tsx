@@ -3,7 +3,7 @@ import { DateTimePicker } from '@/components/ui/date-time-picker'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import type { ContainerPickupProps, DeliveryItem, TransportAgent } from '@/models/order.model'
+import type { ContainerPickupProps, TransportAgent } from '@/models/order.model'
 import request from '@/utils/request'
 import { format } from 'date-fns'
 import { ArrowLeft } from 'lucide-react'
@@ -11,7 +11,7 @@ import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 
-export default function ContainerPickup({
+export default function Containerhandling({
   containerNo: propContainerNo,
   pickupCode: propPickupCode = 'CSNU6927227',
   containerType: propContainerType = '40尺',
@@ -23,45 +23,54 @@ export default function ContainerPickup({
   const navigate = useNavigate()
   const location = useLocation()
   const locationState = location.state as { deliveryItem?: any } | null
-  const deliveryItem = location.state?.deliveryItem
 
-  console.log('ContainerPickup location.state:', locationState)
-  // 显示信息优先级：props > location.state > 默认值
-  const containerNo = locationState?.deliveryItem?.number ?? '-'
-  const pickupCode = locationState?.deliveryItem?.number ?? '-'
-  const containerType = locationState?.deliveryItem?.sizeType ?? '-'
+  // 优先使用 props，其次 location.state，最后默认值
+  const containerNo = propContainerNo ?? locationState?.deliveryItem?.containerNo ?? '-'
+  const pickupCode = propPickupCode ?? locationState?.deliveryItem?.pickupCode ?? 'CSNU6927227'
+  const containerType = propContainerType ?? locationState?.deliveryItem?.containerType ?? '40尺'
 
   const currentMode = propMode
   const isReadonly = currentMode === 'detail'
   const isEdit = currentMode === 'edit'
-  const pageTitle = currentMode === 'create' ? '预约提柜' : currentMode === 'edit' ? '编辑预约' : '预约详情'
 
-  // 表单状态（与后端字段一一对应）
+  const pageTitle = currentMode === 'create' ? '提柜处理' : currentMode === 'edit' ? '提柜处理' : '提柜处理'
+
+  // 表单状态
   const [formData, setFormData] = useState({
-    pickUpTimeA: null as Date | null,
+    appointmentTime: null as Date | null,
     deliveryMethod: 'yard' as 'yard' | 'direct',
     remarks: '',
-    transPikId: '0',
+    transPikId: '',
     vehicleNo: '',
-    transPikName: '', // 司机姓名
-    transPikPhone: '', // 司机电话（同时用于提货电话）
-
+    transPikName: '',
+    driverPhone: '',
     // 堆场信息
-    yardContact: '',
-    yardPhone: '',
-    yardAddress: '',
+    YardContact: '',
+    YardPhone: '',
+    YardAddress: '',
 
-    // 目的地信息（直接派送时必填）
-    recipientContact: '',
-    recipientPhone: '',
-    shippingAddress: '',
+    // 提货地信息（直接派送时使用）
+    pickupContact: '',
+    pickupPhone: '',
+    pickupAddress: '',
+
+    // 目的地信息（直接派送时使用）
+    destinationContact: '',
+    destinationPhone: '',
+    destinationAddress: '',
+
+    // 派送公司信息
+    deliveryCall: '',
+    deliveryPlateNumber: '',
+    deliveryContact: '',
+    deliveryCompanyId: '',
   })
 
   const [transportAgents, setTransportAgents] = useState<TransportAgent[]>([])
   const [loading, setLoading] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 
-  // 加载运输公司列表
+  // 加载运输公司
   useEffect(() => {
     const fetchAgents = async () => {
       setLoading(true)
@@ -73,6 +82,7 @@ export default function ContainerPickup({
         }
       } catch (err) {
         toast.error('获取运输公司失败')
+        console.error(err)
       } finally {
         setLoading(false)
       }
@@ -80,89 +90,54 @@ export default function ContainerPickup({
     fetchAgents()
   }, [])
 
-  // 初始化表单数据（edit / detail / create with item）
+  // 初始化表单数据（edit / detail 模式）
   useEffect(() => {
-    const data: Partial<DeliveryItem> = initialData || {} // 确保类型安全
-    if (!data) return
+    if (!initialData && !locationState?.deliveryItem) return
+
+    const data = initialData || locationState?.deliveryItem
+
     setFormData({
-      appointmentTime: data.pickUpTimeE,
-      deliveryMethod: data.deliveryType === 2 ? 'direct' : 'yard',
+      appointmentTime: data.pickUpTimeE ? new Date(data.pickUpTimeE) : null,
+      deliveryMethod: data.deliveryMethod || (data.deliveryType === 2 ? 'direct' : 'yard'),
       remarks: data.remark || '',
 
-      transPikId: Number(data.transPikId) || 0, // 修复类型为 number
-      vehicleNo: data.transportationNumber || '',
-      transPikName: data.transPikName || '',
-      transPikPhone: data.transPikPhone || '',
+      transPikId: String(data.transPikId || ''),
+      vehicleNo: data.transportationNumber || data.plateNumber || '',
+      transPikName: data.shippingContact || data.transPikName || '',
+      driverPhone: data.transPikPhone || data.driverPhone || '',
 
-      yardContact: data.yardContact || '',
-      yardPhone: data.yardPhone || '',
-      yardAddress: data.yardAddress || '',
+      YardContact: data.YardContact || '',
+      YardPhone: data.YardPhone || '',
+      YardAddress: data.YardAddress || '',
 
-      recipientContact: data.recipientContact || '',
-      recipientPhone: data.recipientPhone || '',
-      shippingAddress: data.shippingAddress || '',
+      pickupContact: data.pickupContact || data.contactName || '',
+      pickupPhone: data.pickupPhone || data.contactPhone || '',
+      pickupAddress: data.pickupAddress || data.contactAddress || '',
+
+      destinationContact: data.destinationContact || data.yardContact || '',
+      destinationPhone: data.destinationPhone || data.yardPhone || '',
+      destinationAddress: data.destinationAddress || data.yardAddress || '',
     })
   }, [initialData, locationState?.deliveryItem])
 
-  // 额外：如果是从列表进入 create 模式，尝试加载详情初始化
-  useEffect(() => {
-    // if (currentMode !== 'create' || !locationState?.deliveryItem?.containerId) return
-
-    const fetchDetails = async () => {
-      try {
-        console.log('加载详情，containerId=', locationState?.deliveryItem)
-        const res = await request.get(`/bzss/api/ContainerDetails/${deliveryItem.id}GetByContainerId`, {
-          params: { containerId: deliveryItem.id },
-        })
-        // const data = res?.data || {}
-        const data = res.data || {}
-        setFormData((prev) => ({
-          ...prev,
-          appointmentTime: data.pickUpTimeE ? new Date(data.pickUpTimeE) : null,
-          deliveryMethod: (data.deliveryType === 2 ? 'direct' : 'yard') as 'yard' | 'direct',
-          remarks: data.remark || '',
-          transPikId: Number(data.transPikId) || 0, // 修复类型为 number
-          vehicleNo: data.transportationNumber || '',
-          transPikName: data.transPikName || '',
-          transPikPhone: data.transPikPhone || '',
-          yardContact: data.yardContact || '',
-          yardPhone: data.yardPhone || '',
-          yardAddress: data.yardAddress || '',
-          recipientContact: data.recipientContact || '',
-          recipientPhone: data.recipientPhone || '',
-          shippingAddress: data.shippingAddress || '',
-        }))
-      } catch (err) {
-        console.error('加载详情失败', err)
-      }
-    }
-
-    fetchDetails()
-  }, [currentMode, locationState?.deliveryItem?.containerId])
-
-  // 确保 transPikId 的值为字符串类型
   const handleChange = (field: keyof typeof formData, value: string | Date | null) => {
     setFormData((prev) => ({
       ...prev,
-      [field]: field === 'transPikId' ? String(value) : value,
+      [field]: value,
     }))
   }
-
-  // 添加调试日志，确保数据正确
-  console.log('transPikId (after conversion):', formData.transPikId)
-  console.log('transportAgents:', transportAgents)
 
   const validate = () => {
     if (!formData.appointmentTime) return '请选择预约时间'
     if (!formData.transPikId) return '请选择运输公司'
     if (!formData.vehicleNo.trim()) return '请输入车牌号码'
     if (!formData.transPikName.trim()) return '请输入司机姓名'
-    if (!formData.transPikPhone.trim()) return '请输入联系电话'
+    if (!formData.driverPhone.trim()) return '请输入联系电话'
 
     if (formData.deliveryMethod === 'direct') {
-      if (!formData.recipientContact.trim()) return '请输入收货联系人'
-      if (!formData.recipientPhone.trim()) return '请输入收货联系电话'
-      if (!formData.shippingAddress.trim()) return '请输入收货详细地址'
+      if (!formData.destinationContact.trim()) return '请输入收货联系人'
+      if (!formData.destinationPhone.trim()) return '请输入收货联系电话'
+      if (!formData.destinationAddress.trim()) return '请输入收货详细地址'
     }
 
     return null
@@ -179,45 +154,38 @@ export default function ContainerPickup({
 
     setSubmitting(true)
     try {
+      const containerId = locationState?.deliveryItem?.id || initialData?.containerId || 0
       const orderId = locationState?.deliveryItem?.orderId || initialData?.orderId || 0
 
       const payload = {
-        id: isEdit ? initialData?.id || 0 : 0, // 修改 Id 为 id
+        id: isEdit ? initialData?.Id || 0 : 0,
+        containerId,
         orderId,
-        containerId: deliveryItem.id,
         deliveryType: formData.deliveryMethod === 'direct' ? 2 : 1,
-        statusi: 2,
-        newStatusi: 2,
-        operationTime: formData.pickUpTimeA ? format(formData.pickUpTimeA, "yyyy-MM-dd'T'HH:mm:ss") : new Date().toISOString(),
-
+        Statusi: 2,
+        newStatusi: formData.deliveryMethod === 'direct' ? 5 : 3,
         orderContainer: {
-          remark: formData.remarks,
-          transAgentId: parseInt(formData.transPikId || '0'),
-          transPikId: parseInt(formData.transPikId || '0'),
-          // 运输信息
+          containerId,
+          plateNumber: formData.vehicleNo,
           transPikName: formData.transPikName,
-          transPikPhone: formData.transPikPhone,
-          transportationNumber: formData.vehicleNo,
+          driverPhone: formData.driverPhone,
+          appointmentTime: formData.appointmentTime ? format(formData.appointmentTime, "yyyy-MM-dd'T'HH:mm:ss") : '',
+          remark: formData.remarks,
+          YardContact: formData.YardContact,
+          YardPhone: formData.YardPhone,
+          YardAddress: formData.YardAddress,
+          contactName: formData.pickupContact,
+          contactPhone: formData.pickupPhone,
+          contactAddress: formData.pickupAddress,
 
-          // 堆场信息（仅放置堆场时有效）
-          yardContact: formData.deliveryMethod === 'yard' ? formData.yardContact : '',
-          yardPhone: formData.deliveryMethod === 'yard' ? formData.yardPhone : '',
-          yardAddress: formData.deliveryMethod === 'yard' ? formData.yardAddress : '',
-
-          // 目的地信息（仅直接派送时有效）
-          recipientContact: formData.deliveryMethod === 'direct' ? formData.recipientContact : '',
-          recipientPhone: formData.deliveryMethod === 'direct' ? formData.recipientPhone : '',
-          shippingAddress: formData.deliveryMethod === 'direct' ? formData.shippingAddress : '',
-
-          // 其他兼容字段（可根据实际接口调整）
-          deliveryContact: formData.transPikName,
-          deliveryPlateNumber: formData.vehicleNo,
-          deliveryCall: formData.transPikPhone,
+          yardContact: formData.deliveryMethod === 'yard' ? formData.destinationContact : '',
+          yardPhone: formData.deliveryMethod === 'yard' ? formData.destinationPhone : '',
+          yardAddress: formData.deliveryMethod === 'yard' ? formData.destinationAddress : '',
         },
       }
 
       const method = isEdit ? 'put' : 'post'
-      const endpoint = isEdit ? '/bzss/api/ContainerDetails/update' : '/bzss/api/ContainerDetails/create'
+      const endpoint = formData.deliveryMethod === 'direct' ? '/bzss/api/ContainerDetails/create' : '/bzss/api/ContainerDetails/OrderDelivery'
 
       await request[method](endpoint, payload)
 
@@ -235,13 +203,6 @@ export default function ContainerPickup({
     onClose?.() || navigate(-1)
   }
 
-  // 添加日志和检查以确保 location.state 的安全性
-  console.log('location.state:', location.state)
-  if (location.state && typeof location.state !== 'object') {
-    console.error('Invalid location.state:', location.state)
-    throw new Error('location.state must be an object')
-  }
-
   return (
     <div className="bg-white min-h-screen">
       {/* 顶部栏 */}
@@ -252,6 +213,7 @@ export default function ContainerPickup({
           </Button>
           <h1 className="text-lg font-semibold">{pageTitle}</h1>
         </div>
+
         <div className="flex items-center gap-4">
           {!isReadonly && (
             <Button variant="default" size="sm" className="bg-blue-600 hover:bg-blue-700" onClick={handleSubmit} disabled={submitting}>
@@ -280,7 +242,7 @@ export default function ContainerPickup({
         </div>
       </div>
 
-      {/* 表单内容 */}
+      {/* 表单 */}
       <div className="px-6 py-6 space-y-8">
         {/* 预约信息 */}
         <section className="space-y-4">
@@ -288,12 +250,14 @@ export default function ContainerPickup({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="flex items-center gap-4">
               <Label className="w-28 text-right font-medium whitespace-nowrap">
-                预约时间<span className="text-red-600">*</span>
+                提柜时间<span className="text-red-600">*</span>
               </Label>
               <DateTimePicker
                 value={formData.appointmentTime ? format(formData.appointmentTime, "yyyy-MM-dd'T'HH:mm") : ''}
-                onChange={(str) => handleChange('appointmentTime', str ? new Date(str) : null)}
-                placeholder="请选择预约时间"
+                onChange={(str) => {
+                  handleChange('appointmentTime', str ? new Date(str) : null)
+                }}
+                placeholder="请选择提柜时间"
                 className="flex-1"
                 disabled={isReadonly}
               />
@@ -329,33 +293,15 @@ export default function ContainerPickup({
           </div>
         </section>
 
-        {/* 运输公司信息 */}
+        {/* 提柜公司信息 */}
         <section className="space-y-4">
-          <h3 className="text-base font-semibold">运输公司信息</h3>
+          <h3 className="text-base font-semibold">提柜公司信息</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="flex items-center gap-4">
               <Label className="w-28 text-right font-medium whitespace-nowrap">
                 运输公司<span className="text-red-600">*</span>
-                {formData.transPikId}
               </Label>
-              {/* <Select value={formData.transPikId} onValueChange={(v) => handleChange('transPikId', v)} disabled={loading || isReadonly}>
-                <SelectTrigger className="h-9 flex-1">
-                  <SelectValue placeholder="请选择运输公司" />
-                </SelectTrigger>
-                <SelectContent>
-                  {transportAgents.map((agent) => (
-                    <SelectItem key={agent.value} value={String(agent.value)}>
-                      {agent.text}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select> */}
-
-              <Select
-                value={String(formData.transPikId)} // 强制转字符串
-                onValueChange={(v) => handleChange('transPikId', v)}
-                disabled={loading || isReadonly}
-              >
+              <Select value={formData.transPikId} onValueChange={(v) => handleChange('transPikId', v)} disabled={loading || isReadonly}>
                 <SelectTrigger className="h-9 flex-1">
                   <SelectValue placeholder="请选择运输公司" />
                 </SelectTrigger>
@@ -399,16 +345,74 @@ export default function ContainerPickup({
                 联系电话<span className="text-red-600">*</span>
               </Label>
               <Input
-                value={formData.transPikPhone}
-                onChange={(e) => handleChange('transPikPhone', e.target.value)}
+                value={formData.driverPhone}
+                onChange={(e) => handleChange('driverPhone', e.target.value)}
                 className="h-9 flex-1"
                 disabled={isReadonly}
               />
             </div>
           </div>
         </section>
+        <section className="space-y-4">
+          <h3 className="text-base font-semibold">派送公司信息</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="flex items-center gap-4">
+              <Label className="w-28 text-right font-medium whitespace-nowrap">
+                派送公司<span className="text-red-600">*</span>
+              </Label>
+              <Select value={formData.deliveryCompanyId} onValueChange={(v) => handleChange('deliveryCompanyId', v)} disabled={loading || isReadonly}>
+                <SelectTrigger className="h-9 flex-1">
+                  <SelectValue placeholder="请选择运输公司" />
+                </SelectTrigger>
+                <SelectContent>
+                  {transportAgents.map((agent) => (
+                    <SelectItem key={agent.value} value={String(agent.value)}>
+                      {agent.text}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-        {/* 堆场信息 */}
+            <div className="flex items-center gap-4">
+              <Label className="w-28 text-right font-medium whitespace-nowrap">
+                派送号码<span className="text-red-600">*</span>
+              </Label>
+              <Input
+                value={formData.vehicleNo}
+                onChange={(e) => handleChange('deliveryPlateNumber', e.target.value)}
+                className="h-9 flex-1"
+                disabled={isReadonly}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="flex items-center gap-4">
+              <Label className="w-28 text-right font-medium whitespace-nowrap">
+                派送司机<span className="text-red-600">*</span>
+              </Label>
+              <Input
+                value={formData.transPikName}
+                onChange={(e) => handleChange('deliveryContact', e.target.value)}
+                className="h-9 flex-1"
+                disabled={isReadonly}
+              />
+            </div>
+            <div className="flex items-center gap-4">
+              <Label className="w-28 text-right font-medium whitespace-nowrap">
+                联系电话<span className="text-red-600">*</span>
+              </Label>
+              <Input
+                value={formData.driverPhone}
+                onChange={(e) => handleChange('deliveryCall', e.target.value)}
+                className="h-9 flex-1"
+                disabled={isReadonly}
+              />
+            </div>
+          </div>
+        </section>
+        {/* 堆场信息（放置堆场时显示） */}
         {formData.deliveryMethod === 'yard' && (
           <section className="space-y-4">
             <h3 className="text-base font-semibold">堆场信息</h3>
@@ -416,8 +420,8 @@ export default function ContainerPickup({
               <div className="flex items-center gap-4">
                 <Label className="w-28 text-right font-medium">堆场联系人</Label>
                 <Input
-                  value={formData.yardContact}
-                  onChange={(e) => handleChange('yardContact', e.target.value)}
+                  value={formData.YardContact}
+                  onChange={(e) => handleChange('YardContact', e.target.value)}
                   className="h-9 flex-1"
                   disabled={isReadonly}
                 />
@@ -425,8 +429,8 @@ export default function ContainerPickup({
               <div className="flex items-center gap-4">
                 <Label className="w-28 text-right font-medium">堆场联系电话</Label>
                 <Input
-                  value={formData.yardPhone}
-                  onChange={(e) => handleChange('yardPhone', e.target.value)}
+                  value={formData.YardPhone}
+                  onChange={(e) => handleChange('YardPhone', e.target.value)}
                   className="h-9 flex-1"
                   disabled={isReadonly}
                 />
@@ -435,8 +439,8 @@ export default function ContainerPickup({
             <div className="flex items-center gap-4">
               <Label className="w-28 text-right font-medium">堆场详细地址</Label>
               <Input
-                value={formData.yardAddress}
-                onChange={(e) => handleChange('yardAddress', e.target.value)}
+                value={formData.YardAddress}
+                onChange={(e) => handleChange('YardAddress', e.target.value)}
                 className="h-9 flex-1"
                 disabled={isReadonly}
               />
@@ -444,41 +448,42 @@ export default function ContainerPickup({
           </section>
         )}
 
-        {/* 直接派送：目的地信息 */}
+        {/* 直接派送时：提货地 + 目的地 */}
         {formData.deliveryMethod === 'direct' && (
           <>
-            {/* <section className="space-y-4">
-              <h3 className="text-base font-semibold">还柜信息</h3>
+            <section className="space-y-4">
+              <h3 className="text-base font-semibold">提货地信息</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="flex items-center gap-4">
-                  <Label className="w-28 text-right font-medium whitespace-nowrap">还柜联系人</Label>
+                  <Label className="w-28 text-right font-medium">提货联系人</Label>
                   <Input
-                    value={formData.recipientContact}
-                    onChange={(e) => handleChange('returnContact', e.target.value)}
+                    value={formData.pickupContact}
+                    onChange={(e) => handleChange('pickupContact', e.target.value)}
                     className="h-9 flex-1"
                     disabled={isReadonly}
                   />
                 </div>
                 <div className="flex items-center gap-4">
-                  <Label className="w-28 text-right font-medium whitespace-nowrap">还柜联系电话</Label>
+                  <Label className="w-28 text-right font-medium">提货联系电话</Label>
                   <Input
-                    value={formData.recipientPhone}
-                    onChange={(e) => handleChange('returnPhone', e.target.value)}
+                    value={formData.pickupPhone}
+                    onChange={(e) => handleChange('pickupPhone', e.target.value)}
                     className="h-9 flex-1"
                     disabled={isReadonly}
                   />
                 </div>
               </div>
               <div className="flex items-center gap-4">
-                <Label className="w-28 text-right font-medium whitespace-nowrap">还柜详细地址</Label>
+                <Label className="w-28 text-right font-medium">提货详细地址</Label>
                 <Input
-                  value={formData.shippingAddress}
-                  onChange={(e) => handleChange('returnAddress', e.target.value)}
+                  value={formData.pickupAddress}
+                  onChange={(e) => handleChange('pickupAddress', e.target.value)}
                   className="h-9 flex-1"
                   disabled={isReadonly}
                 />
               </div>
-            </section> */}
+            </section>
+
             <section className="space-y-4">
               <h3 className="text-base font-semibold">目的地信息</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -487,8 +492,8 @@ export default function ContainerPickup({
                     收货联系人<span className="text-red-600">*</span>
                   </Label>
                   <Input
-                    value={formData.recipientContact}
-                    onChange={(e) => handleChange('recipientContact', e.target.value)}
+                    value={formData.destinationContact}
+                    onChange={(e) => handleChange('destinationContact', e.target.value)}
                     className="h-9 flex-1"
                     disabled={isReadonly}
                   />
@@ -498,8 +503,8 @@ export default function ContainerPickup({
                     收货联系电话<span className="text-red-600">*</span>
                   </Label>
                   <Input
-                    value={formData.recipientPhone}
-                    onChange={(e) => handleChange('recipientPhone', e.target.value)}
+                    value={formData.destinationPhone}
+                    onChange={(e) => handleChange('destinationPhone', e.target.value)}
                     className="h-9 flex-1"
                     disabled={isReadonly}
                   />
@@ -510,8 +515,8 @@ export default function ContainerPickup({
                   收货详细地址<span className="text-red-600">*</span>
                 </Label>
                 <Input
-                  value={formData.shippingAddress}
-                  onChange={(e) => handleChange('shippingAddress', e.target.value)}
+                  value={formData.destinationAddress}
+                  onChange={(e) => handleChange('destinationAddress', e.target.value)}
                   className="h-9 flex-1"
                   disabled={isReadonly}
                 />

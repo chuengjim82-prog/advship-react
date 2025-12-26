@@ -1,12 +1,13 @@
 'use client'
 
+import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import CopyButton from '@/components/ui/CopyButton'
 import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import type { ContainerGoodsItem, WaybillDto } from '@/models/order.model'
-import { Calendar, Package, Scale, Ship } from 'lucide-react'
+import { Calendar, Copy, Package, Scale, Ship } from 'lucide-react'
+import { toast } from 'sonner'
 
 interface WaybillDetailProps {
   waybillInfo: WaybillDto | null
@@ -16,6 +17,19 @@ interface WaybillDetailProps {
 }
 
 export default function WaybillDetail({ waybillInfo, loading, containerGoods, formatDate }: WaybillDetailProps) {
+  const copyToClipboard = async (text: string, label: string = '内容') => {
+    if (!text) {
+      toast.error(`${label}为空，无法复制`)
+      return
+    }
+    try {
+      await navigator.clipboard.writeText(text)
+      toast.success(`${label}已复制`)
+    } catch {
+      toast.error('复制失败')
+    }
+  }
+
   if (loading) {
     return (
       <Card>
@@ -51,14 +65,28 @@ export default function WaybillDetail({ waybillInfo, loading, containerGoods, fo
                 <p className="text-sm text-muted-foreground">公司名称</p>
                 <div className="flex items-center gap-2 mt-1">
                   <p className="text-lg font-medium">{waybillInfo?.shipperName || '-'}</p>
-                  <CopyButton text={waybillInfo?.shipperName || '-'} />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => copyToClipboard(waybillInfo?.shipperName ?? '', '发件人公司')}
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
                 </div>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">地址</p>
                 <div className="flex items-start gap-2 mt-1">
                   <p className="text-base max-w-md">{waybillInfo?.shipperAddress || '-'}</p>
-                  <CopyButton text={waybillInfo?.shipperAddress || '-'} />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 mt-1"
+                    onClick={() => copyToClipboard(waybillInfo?.shipperAddress ?? '', '发件人地址')}
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
                 </div>
               </div>
             </div>
@@ -72,14 +100,28 @@ export default function WaybillDetail({ waybillInfo, loading, containerGoods, fo
                 <p className="text-sm text-muted-foreground">公司名称</p>
                 <div className="flex items-center gap-2 mt-1">
                   <p className="text-lg font-medium">{waybillInfo?.consigneeName || '-'}</p>
-                  <CopyButton text={waybillInfo?.consigneeName || '-'} />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => copyToClipboard(waybillInfo?.consigneeName ?? '', '收件人公司')}
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
                 </div>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">地址</p>
                 <div className="flex items-start gap-2 mt-1">
                   <p className="text-base max-w-md">{waybillInfo?.consigneeAddress || '-'}</p>
-                  <CopyButton text={waybillInfo?.consigneeAddress || '-'} />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 mt-1"
+                    onClick={() => copyToClipboard(waybillInfo?.consigneeAddress ?? '', '收件人地址')}
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
                 </div>
               </div>
             </div>
@@ -96,8 +138,10 @@ export default function WaybillDetail({ waybillInfo, loading, containerGoods, fo
               <p className="text-sm">提单号码</p>
             </div>
             <div className="flex items-center gap-2">
-              <span className="font-medium">{waybillInfo?.waybillNo || '-'}</span>
-              <CopyButton text={waybillInfo?.waybillNo || '-'} />
+              <p className="text-xl font-bold">{waybillInfo?.waybillNo || '-'}</p>
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => copyToClipboard(waybillInfo?.waybillNo ?? '', '提单号码')}>
+                <Copy className="h-4 w-4" />
+              </Button>
             </div>
           </div>
 

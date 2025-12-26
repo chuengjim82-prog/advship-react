@@ -1,7 +1,7 @@
 import { useRef, useCallback, useState } from 'react'
 import { z } from 'zod'
 import type { ColumnDef } from '@tanstack/react-table'
-import CrudTableV2 from '@/components/crud-table-v2'
+import CrudTableV2, { type SearchField } from '@/components/crud-table-v2'
 import SelectDialogV2 from '@/components/select-dialog-v2'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -122,6 +122,13 @@ export default function City() {
     countryCode2: '',
   }
 
+  // 多字段搜索配置
+  const searchFields: SearchField[] = [
+    { name: 'code', label: '编码', placeholder: '请输入编码' },
+    { name: 'cnName', label: '中文名', placeholder: '请输入中文名' },
+    { name: 'countryCode2', label: '国家', placeholder: '请输入国家代码' },
+  ]
+
   return (
     <>
       <CrudTableV2<CityData>
@@ -131,6 +138,8 @@ export default function City() {
         formSchema={citySchema}
         renderFormFields={renderFormFields}
         defaultValues={defaultValues}
+        searchFields={searchFields}
+        searchVisibleRows={1}
       />
       <SelectDialogV2<CountryItem>
         title="选择国家"

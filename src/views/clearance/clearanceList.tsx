@@ -13,16 +13,16 @@ import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { DateTimePicker } from '@/components/ui/date-time-picker'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import type { ContainerPickupInfo, TransportAgent } from '@/models/order.model'
 import request from '@/utils/request'
-import { ArrowUpDown, ChevronDown, ChevronUp, GripVertical, MoreVertical, Settings2 } from 'lucide-react'
-import { toast } from 'sonner'
-
+import { format } from 'date-fns'
+import { ArrowUpDown, ChevronDown, ChevronUp, GripVertical, Settings2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
+import PickupDrawer from './components/PickupDrawer'
 
 interface RowData {
   id: number
@@ -56,19 +56,6 @@ interface ApiResponse {
   totalPages: number
 }
 
-interface ContainerPickupInfo {
-  id: number // 柜ID
-  remark: string // 提柜备注说明
-  transAgentId: number // 运输公司ID
-  pickUpTimeE: string | null // 预约提柜时间
-  transPikId: number
-}
-
-interface TransportAgent {
-  value: number
-  text: string
-}
-
 export default function ClearanceList() {
   const navigate = useNavigate()
   const [tab, setTab] = useState('清关中')
@@ -79,6 +66,7 @@ export default function ClearanceList() {
   const [showPickupDialog, setShowPickupDialog] = useState(false)
   const [selectedRow, setSelectedRow] = useState<RowData | null>(null)
   const [pickupData, setPickupData] = useState<ContainerPickupInfo[]>([])
+
   const [pickupLoading, setPickupLoading] = useState(false)
   const [transportAgents, setTransportAgents] = useState<TransportAgent[]>([])
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
@@ -96,18 +84,29 @@ export default function ClearanceList() {
     keyword: '',
   })
 
+  const [formData, setFormData] = useState({
+    appointmentTime: null as Date | null,
+    deliveryMethod: 'direct',
+  })
+  const [completionTime, setCompletionTime] = useState('')
+  const handleChange = (field: keyof typeof formData, value: string | Date | null) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }))
+  }
   // 列配置
   const [columns, setColumns] = useState<ColumnConfig[]>([
     { key: 'waybillNo', label: '提单号', visible: true, sortable: true },
     { key: 'statuss', label: '状态', visible: true, sortable: true },
     { key: 'actions', label: '操作', visible: true, sortable: false },
-    { key: 'number', label: '柜号', visible: true, sortable: true },
+    // { key: 'number', label: '柜号', visible: true, sortable: true },
     { key: 'shipperName', label: '船司', visible: true, sortable: true },
     { key: 'consigneeName', label: '收货人', visible: true, sortable: true },
     { key: 'custPortName', label: '清关口岸', visible: true, sortable: true },
     { key: 'orderNo', label: '订单号', visible: true, sortable: true },
     { key: 'custAgentName', label: '清关代理', visible: true, sortable: true },
-    { key: 'createTime', label: '创建时间', visible: true, sortable: true },
+    { key: 'createTime', label: '海关申报', visible: true, sortable: true },
   ])
 
   // 获取清关列表数据
@@ -251,10 +250,18 @@ export default function ClearanceList() {
 
   // 处理清关完成
   const handleCompleteClearance = async () => {
-    if (!selectedRow) return
+    if (!selectedRow || !completionTime) {
+      toast.error('请填写清关完成时间')
+      return
+    }
 
     try {
-      const response = await request.post<boolean>(`/bzss/api/BaseInfo/CompleteClearance?Id=${selectedRow.id}`)
+      console.log('清关完成，ID:', selectedRow.id, '完成时间:', completionTime)
+      const timeStr = format(completionTime, "yyyy-MM-dd'T'HH:mm:ss")
+      const response = await request.post<boolean>(`/bzss/api/BaseInfo/CompleteClearance`, {
+        id: selectedRow.id,
+        completionTime: timeStr,
+      })
 
       if (response.data === false) {
         toast.error('完结异常')
@@ -295,9 +302,17 @@ export default function ClearanceList() {
   }
 
   // 更新预约提柜信息
-  const handleUpdatePickupInfo = (index: number, field: 'pickUpTimeE' | 'remark' | 'transAgentId', value: string | number) => {
+  const handleUpdatePickupInfo = (
+    index: number,
+    field: 'pickUpTimeE' | 'remark' | 'transPikId' | 'transDlvName' | 'transportationNumber' | 'transPikPhone',
+    value: string | number | Date
+  ) => {
     const newPickupData = [...pickupData]
-    newPickupData[index] = { ...newPickupData[index], [field]: value }
+    if (field === 'pickUpTimeE' && value instanceof Date) {
+      newPickupData[index] = { ...newPickupData[index], [field]: value.toISOString() }
+    } else {
+      newPickupData[index] = { ...newPickupData[index], [field]: value }
+    }
     setPickupData(newPickupData)
   }
 
@@ -372,18 +387,18 @@ export default function ClearanceList() {
                 onChange={(e) => setFilters((f) => ({ ...f, orderNo: e.target.value }))}
                 className="w-40 h-10"
               />
-              <Input
+              {/* <Input
                 placeholder="柜号"
                 value={filters.number}
                 onChange={(e) => setFilters((f) => ({ ...f, number: e.target.value }))}
                 className="w-40 h-10"
-              />
-              <Input
+              /> */}
+              {/* <Input
                 placeholder="关键词"
                 value={filters.keyword}
                 onChange={(e) => setFilters((f) => ({ ...f, keyword: e.target.value }))}
                 className="w-40 h-10"
-              />
+              /> */}
               <Button className="h-10 px-8 bg-blue-500 hover:bg-blue-600" onClick={handleSearch}>
                 搜索
               </Button>
@@ -407,119 +422,113 @@ export default function ClearanceList() {
 
       {/* 下部：数据表格区 */}
       <div className="flex-1 overflow-auto">
-        <Table>
-          <TableHeader className="sticky top-0 bg-white z-10">
-            <TableRow className="bg-gray-50 hover:bg-gray-50 border-b border-gray-200">
-              {columns.map((col) => {
-                if (!col.visible) return null
-                return (
-                  <TableHead key={col.key} className="font-medium text-gray-700 whitespace-nowrap">
-                    {col.sortable ? (
-                      <div
-                        className="flex items-center gap-1 cursor-pointer hover:text-blue-600"
-                        onClick={() => handleSort(col.key as keyof RowData)}
-                      >
-                        {col.label}
-                        <ArrowUpDown className="w-4 h-4" />
-                      </div>
-                    ) : (
-                      col.label
-                    )}
-                  </TableHead>
-                )
-              })}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {loading ? (
-              <TableRow>
-                <TableCell colSpan={columns.filter((c) => c.visible).length} className="h-32 text-center">
-                  <div className="flex items-center justify-center gap-2 text-gray-500">
-                    <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-                    加载中...
-                  </div>
-                </TableCell>
-              </TableRow>
-            ) : data.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={columns.filter((c) => c.visible).length} className="h-32 text-center text-gray-500">
-                  暂无数据
-                </TableCell>
-              </TableRow>
-            ) : (
-              data.map((row) => (
-                <TableRow key={row.id} className="hover:bg-gray-50/50 border-b border-gray-100">
-                  {columns.map((col) => {
-                    if (!col.visible) return null
-
-                    if (col.key === 'waybillNo') {
-                      return (
-                        <TableCell
-                          key={col.key}
-                          className="text-blue-600 font-medium underline cursor-pointer hover:text-blue-700"
-                          onClick={() => handleBillNoClick(row)}
+        {!showPickupDialog && (
+          <Table>
+            <TableHeader className="sticky top-0 bg-white z-10">
+              <TableRow className="bg-gray-50 hover:bg-gray-50 border-b border-gray-200">
+                {columns.map((col) => {
+                  if (!col.visible) return null
+                  return (
+                    <TableHead key={`col-${col.key}`} className="font-medium text-gray-700 whitespace-nowrap">
+                      {col.sortable ? (
+                        <div
+                          className="flex items-center gap-1 cursor-pointer hover:text-blue-600"
+                          onClick={() => handleSort(col.key as keyof RowData)}
                         >
-                          {row.waybillNo}
-                        </TableCell>
-                      )
-                    }
-
-                    if (col.key === 'statuss') {
-                      return (
-                        <TableCell key={col.key} className="min-w-[100px]">
-                          <Badge
-                            className={
-                              row.statuss === '清关中'
-                                ? 'bg-blue-100 text-blue-700 hover:bg-blue-100 border-0 rounded px-2 py-1 whitespace-nowrap'
-                                : 'bg-green-100 text-green-700 hover:bg-green-100 border-0 rounded px-2 py-1 whitespace-nowrap'
-                            }
-                          >
-                            {row.statuss}
-                          </Badge>
-                        </TableCell>
-                      )
-                    }
-
-                    if (col.key === 'actions') {
-                      return (
-                        <TableCell key={col.key}>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                <MoreVertical className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              {tab === '清关中' ? (
-                                <>
-                                  <DropdownMenuItem onClick={() => openUploadDialog(row)}>回传初步报销单</DropdownMenuItem>
-                                  <DropdownMenuItem onClick={() => openCompleteDialog(row)} className="text-green-600">
-                                    清关完成
-                                  </DropdownMenuItem>
-                                </>
-                              ) : (
-                                <>
-                                  <DropdownMenuItem onClick={() => openPickupDialog(row)}>预约提柜</DropdownMenuItem>
-                                  <DropdownMenuItem onClick={() => console.log('查看详情', row)}>查看详情</DropdownMenuItem>
-                                </>
-                              )}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      )
-                    }
-
-                    return (
-                      <TableCell key={col.key} className="text-gray-700">
-                        {row[col.key as keyof RowData]}
-                      </TableCell>
-                    )
-                  })}
+                          {col.label}
+                          <ArrowUpDown className="w-4 h-4" />
+                        </div>
+                      ) : (
+                        col.label
+                      )}
+                    </TableHead>
+                  )
+                })}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={columns.filter((c) => c.visible).length} className="h-32 text-center">
+                    <div className="flex items-center justify-center gap-2 text-gray-500">
+                      <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                      加载中...
+                    </div>
+                  </TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+              ) : data.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={columns.filter((c) => c.visible).length} className="h-32 text-center text-gray-500">
+                    暂无数据
+                  </TableCell>
+                </TableRow>
+              ) : (
+                data.map((row) => (
+                  <TableRow key={`row-${row.id}`} className="hover:bg-gray-50/50 border-b border-gray-100">
+                    {columns.map((col) => {
+                      if (!col.visible) return null
+
+                      if (col.key === 'waybillNo') {
+                        return (
+                          <TableCell
+                            key={col.key}
+                            className="text-blue-600 font-medium underline cursor-pointer hover:text-blue-700"
+                            onClick={() => handleBillNoClick(row)}
+                          >
+                            {row.waybillNo}
+                          </TableCell>
+                        )
+                      }
+
+                      if (col.key === 'statuss') {
+                        return (
+                          <TableCell key={col.key} className="min-w-[100px]">
+                            <Badge
+                              className={
+                                row.statuss === '清关中'
+                                  ? 'bg-blue-100 text-blue-700 hover:bg-blue-100 border-0 rounded px-2 py-1 whitespace-nowrap'
+                                  : 'bg-green-100 text-green-700 hover:bg-green-100 border-0 rounded px-2 py-1 whitespace-nowrap'
+                              }
+                            >
+                              {row.statuss}
+                            </Badge>
+                          </TableCell>
+                        )
+                      }
+
+                      if (col.key === 'actions') {
+                        return (
+                          <TableCell key={col.key} className="space-x-2">
+                            {tab === '清关中' ? (
+                              <>
+                                {/* <Button variant="outline" size="sm" onClick={() => openUploadDialog(row)}>
+                                  回传初步报关单
+                                </Button> */}
+                                <Button variant="outline" size="sm" onClick={() => openCompleteDialog(row)} className="text-green-600">
+                                  清关完成
+                                </Button>
+                              </>
+                            ) : (
+                              <Button variant="outline" size="sm" onClick={() => openPickupDialog(row)}>
+                                预约提柜
+                              </Button>
+                            )}
+                          </TableCell>
+                        )
+                      }
+
+                      return (
+                        <TableCell key={col.key} className="text-gray-700">
+                          {row[col.key as keyof RowData]}
+                        </TableCell>
+                      )
+                    })}
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        )}
       </div>
 
       {/* 分页 */}
@@ -537,7 +546,7 @@ export default function ClearanceList() {
                 const page = i + 1
                 return (
                   <Button
-                    key={page}
+                    key={`page-${page}`}
                     variant={pageIndex === page ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => setPageIndex(page)}
@@ -598,110 +607,49 @@ export default function ClearanceList() {
         </DialogContent>
       </Dialog>
 
-      {/* 预约提柜对话框 */}
-      <Dialog open={showPickupDialog} onOpenChange={setShowPickupDialog}>
-        <DialogContent className="sm:max-w-3xl">
-          <DialogHeader>
-            <DialogTitle>预约提柜</DialogTitle>
-          </DialogHeader>
-          {pickupLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-              <span className="ml-2 text-gray-600">加载中...</span>
-            </div>
-          ) : pickupData.length > 0 ? (
-            <div className="space-y-4 py-4">
-              <div className="flex items-center gap-4 border-b pb-3">
-                <label className="text-sm font-medium text-gray-700">提单号</label>
-                <div className="font-semibold text-gray-900">{selectedRow?.waybillNo}</div>
-              </div>
-              <div className="border rounded-lg overflow-hidden">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-gray-50">
-                      <TableHead className="font-medium">柜ID</TableHead>
-                      <TableHead className="font-medium">预约提柜时间</TableHead>
-                      <TableHead className="font-medium">运输公司</TableHead>
-                      <TableHead className="font-medium">提柜备注说明</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {pickupData.map((container, index) => (
-                      <TableRow key={container.id}>
-                        <TableCell className="font-medium">{container.id}</TableCell>
-                        <TableCell>
-                          <DateTimePicker
-                            value={container.pickUpTimeE || ''}
-                            onChange={(value) => handleUpdatePickupInfo(index, 'pickUpTimeE', value)}
-                            placeholder="选择提柜时间"
-                            className="w-64"
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <Select
-                            value={container.transAgentId ? container.transAgentId.toString() : ''}
-                            onValueChange={(value) => handleUpdatePickupInfo(index, 'transAgentId', parseInt(value))}
-                          >
-                            <SelectTrigger className="w-40">
-                              <SelectValue placeholder="选择运输公司" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {transportAgents.map((agent) => (
-                                <SelectItem key={agent.value} value={agent.value.toString()}>
-                                  {agent.text}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </TableCell>
-                        <TableCell>
-                          <Input
-                            value={container.remark}
-                            onChange={(e) => handleUpdatePickupInfo(index, 'remark', e.target.value)}
-                            placeholder="请输入备注"
-                            className="min-w-[150px]"
-                          />
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </div>
-          ) : (
-            <div className="py-8 text-center text-gray-500">暂无数据</div>
-          )}
-          <div className="flex justify-center gap-4 pt-4">
-            <Button onClick={handleConfirmPickup} disabled={pickupLoading || pickupData.length === 0} className="px-8">
-              确认
-            </Button>
-            <Button
-              variant="outline"
-              className="px-8"
-              onClick={() => {
-                setShowPickupDialog(false)
-                setPickupData([])
-              }}
-            >
-              关闭
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* 使用组件化的预约提柜抽屉 */}
+      <PickupDrawer
+        open={showPickupDialog}
+        onOpenChange={setShowPickupDialog}
+        pickupLoading={pickupLoading}
+        pickupData={pickupData}
+        transportAgents={transportAgents}
+        selectedRow={selectedRow}
+        handleUpdatePickupInfo={handleUpdatePickupInfo}
+        handleConfirmPickup={handleConfirmPickup}
+      />
 
       {/* 清关完成确认对话框 */}
       <AlertDialog open={showCompleteDialog} onOpenChange={setShowCompleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>确认清关完成</AlertDialogTitle>
+            <AlertDialogTitle>完成清关</AlertDialogTitle>
             <AlertDialogDescription>
-              确定要将提单号 <span className="font-semibold text-gray-900">{selectedRow?.waybillNo}</span> 标记为清关完成吗？
+              <div className="space-y-4">
+                <div className="grid grid-cols-3 items-center gap-4">
+                  <label className="text-sm font-medium text-right">提单号</label>
+                  <div className="col-span-2">
+                    <Input value={selectedRow?.waybillNo || ''} disabled className="bg-gray-50" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 items-center gap-4">
+                  <label className="text-sm font-medium text-right">清关完成时间</label>
+                  <div className="col-span-2">
+                    <DateTimePicker
+                      value={completionTime ? format(new Date(completionTime), "yyyy-MM-dd'T'HH:mm") : ''}
+                      onChange={(str) => setCompletionTime(str)}
+                      placeholder="请选择清关完成时间"
+                      className="flex-1"
+                    />
+                  </div>
+                </div>
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogCancel>关闭</AlertDialogCancel>
             <AlertDialogAction onClick={handleCompleteClearance} className="bg-green-600 hover:bg-green-700">
-              确认完成
+              确认
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

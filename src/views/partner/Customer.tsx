@@ -1,7 +1,7 @@
 import { useRef, useCallback, useState } from 'react'
 import { z } from 'zod'
 import type { ColumnDef } from '@tanstack/react-table'
-import CrudTableV2 from '@/components/crud-table-v2'
+import CrudTableV2, { type SearchField } from '@/components/crud-table-v2'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
@@ -188,6 +188,15 @@ export default function Customer() {
     remark: '',
   }
 
+  // 多字段搜索配置
+  const searchFields: SearchField[] = [
+    // { name: 'code', label: '编码', placeholder: '请输入编码' },
+    // { name: 'cnName', label: '中文名', placeholder: '请输入中文名' },
+    // { name: 'countryCode2', label: '国家', placeholder: '请输入国家代码' },
+    // { name: 'countryCode1', label: '国家', placeholder: '请输入国家代码' },
+    // { name: 'countryCode3', label: '国家', placeholder: '请输入国家代码' },
+  ]
+
   return (
     <>
       <CrudTableV2<CustomerData>
@@ -199,6 +208,8 @@ export default function Customer() {
         defaultValues={defaultValues}
         dialogWidth="1024px"
         dialogClassName="max-w-5xl max-h-[85vh] overflow-y-auto"
+        searchFields={searchFields}
+        searchVisibleRows={1}
       />
 
       <SelectDialogV2<CountryItem>

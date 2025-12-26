@@ -39,6 +39,11 @@ const Clearance = lazy(() => import('@/views/clearance/clearanceList'))
 const ClearanceOrderDetail = lazy(() => import('@/views/clearance/components/OrderDetail'))
 const DeliveryList = lazy(() => import('@/views/delivery/DeliveryList'))
 const CustomerDelivery = lazy(() => import('@/views/delivery/components/CustomerDelivery'))
+const ContainerPickup = lazy(() => import('@/views/delivery/components/ContainerPickup'))
+const ContainerPickupReadonly = lazy(() => import('@/views/delivery/components/ContainerPickupReadonly'))
+
+const Containerhandling = lazy(() => import('@/views/delivery/components/Containerhandling'))
+
 // System Tools Module
 const CodeGenerator = lazy(() => import('@/views/CodeGenerator'))
 
@@ -176,6 +181,21 @@ const router = createBrowserRouter([
         path: '/delivery/CustomerDelivery',
         element: <CustomerDelivery />,
         handle: { title: '派送预约' },
+      },
+      {
+        path: '/delivery/ContainerPickup',
+        element: <ContainerPickup />,
+        handle: { title: '预约提柜' },
+      },
+      {
+        path: '/delivery/Containerhandling',
+        element: <Containerhandling />,
+        handle: { title: '提柜处理' },
+      },
+      {
+        path: '/delivery/ContainerPickupReadonly',
+        element: <ContainerPickupReadonly />,
+        handle: { title: '提柜详情' },
       },
       {
         path: 'order/detail',
