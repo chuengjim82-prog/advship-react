@@ -1,6 +1,5 @@
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Checkbox } from '@/components/ui/checkbox'
 import CopyButton from '@/components/ui/CopyButton'
 import { Loading } from '@/components/ui/spinner'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -174,9 +173,31 @@ export default function OrderDetail() {
     navigate(-1)
   }, [navigate])
 
-  const handleSubmit = useCallback(() => {
-    toast.success('提交成功')
-  }, [])
+  const handleSubmit = useCallback(async () => {
+    if (!orderId) {
+      toast.error('订单ID不存在')
+      return
+    }
+
+    try {
+      const payload = {
+        id: orderId,
+        statusi: 3,
+        statuss: '清关中',
+        updateTime: new Date().toISOString(),
+        updaterId: 0,
+        updaterNic: 'string',
+      }
+
+      await request.post('/bzss/api/BaseInfo/ChangeStatus', payload)
+
+      toast.success('提交成功')
+      window.history.back()
+    } catch (error) {
+      console.error('提交失败:', error)
+      toast.error('提交失败')
+    }
+  }, [orderId])
 
   const loadOrderBaseInfo = useCallback(async () => {
     if (!orderId) return
@@ -219,7 +240,7 @@ export default function OrderDetail() {
   const loadAttachments = useCallback(async () => {
     if (!orderId) return
     try {
-      const res = await request.get<AttachmentDetail[]>(`/bzss/api/Attachment/${orderId}GetAttachmentOrder`)
+      const res = await request.get<AttachmentDetail[]>(`/bzss/api/Attachment/${orderId}/GetAttachmentOrder`)
       setAttachments(res.data ?? [])
     } catch (err) {
       console.error('加载附件失败:', err)
@@ -259,8 +280,8 @@ export default function OrderDetail() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold">订单详情</h2>
-            <p className="text-muted-foreground">订单号: {orderBaseInfo?.orderNo || '-'}</p>
+            <h2 className="text-2xl font-bold">海关申报</h2>
+            {/* <p className="text-muted-foreground">订单号: {orderBaseInfo?.orderNo || '-'}</p> */}
           </div>
           <div className="flex gap-2">
             <Button variant="outline" onClick={handleBack}>
@@ -316,6 +337,7 @@ export default function OrderDetail() {
               <div>
                 <p className="text-sm text-muted-foreground">运输代理</p>
                 <p className="font-medium">{orderBaseInfo?.transAgentName || '-'}</p>
+                <CopyButton text={orderBaseInfo?.transAgentName || '-'} />
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">货币</p>
@@ -336,51 +358,9 @@ export default function OrderDetail() {
         {/* Waybill Details */}
         <Card>
           <CardHeader>
-            <CardTitle>第2步 提单详情 - 添加BL提单信息</CardTitle>
+            <CardTitle>第2步 提单详情</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              <div>
-                <p className="text-sm text-muted-foreground">提单号码</p>
-                <p className="font-medium">{waybillInfo?.waybillNo || '-'}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">提单日期</p>
-                <p className="font-medium">{formatDate(waybillInfo?.waybillDate)}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">发件人名称</p>
-                <p className="font-medium">{waybillInfo?.shipperName || '-'}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">发件人地址</p>
-                <p className="font-medium">{waybillInfo?.shipperAddress || '-'}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">收件人名称</p>
-                <p className="font-medium">{waybillInfo?.consigneeName || '-'}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">收件人地址</p>
-                <p className="font-medium">{waybillInfo?.consigneeAddress || '-'}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">清关口岸</p>
-                <p className="font-medium">{waybillInfo?.custPort || '-'}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">总数量</p>
-                <p className="font-medium">{waybillInfo?.quantity || '-'}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">总重量</p>
-                <p className="font-medium">{waybillInfo?.ttlWeight || '-'}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">体积</p>
-                <p className="font-medium">{waybillInfo?.cubicVol || '-'}</p>
-              </div>
-            </div>
             <div className="border rounded-md">
               <Table>
                 <TableHeader>
@@ -411,13 +391,61 @@ export default function OrderDetail() {
                 </TableBody>
               </Table>
             </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              <div>
+                <p className="text-sm text-muted-foreground">提单号码</p>
+                <p className="font-medium">{waybillInfo?.waybillNo || '-'}</p>
+                <CopyButton text={orderBaseInfo?.transAgentName || '-'} />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">提单日期</p>
+                <p className="font-medium">{formatDate(waybillInfo?.waybillDate)}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">发件人名称</p>
+                <p className="font-medium">{waybillInfo?.shipperName || '-'}</p>
+                <CopyButton text={waybillInfo?.shipperName || '-'} />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">发件人地址</p>
+                <p className="font-medium">{waybillInfo?.shipperAddress || '-'}</p>
+                <CopyButton text={waybillInfo?.shipperAddress || '-'} />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">收件人名称</p>
+                <p className="font-medium">{waybillInfo?.consigneeName || '-'}</p>
+                <CopyButton text={waybillInfo?.consigneeName || '-'} />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">收件人地址</p>
+                <p className="font-medium">{waybillInfo?.consigneeAddress || '-'}</p>
+                <CopyButton text={waybillInfo?.consigneeAddress || '-'} />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">清关口岸</p>
+                <p className="font-medium">{waybillInfo?.custPort || '-'}</p>
+                <CopyButton text={waybillInfo?.custPort || '-'} />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">总数量</p>
+                <p className="font-medium">{waybillInfo?.quantity || '-'}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">总重量</p>
+                <p className="font-medium">{waybillInfo?.ttlWeight || '-'}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">体积</p>
+                <p className="font-medium">{waybillInfo?.cubicVol || '-'}</p>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
         {/* Invoice Items */}
         <Card>
           <CardHeader>
-            <CardTitle>第3步 发票与物品 - SABER海关编码</CardTitle>
+            <CardTitle>发票与物品 - SABER海关编码</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="border rounded-md">
@@ -458,19 +486,19 @@ export default function OrderDetail() {
         {/* Attachments */}
         <Card>
           <CardHeader>
-            <CardTitle>第4步 附加详情 - 提交发票和SABER证书</CardTitle>
+            <CardTitle>附加详情</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="border rounded-md">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[50px]">
+                    {/* <TableHead className="w-[50px]">
                       <Checkbox
                         checked={selectedAttachments.size === attachments.length && attachments.length > 0}
                         onCheckedChange={toggleAllAttachments}
                       />
-                    </TableHead>
+                    </TableHead> */}
                     <TableHead className="w-[180px]">文件名</TableHead>
                     <TableHead className="w-[120px]">状态</TableHead>
                     <TableHead className="w-[140px]">备注</TableHead>
@@ -488,9 +516,9 @@ export default function OrderDetail() {
                   ) : (
                     attachments.map((item) => (
                       <TableRow key={item.id}>
-                        <TableCell>
+                        {/* <TableCell>
                           <Checkbox checked={selectedAttachments.has(item.id)} onCheckedChange={() => toggleAttachment(item.id)} />
-                        </TableCell>
+                        </TableCell> */}
                         <TableCell>{item.fileName}</TableCell>
                         <TableCell>{item.isAudit === 1 ? '已审核' : item.isAudit === 0 ? '待审核' : '-'}</TableCell>
                         <TableCell>{item.remark || '-'}</TableCell>
@@ -502,12 +530,12 @@ export default function OrderDetail() {
                 </TableBody>
               </Table>
             </div>
-            <div className="flex gap-2">
+            {/* <div className="flex gap-2">
               <Button variant="outline" disabled={selectedAttachments.size === 0} onClick={handleDownload}>
                 下载
               </Button>
               <Button>选择文件</Button>
-            </div>
+            </div> */}
           </CardContent>
         </Card>
       </div>

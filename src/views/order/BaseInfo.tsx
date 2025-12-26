@@ -1,20 +1,20 @@
-import { useNavigate } from 'react-router-dom'
-import { useState } from 'react'
-import dayjs from 'dayjs'
-import { cn, displayValue } from '@/lib/utils'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
 import { Pagination } from '@/components/ui/pagination'
-import { Plus, RefreshCw, Search } from 'lucide-react'
-import OrderCreateDrawer from './components/OrderCreateDrawer'
-import OrderAuditDrawer from './components/OrderAuditDrawer'
-import OrderDetailDrawer from './components/OrderDetailDrawer'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { useOrderList } from '@/hooks/useOrderList' // 你刚整理的 hook
+import { cn, displayValue } from '@/lib/utils'
+import request from '@/utils/request'
+import dayjs from 'dayjs'
+import { Plus, RefreshCw, Search } from 'lucide-react'
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
-import request from "@/utils/request";
+import OrderAuditDrawer from './components/OrderAuditDrawer'
+import OrderCreateDrawer from './components/OrderCreateDrawer'
+import OrderDetailDrawer from './components/OrderDetailDrawer'
 
 const statusFilters = [
   { label: 'ALL', value: 'all' },
@@ -66,7 +66,7 @@ export default function BaseInfo() {
   }
 
   const totalStatusCount = Object.values(statusCounts).reduce((sum, c) => sum + c, 0)
-  const formatFilterLabel = (filter: typeof statusFilters[number]) => {
+  const formatFilterLabel = (filter: (typeof statusFilters)[number]) => {
     const count = filter.value === 'all' ? totalStatusCount : statusCounts[filter.value] || 0
     return `${filter.label}(${count})`
   }
@@ -80,6 +80,10 @@ export default function BaseInfo() {
     setCurrentOrderId(row.id)
     setDrawerVisible(true)
   }
+  // 处理提单号点击，跳转到详情页
+  const handleBillNoClick = (row: any) => {
+    navigate(`/clearance/OrderDetail?id=${row.id}&billNo=${row.waybillNo}`)
+  }
 
   const deleteOrder = async (row: any) => {
     try {
@@ -90,7 +94,6 @@ export default function BaseInfo() {
       toast.error('删除失败')
     }
   }
-
 
   const auditOrder = (row: any) => {
     setAuditOrderId(row.id)
@@ -111,11 +114,7 @@ export default function BaseInfo() {
   }
 
   const PaidCheck = ({ paid }: { paid?: boolean }) => {
-    return (
-      <span className={paid ? 'text-green-600 font-bold' : 'text-muted-foreground'}>
-        {paid ? '✔' : '-'}
-      </span>
-    )
+    return <span className={paid ? 'text-green-600 font-bold' : 'text-muted-foreground'}>{paid ? '✔' : '-'}</span>
   }
 
   const parsePaymentBits = (value?: string) => {
@@ -131,15 +130,16 @@ export default function BaseInfo() {
     const status = parsePaymentBits(value)
     const allPaid = status.doFee && status.portFee && status.tax
     return (
-      <div
-        className={[
-          'flex gap-3 text-sm whitespace-nowrap',
-          allPaid ? 'text-green-600 font-semibold' : '',
-        ].join(' ')}
-      >
-        <span>Do <PaidCheck paid={status.doFee} /></span>
-        <span>港杂 <PaidCheck paid={status.portFee} /></span>
-        <span>税 <PaidCheck paid={status.tax} /></span>
+      <div className={['flex gap-3 text-sm whitespace-nowrap', allPaid ? 'text-green-600 font-semibold' : ''].join(' ')}>
+        <span>
+          Do <PaidCheck paid={status.doFee} />
+        </span>
+        <span>
+          港杂 <PaidCheck paid={status.portFee} />
+        </span>
+        <span>
+          税 <PaidCheck paid={status.tax} />
+        </span>
       </div>
     )
   }
@@ -152,7 +152,8 @@ export default function BaseInfo() {
           <p className="text-muted-foreground">实时跟踪订单节点，掌握清关/派送进度</p>
         </div>
         <Button size="lg" onClick={handleCreate}>
-          <Plus className="w-4 h-4 mr-2" />订单创建
+          <Plus className="w-4 h-4 mr-2" />
+          订单创建
         </Button>
       </div>
 
@@ -226,26 +227,38 @@ export default function BaseInfo() {
                   orders.map((row) => (
                     <TableRow key={row.id}>
                       <TableCell className="sticky left-0 font-medium bg-background">
-                        <Button
-                          variant="link"
-                          size="sm"
-                          className="h-auto p-0"
-                          onClick={() => detailOrder(row)}
-                        >
+                        <Button variant="link" size="sm" className="h-auto p-0" onClick={() => detailOrder(row)}>
                           {displayValue(row.waybillNo)}
                         </Button>
                       </TableCell>
                       <TableCell className="sticky left-[140px] bg-background">
                         <div className="flex gap-1">
                           {row.statusI > 1 ? (
-                            <Button variant="link" size="sm" className="h-auto p-0" onClick={() => viewOrderDetail(row)}>详情</Button>
+                            <>
+                              {row.statusI === 2 && (
+                                <Button variant="link" size="sm" className="h-auto p-0" onClick={() => handleBillNoClick(row)}>
+                                  海关申报
+                                </Button>
+                              )}
+
+                              <Button variant="link" size="sm" className="h-auto p-0" onClick={() => viewOrderDetail(row)}>
+                                详情
+                              </Button>
+                            </>
                           ) : (
                             <>
-                              <Button variant="link" size="sm" className="h-auto p-0" onClick={() => editOrder(row)}>编辑</Button>                       
+                              <Button variant="link" size="sm" className="h-auto p-0" onClick={() => editOrder(row)}>
+                                编辑
+                              </Button>
                               {row.statusI === 1 && (
-                                <Button variant="link" size="sm" className="h-auto p-0 text-red-500" onClick={() => deleteOrder(row)}>删除</Button>
+                                <Button variant="link" size="sm" className="h-auto p-0 text-red-500" onClick={() => deleteOrder(row)}>
+                                  删除
+                                </Button>
                               )}
-                              <Button variant="link" size="sm" className="h-auto p-0" onClick={() => auditOrder(row)}>审核</Button>
+
+                              <Button variant="link" size="sm" className="h-auto p-0" onClick={() => auditOrder(row)}>
+                                审核
+                              </Button>
                             </>
                           )}
                         </div>
@@ -262,7 +275,9 @@ export default function BaseInfo() {
                       <TableCell>
                         <Badge variant={statusBadgeVariant(row.statuss)}>{row.statuss || '未设置'}</Badge>
                       </TableCell>
-                      <TableCell><PaymentStatusCell value={row.paymentStatus} /></TableCell>
+                      <TableCell>
+                        <PaymentStatusCell value={row.paymentStatus} />
+                      </TableCell>
                     </TableRow>
                   ))
                 )}
@@ -270,12 +285,7 @@ export default function BaseInfo() {
             </Table>
           </div>
           <div className="flex justify-end p-4 border-t">
-            <Pagination
-              current={pageIndex}
-              pageSize={pageSize}
-              total={total}
-              onChange={handlePageChange}
-            />
+            <Pagination current={pageIndex} pageSize={pageSize} total={total} onChange={handlePageChange} />
           </div>
         </CardContent>
       </Card>

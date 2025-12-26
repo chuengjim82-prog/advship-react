@@ -468,17 +468,17 @@ export default function ClearanceList() {
                     {columns.map((col) => {
                       if (!col.visible) return null
 
-                      if (col.key === 'waybillNo') {
-                        return (
-                          <TableCell
-                            key={col.key}
-                            className="text-blue-600 font-medium underline cursor-pointer hover:text-blue-700"
-                            onClick={() => handleBillNoClick(row)}
-                          >
-                            {row.waybillNo}
-                          </TableCell>
-                        )
-                      }
+                      //   if (col.key === 'waybillNo') {
+                      //     return (
+                      //       <TableCell
+                      //         key={col.key}
+                      //         className="text-blue-600 font-medium underline cursor-pointer hover:text-blue-700"
+                      //         // onClick={() => handleBillNoClick(row)}
+                      //       >
+                      //         {row.waybillNo}
+                      //       </TableCell>
+                      //     )
+                      //   }
 
                       if (col.key === 'statuss') {
                         return (

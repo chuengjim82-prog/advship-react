@@ -43,7 +43,7 @@ export default function ContainerDeliveryConfirm({
     appointmentTime: null as Date | null,
     deliveryMethod: 'direct' as 'direct' | 'yard',
     remarks: '',
-    transDlvId: '',
+    transDlvId: 1,
     transDlvPlateNumber: '',
     transDlvName: '',
     transDlvPhone: '',
@@ -89,11 +89,10 @@ export default function ContainerDeliveryConfirm({
       if (!deliveryItem?.id) return
 
       try {
-        if (!isConfirmMode) {
-          const agentRes = await request.get('/base/api/TransAgent/GetTransAgentSelect')
-          setTransportAgents(Array.isArray(agentRes?.data) ? agentRes.data : [])
-        }
-
+        // if (!isConfirmMode) {
+        const agentRes = await request.get('/base/api/TransAgent/GetTransAgentSelect')
+        setTransportAgents(Array.isArray(agentRes?.data) ? agentRes.data : [])
+        // }
         const res = await request.get(`/bzss/api/ContainerDetails/${deliveryItem.id}GetByContainerId`)
         const item = res?.data?.items?.[0] || res?.data || {}
         const hasYardInfo = formData.yardContact || formData.yardPhone || formData.yardAddress
@@ -114,7 +113,7 @@ export default function ContainerDeliveryConfirm({
           appointmentTime,
           deliveryMethod: [1, 4].includes(item.deliveryType) ? 'yard' : 'direct',
           remarks: item.remark || '',
-          transDlvId: String(item.transDlvId || item.transPikId || '0'),
+          transDlvId: item.transPikId,
           transDlvPlateNumber: item.transportationNumber || item.deliveryPlateNumber || '',
           transDlvName: item.transPikName || '',
           transDlvPhone: item.transPikPhone || '',
@@ -348,7 +347,7 @@ export default function ContainerDeliveryConfirm({
           </>
         )}
         {/* 堆场信息 - 有数据才显示整个块 */}
-        {confirmType != 'return' && !hasYardInfo && (
+        {confirmType != 'return' && !hasYardInfo && formData.yardContact != '' && (
           <section className="space-y-4">
             <h3 className="text-base font-semibold">堆场信息</h3>
             <div className="space-y-6">
@@ -358,7 +357,7 @@ export default function ContainerDeliveryConfirm({
             </div>
           </section>
         )}{' '}
-        {confirmType != 'return' && (
+        {confirmType != 'return' && formData.returnContact != '' && (
           <section className="space-y-4">
             <h3 className="text-base font-semibold">还柜信息</h3>
             <div className="space-y-6">
@@ -368,15 +367,16 @@ export default function ContainerDeliveryConfirm({
             </div>
           </section>
         )}
-        {/* {isDirect && hasDestinationInfo && ( */}
-        <section className="space-y-4">
-          <h3 className="text-base font-semibold">目的地信息</h3>
-          <div className="space-y-6">
-            {renderInfoField('收货联系人', formData.destinationContact)}
-            {renderInfoField('收货联系电话', formData.destinationPhone)}
-            {renderInfoField('收货详细地址', formData.destinationAddress)}
-          </div>
-        </section>
+        {formData.destinationContact != '' && (
+          <section className="space-y-4">
+            <h3 className="text-base font-semibold">目的地信息</h3>
+            <div className="space-y-6">
+              {renderInfoField('收货联系人', formData.destinationContact)}
+              {renderInfoField('收货联系电话', formData.destinationPhone)}
+              {renderInfoField('收货详细地址', formData.destinationAddress)}
+            </div>
+          </section>
+        )}
         {/* 派送信息 */}
         {/* <section className="space-y-4">
           <h3 className="text-base font-semibold">派送信息</h3>
@@ -397,7 +397,7 @@ export default function ContainerDeliveryConfirm({
           <h3 className="text-base font-semibold">派送信息</h3>
           <div className="max-w-3xl space-y-5">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {renderInfoField('运输公司', transportAgents.find((a) => String(a.value) === formData.transDlvId)?.text || '-')}
+              {renderInfoField('运输公司', transportAgents.find((a) => String(a.value) === formData.transDlvId)?.text || '')}
               {renderInfoField('车牌号码', formData.transDlvPlateNumber)}
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

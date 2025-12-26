@@ -19,12 +19,12 @@ export default defineConfig(({ mode }) => ({
     port: 8090,
     proxy: {
       '/base': {
-        target: 'http://localhost:8002',
+        target: 'http://8.134.159.144:8001',
         changeOrigin: true,
         rewrite: (path) => path
       },
       '/bzss': {
-        target: 'http://localhost:8002',
+        target: 'http://8.134.159.144:8002',
         changeOrigin: true,
         rewrite: (path) => path
       }

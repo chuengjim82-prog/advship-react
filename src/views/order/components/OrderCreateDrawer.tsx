@@ -920,6 +920,7 @@ useSmartEffect({
       const newAttachment = {
         ...updatedAttachments[index],
         //fileName: (res.data as any)?.fileName || file.name,
+        isAudit: 0,
         fileNameN: (res.data as any)?.fileNameN || file.name,
         fileNameO: (res.data as any)?.fileNameO || file.name,
         fileType: (res.data as any)?.fileType || file.name.split('.').pop() || 'unknown',
@@ -941,6 +942,7 @@ useSmartEffect({
             fileNameO: newAttachment.fileNameO,
             fileType: newAttachment.fileType,
             neAudit: newAttachment.neAudit,
+            isAudit: newAttachment.isAudit,
             neExtract: newAttachment.neExtract,
             dirtType: newAttachment.dirtType,
             remark: newAttachment.remark || '',
@@ -1232,6 +1234,7 @@ useSmartEffect({
                                           fileName: updatedAttachments[index].fileName,
                                           fileNameN: '',
                                           fileNameO: '',
+                                          isAudit: updatedAttachments[index].isAudit,
                                           fileType: updatedAttachments[index].fileType,
                                           neAudit: updatedAttachments[index].neAudit,
                                           neExtract: updatedAttachments[index].neExtract,

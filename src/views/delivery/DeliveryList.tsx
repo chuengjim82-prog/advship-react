@@ -459,13 +459,27 @@ export default function DeliveryList() {
                             </>
                           )}
                           {item.statuss === '已提柜' && (
-                            <Button
-                              size="sm"
-                              onClick={() => openConfirmDialog(item, 'return')}
-                              className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-white rounded-full"
-                            >
-                              放置堆场
-                            </Button>
+                            <>
+                              {item.deliveryType === 1 && (
+                                <Button
+                                  size="sm"
+                                  onClick={() => openConfirmDialog(item, 'yard')}
+                                  className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-white rounded-full"
+                                >
+                                  放置堆场
+                                </Button>
+                              )}
+
+                              {item.deliveryType === 2 && (
+                                <Button
+                                  size="sm"
+                                  onClick={() => openConfirmDialog(item, 'yard')}
+                                  className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-white rounded-full"
+                                >
+                                  确认提货
+                                </Button>
+                              )}
+                            </>
                           )}
 
                           {item.statuss === '出派中' && (
@@ -570,13 +584,13 @@ export default function DeliveryList() {
               confirmType={confirmType}
               confirmTitle={
                 confirmType === 'pickup'
-                  ? '确认提柜时间'
+                  ? '提柜时间'
                   : confirmType === 'yard'
                   ? confirmItem.deliveryType === 2
-                    ? '确认直接派送'
-                    : '确认放置堆场'
+                    ? '直接派送'
+                    : '放置堆场'
                   : confirmType === 'delivery'
-                  ? '确认交货时间'
+                  ? '交货时间'
                   : confirmType === 'return'
                   ? '确认已还柜'
                   : '详情'

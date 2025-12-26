@@ -144,7 +144,7 @@ export default function ContainerPickup({ onClose, onSubmit }: ContainerPickupPr
         orderId: deliveryItem?.orderId || 0,
         containerId: deliveryItem?.id || 0,
         deliveryType: formData.deliveryMethod === 'direct' ? 2 : 1,
-        newStatusi: 4,
+        newStatusi: deliveryItem?.statusi === 1 ? 2 : 4,
         statusi: deliveryItem?.statusi || 2,
         transDlvId: Number(formData.transDlvId),
         transDlvName: formData.transDlvName,
