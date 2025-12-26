@@ -7,8 +7,9 @@ export interface SearchField {
   name: string
   label: string
   placeholder?: string
-  type?: 'text' | 'select'
+  type?: 'text' | 'select' | 'custom'
   options?: { label: string; value: string }[]
+  render?: (value: string, onChange: (value: string) => void, onOpenDialog: () => void) => ReactNode
 }
 
 export interface CrudTableV2Props<T extends FieldValues = FieldValues> {

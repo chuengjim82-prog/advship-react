@@ -40,6 +40,8 @@ const citySchema = z.object({
 
 export default function City() {
   const [countryDialogOpen, setCountryDialogOpen] = useState(false)
+  const [searchCountryDialogOpen, setSearchCountryDialogOpen] = useState(false)
+  const [searchCountryCode, setSearchCountryCode] = useState('')
   const formRef = useRef<UseFormReturn<CityData> | null>(null)
 
   const countryColumns: ColumnDef<CountryItem>[] = [
@@ -126,7 +128,29 @@ export default function City() {
   const searchFields: SearchField[] = [
     { name: 'code', label: '编码', placeholder: '请输入编码' },
     { name: 'cnName', label: '中文名', placeholder: '请输入中文名' },
-    { name: 'countryCode2', label: '国家', placeholder: '请输入国家代码' },
+    { 
+      name: 'countryCode2', 
+      label: '国家', 
+      type: 'custom',
+      render: (_value, _onChange) => (
+        <div className="flex gap-1">
+          <Input 
+            placeholder="请选择国家" 
+            readOnly 
+            value={searchCountryCode}
+            className="flex-1"
+          />
+          <Button 
+            type="button" 
+            variant="outline" 
+            size="icon" 
+            onClick={() => setSearchCountryDialogOpen(true)}
+          >
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </div>
+      )
+    },
   ]
 
   return (
@@ -141,6 +165,7 @@ export default function City() {
         searchFields={searchFields}
         searchVisibleRows={1}
       />
+      {/* 表单编辑用国家选择弹窗 */}
       <SelectDialogV2<CountryItem>
         title="选择国家"
         apiUrl="/base/api/country"
@@ -148,6 +173,17 @@ export default function City() {
         open={countryDialogOpen}
         onOpenChange={setCountryDialogOpen}
         onSelect={handleCountrySelect}
+      />
+      {/* 搜索区域国家选择弹窗 */}
+      <SelectDialogV2<CountryItem>
+        title="选择国家"
+        apiUrl="/base/api/country"
+        columns={countryColumns}
+        open={searchCountryDialogOpen}
+        onOpenChange={setSearchCountryDialogOpen}
+        onSelect={(country) => {
+          setSearchCountryCode(country.code2)
+        }}
       />
     </>
   )
