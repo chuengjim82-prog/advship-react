@@ -29,7 +29,8 @@ export interface PageRequest {
 
 // 创建 axios 实例
 const service: AxiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://8.134.159.144', //'http://localhost:8000',
+  // 开发环境走 Vite 代理（/base、/bzss），避免跨域与端口不一致问题
+  baseURL: import.meta.env.DEV ? '' : (import.meta.env.VITE_API_BASE_URL || ''),
   timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
