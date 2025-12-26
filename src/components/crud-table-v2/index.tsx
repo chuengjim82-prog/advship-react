@@ -316,7 +316,7 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
                         field.render(
                           searchParams[field.name] || '',
                           (value) => setSearchParams(prev => ({ ...prev, [field.name]: value })),
-                          () => {} // onOpenDialog placeholder - handled by custom render
+                          handleSearch // 传入搜索函数，让自定义渲染可以触发搜索
                         )
                       ) : (
                         <Input

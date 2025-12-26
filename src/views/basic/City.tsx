@@ -123,8 +123,9 @@ export default function City() {
     countryCode2: '',
   }
 
-  // 保存搜索区国家选择的onChange回调
+  // 保存搜索区国家选择的回调
   const searchCountryOnChangeRef = useRef<((value: string) => void) | null>(null)
+  const searchCountryOnSearchRef = useRef<(() => void) | null>(null)
 
   // 多字段搜索配置
   const searchFields: SearchField[] = [
@@ -134,9 +135,10 @@ export default function City() {
       name: 'countryCode2', 
       label: '国家', 
       type: 'custom',
-      render: (value, onChange) => {
-        // 保存onChange引用以便在弹窗选择后调用
+      render: (value, onChange, onSearch) => {
+        // 保存回调引用以便在弹窗选择后调用
         searchCountryOnChangeRef.current = onChange
+        searchCountryOnSearchRef.current = onSearch
         return (
           <div className="flex gap-1">
             <Input 
@@ -188,10 +190,16 @@ export default function City() {
         open={searchCountryDialogOpen}
         onOpenChange={setSearchCountryDialogOpen}
         onSelect={(country) => {
-          // 通过保存的onChange回调更新搜索参数
+          // 通过保存的回调更新搜索参数并触发搜索
           if (searchCountryOnChangeRef.current) {
             searchCountryOnChangeRef.current(country.code2)
           }
+          // 延迟执行搜索，确保状态已更新
+          setTimeout(() => {
+            if (searchCountryOnSearchRef.current) {
+              searchCountryOnSearchRef.current()
+            }
+          }, 0)
         }}
       />
     </>
