@@ -53,9 +53,9 @@ export default function Sidebar({ collapsed }: SidebarProps) {
       label: t('menu.partnerManagement'),
       children: [
         { key: '/partner/customer', icon: 'TeamOutlined', label: t('menu.customer'), path: '/partner/customer' },
-        { key: '/partner/csReceiver', icon: 'ContactsOutlined', label: t('menu.csReceiver'), path: '/partner/csReceiver' },
-        { key: '/partner/csShipper', icon: 'ContactsOutlined', label: t('menu.csShipper'), path: '/partner/csShipper' },
-        { key: '/partner/csConsignee', icon: 'BankOutlined', label: t('menu.csConsignee'), path: '/partner/csConsignee' },
+        { key: '/partner/csReceiver', icon: 'PackageCheckOutlined', label: t('menu.csReceiver'), path: '/partner/csReceiver' },
+        { key: '/partner/csShipper', icon: 'SendOutlined', label: t('menu.csShipper'), path: '/partner/csShipper' },
+        { key: '/partner/csConsignee', icon: 'MapPinnedOutlined', label: t('menu.csConsignee'), path: '/partner/csConsignee' },
         { key: '/partner/supplier', icon: 'ShopOutlined', label: t('menu.supplier'), path: '/partner/supplier' },
         { key: '/partner/shipping', icon: 'RocketOutlined', label: t('menu.shipping'), path: '/partner/shipping' },
         { key: '/partner/cust-agent', icon: 'ContactsOutlined', label: t('menu.custAgent'), path: '/partner/cust-agent' },

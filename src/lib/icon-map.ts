@@ -40,6 +40,9 @@ import {
   Tags,
   Landmark,
   Receipt,
+  PackageCheck,
+  Send,
+  MapPinned,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -75,6 +78,9 @@ export const iconMap: Record<string, LucideIcon> = {
   TagsOutlined: Tags,
   LandmarkOutlined: Landmark,
   ReceiptOutlined: Receipt,
+  PackageCheckOutlined: PackageCheck,
+  SendOutlined: Send,
+  MapPinnedOutlined: MapPinned,
 
   // Action icons
   LeftOutlined: ChevronLeft,
