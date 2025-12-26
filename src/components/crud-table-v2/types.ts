@@ -12,6 +12,12 @@ export interface SearchField {
   options?: { label: string; value: string | number }[] // select 时的选项
 }
 
+// 固定列配置
+export interface StickyColumnConfig {
+  enabled?: boolean       // 是否启用固定，默认 false
+  width?: number          // 固定列宽度，默认使用列定义的 size
+}
+
 export interface CrudTableV2Props<T extends FieldValues = FieldValues> {
   // Required props
   title: string
@@ -34,6 +40,10 @@ export interface CrudTableV2Props<T extends FieldValues = FieldValues> {
   searchFields?: SearchField[]
   // 默认显示的搜索行数（超出折叠），默认 2
   searchVisibleRows?: number
+
+  // 固定列配置
+  stickyFirstColumn?: StickyColumnConfig  // 首列固定配置
+  stickyActionsColumn?: StickyColumnConfig // 操作列固定配置
 
   // Callbacks
   onLoaded?: (data: T[]) => void
