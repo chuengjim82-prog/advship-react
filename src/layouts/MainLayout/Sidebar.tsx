@@ -43,8 +43,8 @@ export default function Sidebar({ collapsed }: SidebarProps) {
         { key: '/basic/serviceAttn', icon: 'FileProtectOutlined', label: t('menu.serviceAttn'), path: '/basic/serviceAttn' },
         { key: '/basic/feeType', icon: 'TagsOutlined', label: t('menu.feeType'), path: '/basic/feeType' },
         { key: '/basic/feeItem', icon: 'ReceiptOutlined', label: t('menu.feeItem'), path: '/basic/feeItem' },
-        { key: '/basic/bankAccountO', icon: 'LandmarkOutlined', label: t('menu.bankAccountO'), path: '/basic/bankAccountO' },
-        { key: '/basic/bankAccountT', icon: 'LandmarkOutlined', label: t('menu.bankAccountT'), path: '/basic/bankAccountT' },
+        { key: '/basic/bankAccountO', icon: 'WalletOutlined', label: t('menu.bankAccountO'), path: '/basic/bankAccountO' },
+        { key: '/basic/bankAccountT', icon: 'ArrowLeftRightOutlined', label: t('menu.bankAccountT'), path: '/basic/bankAccountT' },
       ],
     },
     {
