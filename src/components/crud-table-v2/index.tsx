@@ -447,7 +447,7 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
         <CardContent>
           {/* Table */}
           <div className="rounded-md border overflow-x-auto">
-            <Table className="min-w-max">
+            <Table className="w-max min-w-full">
               <TableHeader>
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow key={headerGroup.id}>
