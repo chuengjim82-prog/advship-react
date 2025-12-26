@@ -46,7 +46,7 @@ import { Form } from '@/components/ui/form'
 import { cn } from '@/lib/utils'
 import request from '@/utils/request'
 import type { PageResult } from '@/utils/request'
-import type { CrudTableV2Props, CrudTableV2Ref, SearchField } from './types'
+import type { CrudTableV2Props, CrudTableV2Ref, SearchField, StickyColumnConfig } from './types'
 
 function CrudTableV2<T extends FieldValues = FieldValues>(
   props: CrudTableV2Props<T>,
@@ -64,6 +64,8 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
     dialogClassName,
     searchFields,
     searchVisibleRows = 2,
+    stickyFirstColumn,
+    stickyActionsColumn,
     onLoaded,
     onBeforeSubmit,
     onAfterSubmit,
@@ -454,25 +456,44 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
               <TableHeader>
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => {
+                    {headerGroup.headers.map((header, headerIndex) => {
+                      const isFirstColumn = headerIndex === 0
                       const isActionsColumn = header.id === 'actions'
+                      
                       return (
                         <TableHead
                           key={header.id}
                           style={{
-                            width: header.column.getSize(),
-                            minWidth: header.column.getSize(),
-                            ...(isActionsColumn
+                            width: isFirstColumn && stickyFirstColumn?.width 
+                              ? stickyFirstColumn.width 
+                              : isActionsColumn && stickyActionsColumn?.width 
+                                ? stickyActionsColumn.width 
+                                : header.column.getSize(),
+                            minWidth: isFirstColumn && stickyFirstColumn?.width 
+                              ? stickyFirstColumn.width 
+                              : isActionsColumn && stickyActionsColumn?.width 
+                                ? stickyActionsColumn.width 
+                                : header.column.getSize(),
+                            ...(isFirstColumn && stickyFirstColumn?.enabled
+                              ? {
+                                  position: 'sticky',
+                                  left: 0,
+                                  zIndex: 20,
+                                }
+                              : {}),
+                            ...(isActionsColumn && stickyActionsColumn?.enabled
                               ? {
                                   position: 'sticky',
                                   right: 0,
-                                  zIndex: 10,
+                                  zIndex: 20,
                                 }
                               : {}),
                           }}
                           className={cn(
                             'whitespace-nowrap',
-                            isActionsColumn &&
+                            isFirstColumn && stickyFirstColumn?.enabled &&
+                              'bg-background shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]',
+                            isActionsColumn && stickyActionsColumn?.enabled &&
                               'bg-background shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.1)]'
                           )}
                         >
@@ -501,23 +522,45 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
                 ) : table.getRowModel().rows?.length ? (
                   table.getRowModel().rows.map((row) => (
                     <TableRow key={row.id}>
-                      {row.getVisibleCells().map((cell) => {
+                      {row.getVisibleCells().map((cell, cellIndex) => {
+                        const isFirstColumn = cellIndex === 0
                         const isActionsColumn = cell.column.id === 'actions'
+                        
                         return (
                           <TableCell 
                             key={cell.id}
                             style={{ 
-                              width: cell.column.getSize(),
-                              minWidth: cell.column.getSize(),
-                              ...(isActionsColumn ? {
-                                position: 'sticky',
-                                right: 0,
-                                zIndex: 5,
-                              } : {}),
+                              width: isFirstColumn && stickyFirstColumn?.width 
+                                ? stickyFirstColumn.width 
+                                : isActionsColumn && stickyActionsColumn?.width 
+                                  ? stickyActionsColumn.width 
+                                  : cell.column.getSize(),
+                              minWidth: isFirstColumn && stickyFirstColumn?.width 
+                                ? stickyFirstColumn.width 
+                                : isActionsColumn && stickyActionsColumn?.width 
+                                  ? stickyActionsColumn.width 
+                                  : cell.column.getSize(),
+                              ...(isFirstColumn && stickyFirstColumn?.enabled 
+                                ? {
+                                    position: 'sticky',
+                                    left: 0,
+                                    zIndex: 10,
+                                  } 
+                                : {}),
+                              ...(isActionsColumn && stickyActionsColumn?.enabled 
+                                ? {
+                                    position: 'sticky',
+                                    right: 0,
+                                    zIndex: 10,
+                                  } 
+                                : {}),
                             }}
                             className={cn(
                               "whitespace-nowrap",
-                              isActionsColumn && "bg-background shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.1)]"
+                              isFirstColumn && stickyFirstColumn?.enabled && 
+                                "bg-background shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]",
+                              isActionsColumn && stickyActionsColumn?.enabled && 
+                                "bg-background shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.1)]"
                             )}
                           >
                             {flexRender(
@@ -624,5 +667,5 @@ const CrudTableV2Component = forwardRef(CrudTableV2) as <T extends FieldValues =
   props: CrudTableV2Props<T> & { ref?: React.Ref<CrudTableV2Ref> }
 ) => React.ReactElement
 
-export type { CrudTableV2Props, CrudTableV2Ref, SearchField }
+export type { CrudTableV2Props, CrudTableV2Ref, SearchField, StickyColumnConfig }
 export default CrudTableV2Component
