@@ -11,7 +11,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Label } from '@/components/ui/label'
 import type { UseFormReturn } from 'react-hook-form'
-import { MoreHorizontal, Landmark, CreditCard, Globe, Building2, Hash, CircleDollarSign, MapPin, Users, Truck, FileText } from 'lucide-react'
+import { MoreHorizontal } from 'lucide-react'
 import { Textarea } from '@/components/ui/textarea'
 
 interface BankAccountTData {
@@ -143,140 +143,27 @@ export default function BankAccountT() {
   }, [])
 
   const columns: ColumnDef<BankAccountTData>[] = [
-    { accessorKey: 'id', header: () => <span className="whitespace-nowrap">主键</span>, size: 60 },
-    {
-      accessorKey: 'ownerType',
-      header: () => <span className="flex items-center gap-1.5 whitespace-nowrap"><Building2 className="h-3.5 w-3.5 text-primary" />账户类型</span>,
-      size: 100,
-      cell: ({ getValue }) => {
-        const val = getValue() as string
-        const isCustomer = val === '客户'
-        return (
-          <Badge 
-            variant="outline" 
-            className={isCustomer 
-              ? 'bg-blue-500/10 text-blue-600 border-blue-200' 
-              : 'bg-amber-500/10 text-amber-600 border-amber-200'
-            }
-          >
-            {isCustomer ? <Users className="h-3 w-3 mr-1" /> : <Truck className="h-3 w-3 mr-1" />}
-            {val}
-          </Badge>
-        )
-      }
-    },
-    { 
-      accessorKey: 'ownerName', 
-      header: () => <span className="whitespace-nowrap">所属对象</span>,
-      size: 140,
-      cell: ({ getValue }) => (
-        <span className="font-medium text-foreground">{getValue() as string || '-'}</span>
-      )
-    },
-    { 
-      accessorKey: 'accountName', 
-      header: () => <span className="flex items-center gap-1.5 whitespace-nowrap"><CreditCard className="h-3.5 w-3.5 text-muted-foreground" />账户名称</span>,
-      size: 180,
-    },
-    { 
-      accessorKey: 'depositBank', 
-      header: () => <span className="flex items-center gap-1.5 whitespace-nowrap"><Landmark className="h-3.5 w-3.5 text-blue-500" />开户银行</span>,
-      size: 200,
-      cell: ({ getValue }) => (
-        <span className="text-muted-foreground">{getValue() as string || '-'}</span>
-      )
-    },
-    { 
-      accessorKey: 'accountNo', 
-      header: () => <span className="flex items-center gap-1.5 whitespace-nowrap"><Hash className="h-3.5 w-3.5 text-muted-foreground" />账户号码</span>,
-      size: 200,
-      cell: ({ getValue }) => {
-        const val = getValue() as string
-        if (!val) return '-'
-        const masked = val.length > 8 
-          ? `${val.slice(0, 4)}****${val.slice(-4)}`
-          : val
-        return <code className="bg-muted px-1.5 py-0.5 rounded text-xs font-mono">{masked}</code>
-      }
-    },
-    { 
-      accessorKey: 'currency', 
-      header: () => <span className="flex items-center gap-1.5 whitespace-nowrap"><CircleDollarSign className="h-3.5 w-3.5 text-green-500" />币种</span>,
-      size: 80,
-      cell: ({ getValue }) => {
-        const val = getValue() as string
-        if (!val) return '-'
-        return <Badge variant="outline" className="font-mono text-xs">{val}</Badge>
-      }
-    },
-    { 
-      accessorKey: 'bankCode', 
-      header: () => <span className="whitespace-nowrap">银行号码</span>,
-      size: 120,
-      cell: ({ getValue }) => {
-        const val = getValue() as string
-        return val ? <code className="text-xs text-muted-foreground">{val}</code> : '-'
-      }
-    },
-    { 
-      accessorKey: 'branchCode', 
-      header: () => <span className="whitespace-nowrap">分行代码</span>,
-      size: 120,
-      cell: ({ getValue }) => {
-        const val = getValue() as string
-        return val ? <code className="text-xs text-muted-foreground">{val}</code> : '-'
-      }
-    },
-    { 
-      accessorKey: 'swiftCode', 
-      header: () => <span className="flex items-center gap-1.5 whitespace-nowrap"><Globe className="h-3.5 w-3.5 text-violet-500" />Swift</span>,
-      size: 100,
-      cell: ({ getValue }) => {
-        const val = getValue() as string
-        return val ? <Badge variant="secondary" className="font-mono text-xs">{val}</Badge> : '-'
-      }
-    },
-    { 
-      accessorKey: 'countryCode2', 
-      header: () => <span className="flex items-center gap-1.5 whitespace-nowrap"><MapPin className="h-3.5 w-3.5 text-orange-500" />地点</span>,
-      size: 80,
-      cell: ({ getValue }) => {
-        const val = getValue() as string
-        return val ? <Badge variant="outline">{val}</Badge> : '-'
-      }
-    },
-    { 
-      accessorKey: 'cityName', 
-      header: () => <span className="whitespace-nowrap">城市</span>,
-      size: 100 
-    },
-    { 
-      accessorKey: 'latestTime', 
-      header: () => <span className="whitespace-nowrap">最近交易</span>,
-      size: 120 
-    },
-    { 
-      accessorKey: 'dataSource', 
-      header: () => <span className="whitespace-nowrap">来源</span>,
-      size: 80 
-    },
+    { accessorKey: 'id', header: '主键', size: 80 },
+    { accessorKey: 'ownerType', header: '账户类型', size: 100 },
+    { accessorKey: 'ownerName', header: '所属对象', size: 100 },
+    { accessorKey: 'accountName', header: '账户名称', size: 150 },
+    { accessorKey: 'depositBank', header: '开户银行', size: 200 },
+    { accessorKey: 'accountNo', header: '账户号码', size: 200 },
+    { accessorKey: 'currency', header: '币种', size: 100 },
+    { accessorKey: 'bankCode', header: '银行号码', size: 200 },
+    { accessorKey: 'branchCode', header: '分行代码', size: 200 },
+    { accessorKey: 'swiftCode', header: 'Swift代码', size: 100 },
+    { accessorKey: 'countryCode2', header: '账户地点', size: 100 },
+    { accessorKey: 'cityName', header: '所在城市', size: 100 },
+    { accessorKey: 'latestTime', header: '最近交易', size: 100 },
+    { accessorKey: 'dataSource', header: '数据来源', size: 100 },
     {
       accessorKey: 'statusi',
-      header: () => <span className="whitespace-nowrap">状态</span>,
+      header: '状态',
       size: 80,
-      cell: ({ getValue }) => getValue() === 1 
-        ? <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-200 hover:bg-emerald-500/20">启用</Badge> 
-        : <Badge variant="destructive" className="bg-red-500/10 text-red-600 border-red-200">停用</Badge>,
+      cell: ({ getValue }) => getValue() === 1 ? <Badge variant="default">启用</Badge> : <Badge variant="destructive">停用</Badge>,
     },
-    { 
-      accessorKey: 'remark', 
-      header: () => <span className="flex items-center gap-1.5 whitespace-nowrap"><FileText className="h-3.5 w-3.5 text-muted-foreground" />备注</span>,
-      size: 150,
-      cell: ({ getValue }) => {
-        const val = getValue() as string
-        return val ? <span className="text-muted-foreground text-sm truncate max-w-[140px] block">{val}</span> : '-'
-      }
-    },
+    { accessorKey: 'remark', header: '备注' },
   ]
 
   const renderFormFields = useCallback((form: UseFormReturn<BankAccountTData>) => {
