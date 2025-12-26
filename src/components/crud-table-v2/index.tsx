@@ -65,6 +65,7 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
     dialogClassName,
     searchFields,
     searchVisibleRows = 2,
+    actionButtonsOnNewLine = false,
     onLoaded,
     onBeforeSubmit,
     onAfterSubmit,
@@ -377,25 +378,47 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
                 </div>
               </div>
             ) : (
-              <div className="flex gap-2">
-                <Input
-                  placeholder={searchPlaceholder}
-                  value={searchKeyword}
-                  onChange={(e) => setSearchKeyword(e.target.value)}
-                  className="w-[200px]"
-                />
-                <Button variant="default" size="sm" onClick={() => handleSearch()}>
-                  <Search className="mr-1 h-4 w-4" />
-                  搜索
-                </Button>
-                <Button variant="outline" size="sm" onClick={handleRefresh}>
-                  <RefreshCw className="mr-1 h-4 w-4" />
-                  刷新
-                </Button>
-                <Button variant="default" size="sm" onClick={handleAdd}>
-                  <Plus className="mr-1 h-4 w-4" />
-                  新增
-                </Button>
+              <div className={cn("flex gap-2", actionButtonsOnNewLine && "flex-col")}>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder={searchPlaceholder}
+                    value={searchKeyword}
+                    onChange={(e) => setSearchKeyword(e.target.value)}
+                    className="w-[200px]"
+                  />
+                  {!actionButtonsOnNewLine && (
+                    <>
+                      <Button variant="default" size="sm" onClick={() => handleSearch()}>
+                        <Search className="mr-1 h-4 w-4" />
+                        搜索
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={handleRefresh}>
+                        <RefreshCw className="mr-1 h-4 w-4" />
+                        刷新
+                      </Button>
+                      <Button variant="default" size="sm" onClick={handleAdd}>
+                        <Plus className="mr-1 h-4 w-4" />
+                        新增
+                      </Button>
+                    </>
+                  )}
+                </div>
+                {actionButtonsOnNewLine && (
+                  <div className="flex gap-2">
+                    <Button variant="default" size="sm" onClick={() => handleSearch()}>
+                      <Search className="mr-1 h-4 w-4" />
+                      搜索
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={handleRefresh}>
+                      <RefreshCw className="mr-1 h-4 w-4" />
+                      刷新
+                    </Button>
+                    <Button variant="default" size="sm" onClick={handleAdd}>
+                      <Plus className="mr-1 h-4 w-4" />
+                      新增
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
           </div>
