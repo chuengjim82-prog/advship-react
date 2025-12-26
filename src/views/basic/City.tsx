@@ -41,7 +41,6 @@ const citySchema = z.object({
 export default function City() {
   const [countryDialogOpen, setCountryDialogOpen] = useState(false)
   const [searchCountryDialogOpen, setSearchCountryDialogOpen] = useState(false)
-  const [searchCountryCode, setSearchCountryCode] = useState('')
   const formRef = useRef<UseFormReturn<CityData> | null>(null)
 
   const countryColumns: ColumnDef<CountryItem>[] = [
@@ -124,6 +123,9 @@ export default function City() {
     countryCode2: '',
   }
 
+  // 保存搜索区国家选择的onChange回调
+  const searchCountryOnChangeRef = useRef<((value: string) => void) | null>(null)
+
   // 多字段搜索配置
   const searchFields: SearchField[] = [
     { name: 'code', label: '编码', placeholder: '请输入编码' },
@@ -132,24 +134,28 @@ export default function City() {
       name: 'countryCode2', 
       label: '国家', 
       type: 'custom',
-      render: (_value, _onChange) => (
-        <div className="flex gap-1">
-          <Input 
-            placeholder="请选择国家" 
-            readOnly 
-            value={searchCountryCode}
-            className="flex-1"
-          />
-          <Button 
-            type="button" 
-            variant="outline" 
-            size="icon" 
-            onClick={() => setSearchCountryDialogOpen(true)}
-          >
-            <MoreHorizontal className="h-4 w-4" />
-          </Button>
-        </div>
-      )
+      render: (value, onChange) => {
+        // 保存onChange引用以便在弹窗选择后调用
+        searchCountryOnChangeRef.current = onChange
+        return (
+          <div className="flex gap-1">
+            <Input 
+              placeholder="请选择国家" 
+              readOnly 
+              value={value || ''}
+              className="flex-1"
+            />
+            <Button 
+              type="button" 
+              variant="outline" 
+              size="icon" 
+              onClick={() => setSearchCountryDialogOpen(true)}
+            >
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </div>
+        )
+      }
     },
   ]
 
@@ -182,7 +188,10 @@ export default function City() {
         open={searchCountryDialogOpen}
         onOpenChange={setSearchCountryDialogOpen}
         onSelect={(country) => {
-          setSearchCountryCode(country.code2)
+          // 通过保存的onChange回调更新搜索参数
+          if (searchCountryOnChangeRef.current) {
+            searchCountryOnChangeRef.current(country.code2)
+          }
         }}
       />
     </>
