@@ -54,7 +54,7 @@ import type { PageResult } from '@/utils/request'
 import type { CrudTableV2Props, CrudTableV2Ref, SearchField } from './types'
 
 // Cell content with overflow tooltip
-const CellWithTooltip = ({ children }: { children: React.ReactNode }) => {
+const CellWithTooltip = ({ children, maxWidth }: { children: React.ReactNode; maxWidth?: number }) => {
   const contentRef = useRef<HTMLDivElement>(null)
   const [isOverflowing, setIsOverflowing] = useState(false)
 
@@ -68,7 +68,8 @@ const CellWithTooltip = ({ children }: { children: React.ReactNode }) => {
   const content = (
     <div
       ref={contentRef}
-      className="truncate max-w-full"
+      className="truncate"
+      style={{ maxWidth: maxWidth ? `${maxWidth}px` : '200px' }}
     >
       {children}
     </div>
@@ -84,7 +85,7 @@ const CellWithTooltip = ({ children }: { children: React.ReactNode }) => {
         {content}
       </TooltipTrigger>
       <TooltipContent>
-        <p>{children}</p>
+        <p className="max-w-[400px] whitespace-pre-wrap">{children}</p>
       </TooltipContent>
     </Tooltip>
   )
@@ -506,15 +507,16 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
                         {row.getVisibleCells().map((cell) => {
                           // Check if this is the action column
                           const isActionColumn = cell.column.id === 'actions'
+                          const columnSize = cell.column.getSize()
                           return (
-                            <TableCell key={cell.id}>
+                            <TableCell key={cell.id} style={{ maxWidth: columnSize }}>
                               {isActionColumn ? (
                                 flexRender(
                                   cell.column.columnDef.cell,
                                   cell.getContext()
                                 )
                               ) : (
-                                <CellWithTooltip>
+                                <CellWithTooltip maxWidth={columnSize - 32}>
                                   {flexRender(
                                     cell.column.columnDef.cell,
                                     cell.getContext()
