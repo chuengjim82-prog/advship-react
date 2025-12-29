@@ -96,7 +96,8 @@ export default function Containerhandling({
 
     const data = initialData || locationState?.deliveryItem
 
-    setFormData({
+    setFormData((prev) => ({
+      ...prev,
       appointmentTime: data.pickUpTimeE ? new Date(data.pickUpTimeE) : null,
       deliveryMethod: data.deliveryMethod || (data.deliveryType === 2 ? 'direct' : 'yard'),
       remarks: data.remark || '',
@@ -117,7 +118,13 @@ export default function Containerhandling({
       destinationContact: data.destinationContact || data.yardContact || '',
       destinationPhone: data.destinationPhone || data.yardPhone || '',
       destinationAddress: data.destinationAddress || data.yardAddress || '',
-    })
+
+      // 保持 required 字段存在
+      deliveryCall: data.deliveryCall || '',
+      deliveryPlateNumber: data.deliveryPlateNumber || '',
+      deliveryContact: data.deliveryContact || '',
+      deliveryCompanyId: String(data.deliveryCompanyId || ''),
+    }))
   }, [initialData, locationState?.deliveryItem])
 
   const handleChange = (field: keyof typeof formData, value: string | Date | null) => {
@@ -154,11 +161,11 @@ export default function Containerhandling({
 
     setSubmitting(true)
     try {
-      const containerId = locationState?.deliveryItem?.id || initialData?.containerId || 0
-      const orderId = locationState?.deliveryItem?.orderId || initialData?.orderId || 0
+      const containerId = (locationState?.deliveryItem as any)?.id || (initialData as any)?.containerId || 0
+      const orderId = (locationState?.deliveryItem as any)?.orderId || (initialData as any)?.orderId || 0
 
       const payload = {
-        id: isEdit ? initialData?.Id || 0 : 0,
+        id: isEdit ? (initialData as any)?.id || 0 : 0,
         containerId,
         orderId,
         deliveryType: formData.deliveryMethod === 'direct' ? 2 : 1,

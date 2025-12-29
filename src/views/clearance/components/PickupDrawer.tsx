@@ -34,18 +34,16 @@ interface PickupDrawerProps {
   pickupLoading: boolean
   pickupData: ContainerPickupInfo[]
   transportAgents: TransportAgent[]
-  selectedRow: (ContainerPickupInfo & { waybillNo?: string; customerName?: string; status?: string }) | null
+  selectedRow: { waybillNo?: string; customerName?: string; status?: string } | null
   handleUpdatePickupInfo: (
     index: number,
     field:
       | 'pickUpTimeE'
       | 'remark'
       | 'transPikId'
-      | 'transDlvName'
       | 'transportationNumber'
       | 'transPikPhone'
       | 'transPikName'
-      | 'transportMode'
       | 'deliveryType',
     value: string | number | Date
   ) => void
@@ -115,8 +113,8 @@ const PickupDrawer: React.FC<PickupDrawerProps> = ({
                       <TableCell className="font-medium text-gray-900">{container.number}</TableCell>
                       <TableCell>
                         <DateTimePicker
-                          value={container.pickUpTimeE ? new Date(container.pickUpTimeE) : undefined}
-                          onChange={(date) => handleUpdatePickupInfo(index, 'pickUpTimeE', date ? date.toString() : '')} // 使用toString方法
+                          value={container.pickUpTimeE || ''}
+                          onChange={(val) => handleUpdatePickupInfo(index, 'pickUpTimeE', val)}
                           className="w-full border border-gray-300 rounded-md"
                         />
                       </TableCell>

@@ -574,7 +574,7 @@ export default function ContainerDeliveryConfirm({
       try {
         debugger
         const res = await request.get(`/bzss/api/ContainerDetails/${deliveryItem.id}GetByContainerId`)
-        const item = res?.data?.items?.[0] || deliveryItem
+        const item: any = (res as any)?.data?.items?.[0] || deliveryItem
 
         let appointmentTime: Date | null = null
         if (item.pickUpTimeE || item.deliveryDateE) {
@@ -673,7 +673,6 @@ export default function ContainerDeliveryConfirm({
   }
 
   const hasYardInfo = formData.yardContact || formData.yardPhone || formData.yardAddress
-  const hasDestinationInfo = formData.destinationContact || formData.destinationPhone || formData.destinationAddress
 
   return (
     <div className="bg-white">

@@ -597,8 +597,6 @@ export default function Customer() {
         defaultValues={defaultValues}
         dialogWidth="1024px"
         dialogClassName="max-w-5xl max-h-[85vh] overflow-y-auto"
-        onSubmit={handleCustomerSubmit}
-
       />
 
       {/* Recipient Dialog - 大弹窗 */}
