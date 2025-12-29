@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useState, useRef } from 'react'
 import { z } from 'zod'
 import type { ColumnDef } from '@tanstack/react-table'
 import { MoreHorizontal } from 'lucide-react'
@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import type { UseFormReturn } from 'react-hook-form'
 import CountryDialog, { type CountryItem } from '@/components/CountryDialog'
+import type { SearchField } from '@/components/crud-table-v2/types'
 
 // Data type
 interface CityData {
@@ -34,8 +35,14 @@ const citySchema = z.object({
 })
 
 export default function City() {
+  // Form dialog country selection
   const [countryDialogOpen, setCountryDialogOpen] = useState(false)
   const formRef = React.useRef<UseFormReturn<CityData> | null>(null)
+
+  // Search country selection
+  const [searchCountryDialogOpen, setSearchCountryDialogOpen] = useState(false)
+  const searchCountryDisplayRef = useRef('')
+  const searchOnSelectRef = useRef<((immediateParams?: Record<string, string>) => void) | null>(null)
 
   // TanStack Table columns
   const columns: ColumnDef<CityData>[] = [
@@ -47,13 +54,55 @@ export default function City() {
     { accessorKey: 'remark', header: '备注' },
   ]
 
-  // Handle country selection
+  // Handle country selection for form
   const handleCountrySelect = useCallback((country: CountryItem) => {
     if (formRef.current) {
       formRef.current.setValue('countryId', country.id)
       formRef.current.setValue('countryCode2', country.code2)
     }
   }, [])
+
+  // Handle country selection for search - trigger search immediately
+  const handleSearchCountrySelect = useCallback((country: CountryItem) => {
+    searchCountryDisplayRef.current = country.code2
+    // 选择后立即调用搜索，传入新的参数
+    if (searchOnSelectRef.current) {
+      searchOnSelectRef.current({ countryId: String(country.id) })
+    }
+  }, [])
+
+  // Search fields configuration
+  const searchFields: SearchField[] = [
+    { name: 'code', label: '编码', placeholder: '请输入编码' },
+    { name: 'cnName', label: '中文名', placeholder: '请输入中文名' },
+    {
+      name: 'countryId',
+      label: '国家',
+      type: 'custom',
+      render: (_value, _onChange, onSearch) => {
+        // 存储搜索回调
+        searchOnSelectRef.current = onSearch
+        return (
+          <div className="flex gap-1">
+            <Input
+              placeholder="请选择国家"
+              value={searchCountryDisplayRef.current}
+              readOnly
+              className="flex-1"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setSearchCountryDialogOpen(true)}
+            >
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </div>
+        )
+      },
+    },
+  ]
 
   // Form fields renderer
   const renderFormFields = useCallback((form: UseFormReturn<CityData>) => {
@@ -176,11 +225,19 @@ export default function City() {
         formSchema={citySchema}
         renderFormFields={renderFormFields}
         defaultValues={defaultValues}
+        searchFields={searchFields}
       />
+      {/* Form country dialog */}
       <CountryDialog 
         open={countryDialogOpen} 
         onOpenChange={setCountryDialogOpen} 
         onSelect={handleCountrySelect} 
+      />
+      {/* Search country dialog */}
+      <CountryDialog 
+        open={searchCountryDialogOpen} 
+        onOpenChange={setSearchCountryDialogOpen} 
+        onSelect={handleSearchCountrySelect} 
       />
     </>
   )
