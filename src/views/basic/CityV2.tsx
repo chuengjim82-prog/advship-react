@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import React, { useCallback, useState } from 'react'
 import { z } from 'zod'
 import type { ColumnDef } from '@tanstack/react-table'
 import { MoreHorizontal } from 'lucide-react'
@@ -35,7 +35,7 @@ const citySchema = z.object({
 
 export default function City() {
   const [countryDialogOpen, setCountryDialogOpen] = useState(false)
-  const [currentForm, setCurrentForm] = useState<UseFormReturn<CityData> | null>(null)
+  const formRef = React.useRef<UseFormReturn<CityData> | null>(null)
 
   // TanStack Table columns
   const columns: ColumnDef<CityData>[] = [
@@ -49,16 +49,16 @@ export default function City() {
 
   // Handle country selection
   const handleCountrySelect = useCallback((country: CountryItem) => {
-    if (currentForm) {
-      currentForm.setValue('countryId', country.id)
-      currentForm.setValue('countryCode2', country.code2)
+    if (formRef.current) {
+      formRef.current.setValue('countryId', country.id)
+      formRef.current.setValue('countryCode2', country.code2)
     }
-  }, [currentForm])
+  }, [])
 
   // Form fields renderer
   const renderFormFields = useCallback((form: UseFormReturn<CityData>) => {
     // Store form reference for dialog callback
-    setCurrentForm(form)
+    formRef.current = form
 
     return (
       <>
