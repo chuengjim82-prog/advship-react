@@ -1,4 +1,4 @@
-import React, { forwardRef, useImperativeHandle, useState, useEffect, useCallback, useMemo } from 'react'
+import React, { forwardRef, useImperativeHandle, useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useForm, type FieldValues } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
@@ -41,11 +41,54 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import { Form } from '@/components/ui/form'
 import { cn } from '@/lib/utils'
 import request from '@/utils/request'
 import type { PageResult } from '@/utils/request'
 import type { CrudTableV2Props, CrudTableV2Ref, SearchField } from './types'
+
+// Cell content with overflow tooltip
+const CellWithTooltip = ({ children }: { children: React.ReactNode }) => {
+  const contentRef = useRef<HTMLDivElement>(null)
+  const [isOverflowing, setIsOverflowing] = useState(false)
+
+  useEffect(() => {
+    const el = contentRef.current
+    if (el) {
+      setIsOverflowing(el.scrollWidth > el.clientWidth)
+    }
+  }, [children])
+
+  const content = (
+    <div
+      ref={contentRef}
+      className="truncate max-w-full"
+    >
+      {children}
+    </div>
+  )
+
+  if (!isOverflowing) {
+    return content
+  }
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        {content}
+      </TooltipTrigger>
+      <TooltipContent>
+        <p>{children}</p>
+      </TooltipContent>
+    </Tooltip>
+  )
+}
 
 export type { SearchField }
 
@@ -425,62 +468,77 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
         </CardHeader>
         <CardContent>
           {/* Table */}
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                {table.getHeaderGroups().map((headerGroup) => (
-                  <TableRow key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => (
-                      <TableHead
-                        key={header.id}
-                        style={{ width: header.column.getSize() }}
-                      >
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
-                            )}
-                      </TableHead>
-                    ))}
-                  </TableRow>
-                ))}
-              </TableHeader>
-              <TableBody>
-                {loading ? (
-                  <TableRow>
-                    <TableCell
-                      colSpan={tableColumns.length}
-                      className="h-24 text-center"
-                    >
-                      加载中...
-                    </TableCell>
-                  </TableRow>
-                ) : table.getRowModel().rows?.length ? (
-                  table.getRowModel().rows.map((row) => (
-                    <TableRow key={row.id}>
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
-                        </TableCell>
+          <div className="rounded-md border overflow-x-auto">
+            <TooltipProvider>
+              <Table>
+                <TableHeader>
+                  {table.getHeaderGroups().map((headerGroup) => (
+                    <TableRow key={headerGroup.id}>
+                      {headerGroup.headers.map((header) => (
+                        <TableHead
+                          key={header.id}
+                          style={{ width: header.column.getSize() }}
+                        >
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(
+                                header.column.columnDef.header,
+                                header.getContext()
+                              )}
+                        </TableHead>
                       ))}
                     </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell
-                      colSpan={tableColumns.length}
-                      className="h-24 text-center"
-                    >
-                      暂无数据
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
+                  ))}
+                </TableHeader>
+                <TableBody>
+                  {loading ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={tableColumns.length}
+                        className="h-24 text-center"
+                      >
+                        加载中...
+                      </TableCell>
+                    </TableRow>
+                  ) : table.getRowModel().rows?.length ? (
+                    table.getRowModel().rows.map((row) => (
+                      <TableRow key={row.id}>
+                        {row.getVisibleCells().map((cell) => {
+                          // Check if this is the action column
+                          const isActionColumn = cell.column.id === 'actions'
+                          return (
+                            <TableCell key={cell.id}>
+                              {isActionColumn ? (
+                                flexRender(
+                                  cell.column.columnDef.cell,
+                                  cell.getContext()
+                                )
+                              ) : (
+                                <CellWithTooltip>
+                                  {flexRender(
+                                    cell.column.columnDef.cell,
+                                    cell.getContext()
+                                  )}
+                                </CellWithTooltip>
+                              )}
+                            </TableCell>
+                          )
+                        })}
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell
+                        colSpan={tableColumns.length}
+                        className="h-24 text-center"
+                      >
+                        暂无数据
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </TooltipProvider>
           </div>
 
           {/* Pagination */}
