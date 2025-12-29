@@ -35,7 +35,7 @@ import type { UseFormReturn } from 'react-hook-form'
 import { toast } from 'sonner'
 import { Plus, Pencil, Trash2, MoreHorizontal } from 'lucide-react'
 import SelectDialogV2 from '@/components/select-dialog-v2'
-import request from '@/utils/request'
+
 
 interface CustomerRecipient {
   name: string
@@ -274,54 +274,6 @@ export default function Customer() {
     mainFormRef.current.setValue('addresses', addresses)
   }, [])
 
-  // 自定义客户主表单提交处理
-  const handleCustomerSubmit = useCallback(async (data: CustomerData, isEdit: boolean) => {
-    //console.log(isEdit);
-    // try {
-    //   await request.post(`/base/api/Customer/CreateCustomer`, data)
-    //   toast.success('预约提柜成功')
-    //   // setShowPickupDialog(false)
-    //   // fetchClearanceList()
-    // } catch (error) {
-    //   console.error('预约提柜失败:', error)
-    //   toast.error('预约提柜失败')
-    // }
-
-    // setIsSubmitting(true)
-    // //await request.post(`/base/api/Customer/CreateCustomer?`, data)
-
-    try {
-      const apiConfig = {
-        create: '/base/api/Customer/CreateCustomer',
-        update: '/base/api/Customer/CreateCustomer'
-      }
-
-      let result
-      if (isEdit && data.id) {
-        // 编辑客户
-        result = await request.post(
-          apiConfig.update,
-          data,
-        )
-      } else {
-        // 新增客户
-        result = await request.post(
-          apiConfig.update,
-          data,
-
-        )
-      }
-
-      if (result) {
-        toast.success(isEdit ? '客户信息更新成功' : '客户创建成功')
-        return result.data
-      }
-
-      return null
-    } finally {
-      //setIsSubmitting(false)
-    }
-  }, [])
 
   const columns: ColumnDef<CustomerData>[] = [
     { accessorKey: 'id', header: '主键', size: 80 },

@@ -94,7 +94,6 @@ export default function OrderDetail() {
   const [searchParams] = useSearchParams()
 
   const orderId = useMemo(() => Number(searchParams.get('id')), [searchParams])
-  const displayBillNo = useMemo(() => searchParams.get('billNo') || '-', [searchParams])
 
   const [orderBaseInfo, setOrderBaseInfo] = useState<OrderBaseInfoDto | null>(null)
   const [waybillInfo, setWaybillInfo] = useState<WaybillDto | null>(null)

@@ -7,14 +7,14 @@ import { useState } from 'react'
 import { toast } from 'sonner'
 
 interface DeliveryItem {
-  id: number
-  number: string
-  sizeType: string
-  orderNo: string
-  transPikName: string
+  id?: number
+  number?: string
+  sizeType?: string | number
+  orderNo?: string
+  transPikName?: string
   goodsInfo?: string
-  orderId: number
-  deliveryType: number
+  orderId?: number
+  deliveryType?: number
 }
 
 interface TimeConfirmDialogProps {
