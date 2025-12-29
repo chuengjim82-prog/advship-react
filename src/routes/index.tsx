@@ -26,6 +26,7 @@ const CsConsignee = lazy(() => import('@/views/partner/CsConsignee'))
 const Supplier = lazy(() => import('@/views/partner/Supplier'))
 const Shipping = lazy(() => import('@/views/partner/Shipping'))
 const CustAgent = lazy(() => import('@/views/partner/CustAgent'))
+const TransAgent = lazy(() => import('@/views/partner/TransAgent'))
 
 // Port & Customs Module
 const Customs = lazy(() => import('@/views/port/Customs'))
@@ -144,6 +145,11 @@ const router = createBrowserRouter([
         path: 'partner/cust-agent',
         element: <CustAgent />,
         handle: { title: '客户代理管理' },
+      },
+      {
+        path: 'partner/trans-agent',
+        element: <TransAgent />,
+        handle: { title: '中转代理管理' },
       },
       // Port & Customs Routes
       {
