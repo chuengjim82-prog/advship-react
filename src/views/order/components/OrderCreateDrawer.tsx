@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { useSmartEffect } from '@/hooks/useSmartEffect'
 import {
   Sheet,
@@ -19,6 +19,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog'
 import {
   Table,
   TableBody,
@@ -70,6 +78,52 @@ interface Attatchment {
     neExtract?: boolean | null
     orderId?: number | null
     remark?: string | null
+    progress?: number | null
+    status?: string | null
+    logs?: string[] | null
+}
+
+type ExtractNode = {
+  id: string
+  label: string
+  done: boolean
+}
+
+const EXTRACTION_STEPS: { id: string; label: string }[] = [
+  { id: 'start', label: '开始' },
+  { id: 'downloading', label: '下载文件' },
+  { id: 'parsing', label: '处理文件' },
+  { id: 'ocr', label: '提取信息' },
+  { id: 'saving', label: '保存信息' },
+  { id: 'success', label: '处理完成' }
+]
+
+const EXTRACTION_STEP_KEYWORDS: Record<string, string[]> = {
+  start: ['start', '开始'],
+  downloading: ['downloading', 'download', '下载文件', '下载'],
+  parsing: ['parsing', 'parse', '处理文件', '解析'],
+  ocr: ['ocr', '提取信息', '识别'],
+  saving: ['saving', '保存信息', '保存'],
+  success: ['success', '完成', '处理完成']
+}
+
+const createDefaultExtractionNodes = (): ExtractNode[] =>
+  EXTRACTION_STEPS.map((step) => ({ ...step, done: false }))
+
+const matchExtractionStepFromText = (text?: string | null): string | null => {
+  if (text == null) return null
+  const raw = String(text).trim()
+  if (!raw) return null
+  const normalized = raw.toLowerCase()
+  for (const step of EXTRACTION_STEPS) {
+    const keywords = EXTRACTION_STEP_KEYWORDS[step.id] || []
+    for (const keyword of keywords) {
+      if (keyword && normalized.includes(keyword.toLowerCase())) {
+        return step.id
+      }
+    }
+  }
+  return null
 }
 
 interface BaseInfoForm {
@@ -450,6 +504,69 @@ export default function OrderCreateDrawer({
   const [feeItemOptions, setFeeItemOptions] = useState<FeeItem[]>([])
   const [attachments, setAttachments] = useState<any[]>([])
   const [uploading, setUploading] = useState(false)
+  const eventSourcesRef = useRef<Record<number, EventSource | null>>({})
+  const [extractModalOpen, setExtractModalOpen] = useState(false)
+  const [extractingAttachmentId, setExtractingAttachmentId] = useState<number | null>(null)
+  const [extractNodesMap, setExtractNodesMap] = useState<Record<number, ExtractNode[]>>({})
+
+  const updateNodesForAttachment = (attachmentId: number, updater: (nodes: ExtractNode[]) => ExtractNode[]) => {
+    setExtractNodesMap((prev) => {
+      const base = prev[attachmentId]
+      const nodes = base ? base.map((node) => ({ ...node })) : createDefaultExtractionNodes()
+      const updatedNodes = updater(nodes)
+      return { ...prev, [attachmentId]: updatedNodes }
+    })
+  }
+
+  const mergeNodesFromPayload = (attachmentId: number, payloadNodes: any[]) => {
+    if (!Array.isArray(payloadNodes) || payloadNodes.length === 0) return
+    updateNodesForAttachment(attachmentId, (currentNodes) => {
+      const updatedNodes = [...currentNodes]
+      payloadNodes.forEach((nodePayload, idx) => {
+        if (!nodePayload) return
+        const labelText = nodePayload.label ?? nodePayload.name ?? nodePayload.status ?? ''
+        const matchedStepId = matchExtractionStepFromText(labelText)
+        if (matchedStepId) {
+          const stepIdx = updatedNodes.findIndex((node) => node.id === matchedStepId)
+          if (stepIdx >= 0) {
+            const explicitDone = typeof nodePayload.done === 'boolean' ? nodePayload.done : undefined
+            updatedNodes[stepIdx] = {
+              ...updatedNodes[stepIdx],
+              label: EXTRACTION_STEPS.find((step) => step.id === matchedStepId)?.label ?? updatedNodes[stepIdx].label,
+              done: explicitDone ?? updatedNodes[stepIdx].done
+            }
+          }
+          return
+        }
+        const fallbackId = String(nodePayload.id ?? nodePayload.name ?? idx)
+        const fallbackLabel = labelText || fallbackId
+        const existingIdx = updatedNodes.findIndex((node) => node.id === fallbackId || node.label === fallbackLabel)
+        if (existingIdx >= 0) {
+          const explicitDone = typeof nodePayload.done === 'boolean' ? nodePayload.done : undefined
+          updatedNodes[existingIdx] = {
+            ...updatedNodes[existingIdx],
+            label: fallbackLabel,
+            done: explicitDone ?? updatedNodes[existingIdx].done
+          }
+        } else {
+          updatedNodes.push({
+            id: fallbackId,
+            label: fallbackLabel,
+            done: Boolean(nodePayload.done)
+          })
+        }
+      })
+      return updatedNodes
+    })
+  }
+
+  const markStepByText = (attachmentId: number, text?: string | null) => {
+    const stepId = matchExtractionStepFromText(text)
+    if (!stepId) return
+    updateNodesForAttachment(attachmentId, (nodes) =>
+      nodes.map((node) => (node.id === stepId ? { ...node, done: true } : node))
+    )
+  }
 
   const isEditMode = useMemo(() => orderId != null, [orderId])
   const goodsTotalAmount = useMemo(
@@ -466,6 +583,7 @@ export default function OrderCreateDrawer({
     setGoodsInfos([createGoodsInfoForm()])
     setSelectedQuoteId('')
     setAttachments([])
+    setExtractNodesMap({})
   }
 
   const loadBaseOptions = async () => {
@@ -575,6 +693,7 @@ export default function OrderCreateDrawer({
         : [createGoodsInfoForm()]
     )
 
+    setExtractNodesMap({})
     setAttachments(detail.attachments && detail.attachments.length > 0 ? detail.attachments : [])
   }
 
@@ -912,7 +1031,7 @@ useSmartEffect({
       formData.append('ownerKey', 'order')
       formData.append('ownerId', String(orderId))
       
-      const res = await request.post('http://localhost:5005/api/OSS/UploadFile', formData, {
+      const res = await request.post('/oss/api/OSS/UploadFile', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       })
       
@@ -966,7 +1085,93 @@ useSmartEffect({
     try {
       setUploading(true)
       await request.post(`/bzss/api/Attachment/${attachmentId}/Extract`)
-      toast.success('文件信息提取成功')
+      toast.success('已开始提取，实时进度正在显示')
+
+      // open SSE (EventSource) to subscribe to progress
+      const orderId = baseInfoForm.id
+      if (!orderId) return
+
+      // avoid duplicate connections
+      if (eventSourcesRef.current[attachmentId]) {
+        return
+      }
+
+      const rawBase = import.meta.env.VITE_API_BASE_URL || ''
+      const base = String(rawBase).replace(/\/$/, '')
+      const esUrl = base
+        ? `${base}/bzss/api/Attachment/${orderId}/Extract/Subscribe?attachmentId=${attachmentId}`
+        : `/bzss/api/Attachment/${orderId}/Extract/Subscribe?attachmentId=${attachmentId}`
+      const es = new EventSource(esUrl)
+      eventSourcesRef.current[attachmentId] = es
+      // open modal to show progress
+      setExtractingAttachmentId(attachmentId)
+      setExtractModalOpen(true)
+      setExtractNodesMap((prev) => {
+        if (prev[attachmentId]) return prev
+        return { ...prev, [attachmentId]: createDefaultExtractionNodes() }
+      })
+
+      es.onmessage = (e) => {
+        try {
+          const payload = JSON.parse(e.data)
+
+          // update generic attachment fields (status/progress/logs) as before
+          setAttachments((prev) => prev.map((f: any) => {
+            if (f.id === attachmentId) {
+              const logs = [...(f.logs || [])]
+              const incomingText = payload.message ?? payload.status ?? ''
+              if (incomingText) {
+                const lastLog = logs[logs.length - 1]
+                if (lastLog !== incomingText) {
+                  logs.push(incomingText)
+                }
+              }
+              return {
+                ...f,
+                progress: payload.progress ?? f.progress,
+                status: payload.status ?? payload.message ?? f.status,
+                logs,
+              }
+            }
+            return f
+          }))
+
+          if (payload.nodes && Array.isArray(payload.nodes)) {
+            mergeNodesFromPayload(attachmentId, payload.nodes)
+          }
+
+          if (payload.node) {
+            mergeNodesFromPayload(attachmentId, [payload.node])
+          }
+
+          markStepByText(attachmentId, payload.status)
+          markStepByText(attachmentId, payload.message)
+
+          if (payload.done === true) {
+            // mark all nodes done
+            updateNodesForAttachment(attachmentId, (nodes) => nodes.map((n) => ({ ...n, done: true })))
+
+            // close EventSource for this attachment
+            try { es.close() } catch {}
+            delete eventSourcesRef.current[attachmentId]
+            toast.success('文件信息提取完成')
+            if (extractingAttachmentId === attachmentId) {
+              setExtractModalOpen(false)
+              setExtractingAttachmentId(null)
+            }
+          }
+        } catch (err) {
+          console.error('Failed to parse SSE message', err)
+        }
+      }
+
+      es.onerror = () => {
+        try { es.close() } catch {}
+        delete eventSourcesRef.current[attachmentId]
+        toast.error('实时进度连接已断开')
+      }
+
+      toast.success('已开始提取，请稍后查看结果')
     } catch (error) {
       console.error('Extract failed', error)
       toast.error('文件信息提取失败')
@@ -980,6 +1185,24 @@ useSmartEffect({
     resetForms()
   }
 
+  // Cleanup EventSources on unmount
+  useEffect(() => {
+    return () => {
+      Object.values(eventSourcesRef.current).forEach((es) => {
+        try { es?.close() } catch {}
+      })
+      eventSourcesRef.current = {}
+    }
+  }, [])
+
+  const currentAttachment = attachments.find((a) => a.id === extractingAttachmentId)
+  const currentAttachmentNodes = useMemo(() => {
+    if (!currentAttachment || typeof currentAttachment.id !== 'number') {
+      return createDefaultExtractionNodes()
+    }
+    return extractNodesMap[currentAttachment.id] ?? createDefaultExtractionNodes()
+  }, [currentAttachment, extractNodesMap])
+
   return (
     <Sheet open={visible} onOpenChange={(open: boolean) => !open && handleClose()}>
       <SheetContent className="w-[80vw] sm:max-w-[80vw] overflow-y-auto">
@@ -989,7 +1212,6 @@ useSmartEffect({
 
         <Loading loading={detailLoading}>
           <div className="py-4 space-y-4">
-            {/* Order Info */}
             <Card>
               <CardHeader>
                 <CardTitle>订单信息</CardTitle>
@@ -1142,10 +1364,21 @@ useSmartEffect({
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {attachments.map((file: any, index: number) => (
+                        {attachments.map((file: any, index: number) => {
+                          const numericAttachmentId =
+                            typeof file.id === 'number'
+                              ? file.id
+                              : typeof file.id === 'string' && file.id.trim() !== ''
+                                ? Number(file.id)
+                                : null
+                          const nodeList =
+                            typeof numericAttachmentId === 'number' && !Number.isNaN(numericAttachmentId)
+                              ? extractNodesMap[numericAttachmentId]
+                              : undefined
+                          return (
                           <TableRow key={file.id}>
                             <TableCell>
-                              <Input 
+                              <Input
                                 type="text"
                                 placeholder="请输入文件类型"
                                 value={String(file.fileName || '')}
@@ -1190,7 +1423,28 @@ useSmartEffect({
                                 placeholder="-"
                               />
                             </TableCell>
-                            <TableCell className="text-sm">{file.isAudit === 1 ? '已审核' : file.isAudit === 1 ? '已审核' : file.isUpload === 1 ? '已上传':'待上传'}</TableCell>
+                            <TableCell className="text-sm">
+                              {file.isAudit === 1 ? '已审核' : file.isUpload === 1 ? '已上传':'待上传'}
+                              <div className="mt-2 space-y-2">
+                                <div className="text-xs text-muted-foreground">
+                                  {file.status ? `最新状态：${file.status}` : '暂无最新状态'}
+                                </div>
+                                {nodeList && nodeList.length > 0 ? (
+                                  <div className="max-h-32 space-y-1 overflow-y-auto rounded border bg-muted/40 p-2">
+                                    {nodeList.map((node) => (
+                                      <label key={`${numericAttachmentId ?? index}-${node.id}`} className="flex items-center space-x-2 text-xs">
+                                        <input type="checkbox" checked={node.done} readOnly className="h-3 w-3" />
+                                        <span className={node.done ? 'text-muted-foreground line-through' : ''}>{node.label}</span>
+                                      </label>
+                                    ))}
+                                  </div>
+                                ) : file.logs && file.logs.length > 0 ? (
+                                  <div className="text-xs text-muted-foreground">最新消息：{file.logs[file.logs.length - 1]}</div>
+                                ) : (
+                                  <div className="text-xs text-muted-foreground">暂无节点信息</div>
+                                )}
+                              </div>
+                            </TableCell>
                             <TableCell>
                               <Input
                                 value={file.remark || ''}
@@ -1217,14 +1471,28 @@ useSmartEffect({
                                     // Reset attachment fields
                                     const updatedAttachments = [...attachments]
                                     updatedAttachments[index] = {
-                                      ...updatedAttachments[index],                                    
+                                      ...updatedAttachments[index],
                                       fileNameN: '',
                                       fileNameO: '',
                                       fileType: '',
                                       isUpload: 0
                                     }
                                     setAttachments(updatedAttachments)
-                                    
+                                    const clearedAttachmentId =
+                                      typeof file.id === 'number'
+                                        ? file.id
+                                        : typeof file.id === 'string' && file.id.trim() !== ''
+                                          ? Number(file.id)
+                                          : NaN
+                                    if (!Number.isNaN(clearedAttachmentId)) {
+                                      setExtractNodesMap((prev) => {
+                                        if (!prev[clearedAttachmentId]) return prev
+                                        const next = { ...prev }
+                                        delete next[clearedAttachmentId]
+                                        return next
+                                      })
+                                    }
+
                                     // Update to backend
                                     try {
                                       if (file.id) {
@@ -1255,7 +1523,8 @@ useSmartEffect({
                               )}
                             </TableCell>
                           </TableRow>
-                        ))}
+                        )
+                        })}
                       </TableBody>
                     </Table>
                   </div>
@@ -1751,6 +2020,38 @@ useSmartEffect({
             </Card>
           </div>
         </Loading>
+
+        {/* Extraction progress modal */}
+        <Dialog open={extractModalOpen} onOpenChange={(open) => setExtractModalOpen(open)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{currentAttachment?.fileName ?? '文件提取进度'}</DialogTitle>
+              <DialogDescription>{currentAttachment?.status ?? '正在提取中'}</DialogDescription>
+            </DialogHeader>
+            <div className="mt-4 space-y-4">
+              <div className="space-y-2 overflow-y-auto max-h-64">
+                {currentAttachmentNodes.map((n) => (
+                  <label key={n.id} className="flex items-center space-x-2">
+                    <input type="checkbox" checked={n.done} readOnly className="w-4 h-4" />
+                    <span className={`text-sm ${n.done ? 'text-muted-foreground line-through' : ''}`}>{n.label}</span>
+                  </label>
+                ))}
+              </div>
+              {(currentAttachment?.logs?.length ?? 0) > 0 && (
+                <div className="p-2 overflow-y-auto text-sm rounded max-h-48 bg-muted">
+                  {(currentAttachment?.logs || []).map((l: any, i: number) => (
+                    <div key={i} className="text-xs">{l}</div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => { setExtractModalOpen(false); setExtractingAttachmentId(null); }} disabled={Boolean(extractingAttachmentId && eventSourcesRef.current[extractingAttachmentId])}>
+                关闭
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         <SheetFooter>
           <Button variant="outline" onClick={handleClose}>取消</Button>
