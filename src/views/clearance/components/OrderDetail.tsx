@@ -102,7 +102,7 @@ export default function OrderDetail() {
   const [containerGoods, setContainerGoods] = useState<ContainerGoodsItem[]>([])
   const [attachments, setAttachments] = useState<AttachmentDetail[]>([])
   const [loading, setLoading] = useState(false)
-  const [selectedAttachments, setSelectedAttachments] = useState<Set<number>>(new Set())
+  
 
   const formatCurrency = useCallback((value?: number | null) => {
     if (value == null) return '-'
@@ -118,56 +118,6 @@ export default function OrderDetail() {
     }
   }, [])
 
-  const copyText = useCallback(async (text: string) => {
-    if (navigator.clipboard) {
-      return navigator.clipboard.writeText(text)
-    }
-    const textarea = document.createElement('textarea')
-    textarea.value = text
-    textarea.style.position = 'fixed'
-    textarea.style.opacity = '0'
-    document.body.appendChild(textarea)
-    textarea.focus()
-    textarea.select()
-    document.execCommand('copy')
-    document.body.removeChild(textarea)
-  }, [])
-
-  const handleCopyBillNo = useCallback(async () => {
-    try {
-      await copyText(displayBillNo)
-      toast.success('提单号已复制')
-    } catch {
-      toast.error('复制失败')
-    }
-  }, [copyText, displayBillNo])
-
-  const downloadBlob = useCallback((name: string, content: string) => {
-    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
-    const link = document.createElement('a')
-    link.href = URL.createObjectURL(blob)
-    link.download = name
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-  }, [])
-
-  const handleDownload = useCallback(() => {
-    const selected = attachments.filter((a) => selectedAttachments.has(a.id))
-    selected.forEach((file) => {
-      if (file.url || file.filePath) {
-        const link = document.createElement('a')
-        link.href = file.url || file.filePath || ''
-        link.download = file.fileName || 'attachment'
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
-      } else {
-        downloadBlob(file.fileName || 'attachment.txt', `模拟下载文件：${file.fileName}`)
-      }
-    })
-    toast.success(`已开始下载 ${selected.length} 个文件`)
-  }, [attachments, selectedAttachments, downloadBlob])
 
   const handleBack = useCallback(() => {
     navigate(-1)
@@ -254,25 +204,6 @@ export default function OrderDetail() {
     loadAttachments()
   }, [loadOrderBaseInfo, loadInvoiceGoods, loadAttachments])
 
-  const toggleAttachment = (id: number) => {
-    setSelectedAttachments((prev) => {
-      const next = new Set(prev)
-      if (next.has(id)) {
-        next.delete(id)
-      } else {
-        next.add(id)
-      }
-      return next
-    })
-  }
-
-  const toggleAllAttachments = () => {
-    if (selectedAttachments.size === attachments.length) {
-      setSelectedAttachments(new Set())
-    } else {
-      setSelectedAttachments(new Set(attachments.map((a) => a.id)))
-    }
-  }
 
   return (
     <Loading loading={loading}>

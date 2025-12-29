@@ -94,8 +94,7 @@ export default function ContainerDeliveryConfirm({
         setTransportAgents(Array.isArray(agentRes?.data) ? agentRes.data : [])
         // }
         const res = await request.get(`/bzss/api/ContainerDetails/${deliveryItem.id}GetByContainerId`)
-        const item = res?.data?.items?.[0] || res?.data || {}
-        const hasYardInfo = formData.yardContact || formData.yardPhone || formData.yardAddress
+        const item = (res as any)?.data?.items?.[0] || (res as any)?.data || {}
         let appointmentTime: Date | null = null
         const timeStr = item.pickUpTimeE || item.deliveryDateE || item.giveBackTimeE
         if (timeStr) {
@@ -212,9 +211,6 @@ export default function ContainerDeliveryConfirm({
         return 5 // fallback，防止意外
     }
   }
-  const hasReturnInfo = formData.returnContact || formData.returnPhone || formData.returnAddress
-  const hasYardInfo = formData.yardContact || formData.yardPhone || formData.yardAddress
-  const hasDestinationInfo = formData.destinationContact || formData.destinationPhone || formData.destinationAddress
 
   return (
     <div className="bg-white min-h-screen flex flex-col">
@@ -347,7 +343,7 @@ export default function ContainerDeliveryConfirm({
           </>
         )}
         {/* 堆场信息 - 有数据才显示整个块 */}
-        {confirmType != 'return' && !hasYardInfo && formData.yardContact != '' && (
+        {confirmType != 'return' && !(formData.yardContact || formData.yardPhone || formData.yardAddress) && formData.yardContact != '' && (
           <section className="space-y-4">
             <h3 className="text-base font-semibold">堆场信息</h3>
             <div className="space-y-6">
@@ -397,7 +393,7 @@ export default function ContainerDeliveryConfirm({
           <h3 className="text-base font-semibold">派送信息</h3>
           <div className="max-w-3xl space-y-5">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {renderInfoField('运输公司', transportAgents.find((a) => String(a.value) === formData.transDlvId)?.text || '')}
+              {renderInfoField('运输公司', transportAgents.find((a) => String(a.value) === String(formData.transDlvId))?.text || '')}
               {renderInfoField('车牌号码', formData.transDlvPlateNumber)}
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

@@ -27,20 +27,30 @@ export const Drawer: React.FC<DrawerProps> = ({ open, onOpenChange, position = '
   )
 }
 
-interface DrawerContentProps {
+type DrawerDivProps = React.HTMLAttributes<HTMLDivElement>
+
+interface DrawerContentProps extends DrawerDivProps {
   children: React.ReactNode
 }
 
-export const DrawerContent: React.FC<DrawerContentProps> = ({ children }) => {
-  return <div className="p-4">{children}</div>
+export const DrawerContent: React.FC<DrawerContentProps> = ({ children, className, ...props }) => {
+  return (
+    <div className={cn('p-4', className)} {...props}>
+      {children}
+    </div>
+  )
 }
 
-interface DrawerHeaderProps {
+interface DrawerHeaderProps extends DrawerDivProps {
   children: React.ReactNode
 }
 
-export const DrawerHeader: React.FC<DrawerHeaderProps> = ({ children }) => {
-  return <div className="border-b p-4 font-semibold text-lg">{children}</div>
+export const DrawerHeader: React.FC<DrawerHeaderProps> = ({ children, className, ...props }) => {
+  return (
+    <div className={cn('border-b p-4 font-semibold text-lg', className)} {...props}>
+      {children}
+    </div>
+  )
 }
 
 interface DrawerTitleProps {

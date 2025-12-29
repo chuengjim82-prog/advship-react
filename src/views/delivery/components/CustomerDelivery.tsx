@@ -72,7 +72,7 @@ export default function ContainerPickup({ onClose, onSubmit }: ContainerPickupPr
     const fetchExistingDelivery = async () => {
       try {
         const res = await request.get(`/bzss/api/ContainerDetails/${deliveryItem.id}GetByContainerId`)
-        const item = res?.data
+        const item: any = (res as any)?.data || {}
         if (!item) return
 
         let appointmentDate: Date | null = null

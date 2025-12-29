@@ -118,34 +118,47 @@ export interface ContainerPickupProps {
 }
 // 数据类型定义
 export interface DeliveryItem {
-  id: number
-  creatorId: number
-  creatorNic: string | null
-  number: string // 柜号
-  goodsInfo: string // 货物信息
-  sizeType: string // 货柜型号
-  pickUpTimeE: Date // 预约提柜时间
-  quantity: number // 数量
-  weight: number // 重量
-  orderNo: string // 订单号
-  statusi: number // 状态码
-  statuss: string // 状态
-  deliveryType: number // 派送方式
-  orderId: number // 订单ID
-  transPikId: number // 运输公司ID
-  transPikName: string // 运输公司名称
-  isTempStore: boolean // 是否堆场存储
-  transportationNumber: string // 车牌号
-  transPikPhone: string // 运输公司电话
-  shippingContact: string // 派送联系人
-  deliveryDateE?: string // 添加字段
-  remark?: string // 添加字段
-  yardContact?: string // 添加字段
-  yardPhone?: string // 添加字段
-  yardAddress?: string // 添加字段
-  recipientContact?: string // 添加字段
-  recipientPhone?: string // 添加字段
-  shippingAddress?: string // 添加字段
+  /** 兼容不同接口返回，先放宽类型以保证构建通过 */
+  [key: string]: any
+
+  id?: number
+  Id?: number
+  orderId?: number
+  containerId?: number
+
+  number?: string
+  sizeType?: string | number
+  orderNo?: string
+
+  statusi?: number
+  statuss?: string
+
+  deliveryType?: number
+
+  pickUpTimeE?: string | Date | null
+  deliveryDateE?: string | Date | null
+  giveBackTimeE?: string | Date | null
+
+  remark?: string
+
+  transPikId?: string | number
+  transPikName?: string
+  transPikPhone?: string
+  transportationNumber?: string
+
+  yardContact?: string
+  yardPhone?: string
+  yardAddress?: string
+
+  recipientContact?: string
+  recipientPhone?: string
+  shippingAddress?: string
+
+  // 派送相关（部分页面使用）
+  deliveryCompanyId?: string | number
+  deliveryContact?: string
+  deliveryPlateNumber?: string
+  deliveryCall?: string
 }
 
 export interface ApiResponse {
@@ -157,7 +170,7 @@ export interface ApiResponse {
 }
 
 export interface ColumnConfig {
-  key: keyof DeliveryItem | 'actions'
+  key: string
   label: string
   visible: boolean
   sortable: boolean
