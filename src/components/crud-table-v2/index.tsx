@@ -9,7 +9,7 @@ import {
   type ColumnDef,
   type PaginationState,
 } from '@tanstack/react-table'
-import { Search, Plus, RefreshCw, Edit, Trash2 } from 'lucide-react'
+import { Search, Plus, RefreshCw, Edit, Trash2, X } from 'lucide-react'
 import { toast } from 'sonner'
 import dayjs from 'dayjs'
 
@@ -399,6 +399,7 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
                       搜索
                     </Button>
                     <Button variant="outline" size="sm" onClick={handleClearSearch}>
+                      <X className="mr-1 h-4 w-4" />
                       清空
                     </Button>
                     <Button variant="outline" size="sm" onClick={handleRefresh}>
