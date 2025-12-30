@@ -673,8 +673,6 @@ export default function ContainerDeliveryConfirm({
   }
 
   const hasYardInfo = formData.yardContact || formData.yardPhone || formData.yardAddress
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const _hasDestinationInfo = formData.destinationContact || formData.destinationPhone || formData.destinationAddress
 
   return (
     <div className="bg-white">

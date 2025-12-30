@@ -20,7 +20,6 @@ import request from '@/utils/request'
 import { format } from 'date-fns'
 import { ArrowUpDown, ChevronDown, ChevronUp, GripVertical, Settings2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import PickupDrawer from './components/PickupDrawer'
 
@@ -57,7 +56,6 @@ interface ApiResponse {
 }
 
 export default function ClearanceList() {
-  const navigate = useNavigate()
   const [tab, setTab] = useState('清关中')
   const [showFilters, setShowFilters] = useState(true)
   const [showColumnDialog, setShowColumnDialog] = useState(false)
@@ -84,18 +82,13 @@ export default function ClearanceList() {
     keyword: '',
   })
 
-  const [formData, setFormData] = useState({
+  // formData is kept for potential future use in the complete dialog
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [_formData, _setFormData] = useState({
     appointmentTime: null as Date | null,
     deliveryMethod: 'direct',
   })
   const [completionTime, setCompletionTime] = useState('')
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleChange = (field: keyof typeof formData, value: string | Date | null) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }))
-  }
   // 列配置
   const [columns, setColumns] = useState<ColumnConfig[]>([
     { key: 'waybillNo', label: '提单号', visible: true, sortable: true },
@@ -232,18 +225,7 @@ export default function ClearanceList() {
     }
   }
 
-  // 打开上传对话框
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const openUploadDialog = (row: RowData) => {
-    setSelectedRow(row)
-    setShowUploadDialog(true)
-  }
-
-  // 处理提单号点击，跳转到详情页
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleBillNoClick = (row: RowData) => {
-    navigate(`/clearance/OrderDetail?id=${row.id}&billNo=${row.waybillNo}`)
-  }
+  // 打开清关完成确认对话框
 
   // 打开清关完成确认对话框
   const openCompleteDialog = (row: RowData) => {

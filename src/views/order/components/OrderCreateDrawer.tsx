@@ -1379,17 +1379,6 @@ useSmartEffect({
                       </TableHeader>
                       <TableBody>
                         {attachments.map((file: any, index: number) => {
-                          const numericAttachmentId =
-                            typeof file.id === 'number'
-                              ? file.id
-                              : typeof file.id === 'string' && file.id.trim() !== ''
-                                ? Number(file.id)
-                                : null
-                          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                          const _nodeList =
-                            typeof numericAttachmentId === 'number' && !Number.isNaN(numericAttachmentId)
-                              ? extractNodesMap[numericAttachmentId]
-                              : undefined
                           return (
                           <TableRow key={file.id}>
                             <TableCell>
