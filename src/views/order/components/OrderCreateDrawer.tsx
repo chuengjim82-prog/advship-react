@@ -1085,6 +1085,66 @@ useSmartEffect({
     }
   }
 
+  const handleSaberFileUpload = async (files: FileList | null, goodsIndex: number) => {
+    if (!files || files.length === 0) return
+    if (!orderId) {
+      toast.warning('只有在编辑订单时才能上传文件')
+      return
+    }
+
+    const file = files[0]
+    setUploading(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('bucketName', 'advship-hn1-tc')
+      formData.append('appName', 'advship')
+      formData.append('areaName', 'bzss')
+      formData.append('ownerKey', 'order')
+      formData.append('ownerId', String(orderId))
+      
+      const res = await request.post('/oss/api/OSS/UploadFile', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      })
+      
+      // Update goodsInfo saber field with file name
+      const fileName = (res.data as any)?.fileNameO || file.name
+      updateGoodsInfo(goodsIndex, 'saber', fileName)
+      
+      // Create attachment record for SABER file
+      const newAttachment: Attatchment = {
+        orderId: orderId,
+        fileName: 'SABER文件',
+        fileNameN: (res.data as any)?.fileNameN || file.name,
+        fileNameO: (res.data as any)?.fileNameO || file.name,
+        fileType: 'SABER文件',
+        neAudit: true,      // 需要审批
+        neExtract: false,   // 不需要提取
+        isAudit: false,
+        isExtract: false,
+        isUpload: true,
+        remark: `产品[${goodsInfos[goodsIndex]?.goodsName || goodsIndex + 1}]的SABER文件`
+      }
+      
+      // Save attachment to backend
+      const attachmentRes = await request.post('/bzss/api/Attachment', newAttachment)
+      const savedAttachment = {
+        ...newAttachment,
+        id: (attachmentRes.data as any)?.id || (attachmentRes as any)?.id
+      }
+      
+      // Add to attachments list
+      setAttachments(prev => [...prev, savedAttachment])
+      
+      toast.success('SABER文件上传成功')
+    } catch (error) {
+      console.error('SABER file upload failed', error)
+      toast.error('SABER文件上传失败')
+    } finally {
+      setUploading(false)
+    }
+  }
+
   const handleExtractAttachment = async (attachmentId: number) => {
     try {
       setUploading(true)
@@ -1980,11 +2040,39 @@ useSmartEffect({
                             />
                           </TableCell>
                           <TableCell>
-                            <Input
-                              value={item.saber}
-                              onChange={(e) => updateGoodsInfo(index, 'saber', e.target.value)}
-                              placeholder="SABER文件"
-                            />
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="file"
+                                id={`saber-file-input-${index}`}
+                                className="hidden"
+                                onChange={(e) => handleSaberFileUpload(e.target.files, index)}
+                              />
+                              {item.saber ? (
+                                <div className="flex items-center gap-1">
+                                  <span className="text-xs text-muted-foreground truncate max-w-[100px]" title={item.saber}>
+                                    {item.saber}
+                                  </span>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-6 w-6"
+                                    onClick={() => updateGoodsInfo(index, 'saber', '')}
+                                  >
+                                    <Trash2 className="w-3 h-3 text-destructive" />
+                                  </Button>
+                                </div>
+                              ) : (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => document.getElementById(`saber-file-input-${index}`)?.click()}
+                                  disabled={uploading || !isEditMode}
+                                >
+                                  <Upload className="w-3 h-3 mr-1" />
+                                  上传
+                                </Button>
+                              )}
+                            </div>
                           </TableCell>
                           <TableCell>
                             <Button
