@@ -172,13 +172,19 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
     }
   }, [apiUrl, pagination.pageIndex, pagination.pageSize, searchKeyword, searchParams, searchFields, onLoaded])
 
+  // 用于追踪是否已初始化（第一次搜索）
+  const isInitializedRef = useRef(false)
   // 用于追踪是否由 handleSearch 触发的分页变化
   const isSearchTriggeredRef = useRef(false)
   // 用于存储待搜索的参数（解决自定义字段异步更新问题）
   const pendingSearchRef = useRef<Record<string, string> | null>(null)
 
-  // Load data on mount and when pagination/search changes
+  // Load data on pagination changes (only after first search)
   useEffect(() => {
+    // 初次加载不自动调用接口，等待用户点击搜索
+    if (!isInitializedRef.current) {
+      return
+    }
     // 如果是 handleSearch 触发的且在第一页，跳过（handleSearch 已经手动调用了 loadData）
     if (isSearchTriggeredRef.current && pagination.pageIndex === 0) {
       isSearchTriggeredRef.current = false
@@ -190,6 +196,9 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
   // Handle search
   const handleSearch = useCallback(
     (immediateParams?: Record<string, string>) => {
+      // 标记已初始化
+      isInitializedRef.current = true
+      
       // 如果传入了立即参数，先更新 searchParams
       if (immediateParams) {
         setSearchParams((prev) => ({ ...prev, ...immediateParams }))
