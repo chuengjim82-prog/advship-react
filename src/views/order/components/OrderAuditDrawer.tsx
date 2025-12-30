@@ -58,13 +58,30 @@ export default function OrderAuditDrawer({ visible, orderId, onClose, onSuccess 
   const getCurrentUser = () => {
     try {
       const userInfoStr = localStorage.getItem('userInfo');
+      console.log('[OrderAuditDrawer] userInfo from localStorage:', userInfoStr);
       if (userInfoStr) {
-        return JSON.parse(userInfoStr);
+        const parsed = JSON.parse(userInfoStr);
+        console.log('[OrderAuditDrawer] parsed userInfo:', parsed);
+        return parsed;
       }
     } catch (e) {
       console.error('Failed to parse userInfo', e);
     }
     return null;
+  };
+
+  // 获取用户ID (支持 number 和 string 类型)
+  const getUserId = (user: any): number => {
+    if (!user) return 0;
+    // 尝试多种可能的字段名
+    const id = user.userId ?? user.id ?? user.user_id ?? 0;
+    return typeof id === 'string' ? parseInt(id, 10) || 0 : id;
+  };
+
+  // 获取用户昵称
+  const getUserName = (user: any): string => {
+    if (!user) return "未知用户";
+    return user.nickName || user.userName || user.username || user.name || "未知用户";
   };
 
   // 完成审核并提交
@@ -78,8 +95,8 @@ export default function OrderAuditDrawer({ visible, orderId, onClose, onSuccess 
         statusi: 2,
         statuss: "资料已审核",
         updateTime: new Date().toISOString(),
-        updaterId: currentUser?.userId ?? 0,
-        updaterNic: currentUser?.nickName || currentUser?.userName || currentUser?.username || "未知用户",
+        updaterId: getUserId(currentUser),
+        updaterNic: getUserName(currentUser),
       });
       toast.success("审核提交成功");
       onSuccess?.(orderId);
@@ -101,8 +118,8 @@ export default function OrderAuditDrawer({ visible, orderId, onClose, onSuccess 
       await request.post("/bzss/api/Attachment/Audit", {
         id: auditingFile.id,
         auditTime: new Date().toISOString(),
-        auditerId: currentUser?.userId ?? 0,
-        auditerName: currentUser?.nickName || currentUser?.userName || currentUser?.username || "未知用户",
+        auditerId: getUserId(currentUser),
+        auditerName: getUserName(currentUser),
         auditMemo: auditMemo,
         auditResult: parseInt(auditResult),
       });
