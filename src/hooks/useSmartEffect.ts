@@ -41,7 +41,7 @@ export function useSmartEffect<T extends Key = Key>({
     if (once) {
       if (onceRef.current) return;
       onceRef.current = true;
-      effect(key);
+      effect((key ?? undefined) as T | undefined);
       return;
     }
 
@@ -60,6 +60,6 @@ export function useSmartEffect<T extends Key = Key>({
     }
 
     // 普通 enabled 模式
-    effect(key);
+    effect((key ?? undefined) as T | undefined);
   }, [enabled, once, key, effect, onReset]);
 }

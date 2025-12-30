@@ -10,6 +10,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Download, Check, X, AlertCircle, ClipboardCheck } from "lucide-react";
 import request from "@/utils/request";
+import { ssoApi } from "@/api/sso";
 import { toast } from "sonner";
 import dayjs from "dayjs";
 import {
@@ -54,20 +55,32 @@ export default function OrderAuditDrawer({ visible, orderId, onClose, onSuccess 
   const [auditLoading, setAuditLoading] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
 
-  // 获取当前用户信息
+  // 获取当前用户信息（本地缓存）
   const getCurrentUser = () => {
     try {
       const userInfoStr = localStorage.getItem('userInfo');
-      console.log('[OrderAuditDrawer] userInfo from localStorage:', userInfoStr);
       if (userInfoStr) {
-        const parsed = JSON.parse(userInfoStr);
-        console.log('[OrderAuditDrawer] parsed userInfo:', parsed);
-        return parsed;
+        return JSON.parse(userInfoStr);
       }
     } catch (e) {
-      console.error('Failed to parse userInfo', e);
+      console.error('[OrderAuditDrawer] Failed to parse userInfo', e);
     }
     return null;
+  };
+
+  // 确保拿到当前用户（本地没有则用 token 去拉取一次）
+  const ensureCurrentUser = async () => {
+    const cached = getCurrentUser();
+    if (cached) return cached;
+
+    try {
+      const res = await ssoApi.getUserInfo();
+      localStorage.setItem('userInfo', JSON.stringify(res.data));
+      return res.data;
+    } catch (e) {
+      console.error('[OrderAuditDrawer] Failed to fetch userInfo', e);
+      return null;
+    }
   };
 
   // 获取用户ID (支持 number 和 string 类型)
@@ -87,7 +100,7 @@ export default function OrderAuditDrawer({ visible, orderId, onClose, onSuccess 
   // 完成审核并提交
   const handleSubmitAudit = async () => {
     if (!orderId) return;
-    const currentUser = getCurrentUser();
+    const currentUser = await ensureCurrentUser();
     setSubmitLoading(true);
     try {
       await request.post("/bzss/api/BaseInfo/ChangeStatus", {
@@ -112,7 +125,7 @@ export default function OrderAuditDrawer({ visible, orderId, onClose, onSuccess 
   // 审核文件
   const handleAuditFile = async () => {
     if (!auditingFile) return;
-    const currentUser = getCurrentUser();
+    const currentUser = await ensureCurrentUser();
     setAuditLoading(true);
     try {
       await request.post("/bzss/api/Attachment/Audit", {
