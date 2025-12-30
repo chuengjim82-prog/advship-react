@@ -35,9 +35,6 @@ export interface CrudTableV2Props<T extends FieldValues = FieldValues> {
   searchFields?: SearchField[]
   searchVisibleRows?: number
 
-  // Action buttons layout
-  actionButtonsOnNewLine?: boolean
-
   // Callbacks
   onLoaded?: (data: T[]) => void
   onBeforeSubmit?: (values: T) => T | Promise<T>

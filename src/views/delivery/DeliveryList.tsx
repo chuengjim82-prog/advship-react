@@ -64,17 +64,17 @@ export default function DeliveryList() {
   })
 
   const [columns, setColumns] = useState<ColumnConfig[]>([
-    { key: 'number', label: '柜号', visible: true, sortable: true },
-    { key: 'orderNo', label: '订单号', visible: true, sortable: true },
-    { key: 'actions', label: '操作', visible: true, sortable: false },
-    { key: 'sizeType', label: '货柜型号', visible: true, sortable: true },
-    { key: 'statuss', label: '状态', visible: true, sortable: true },
-    { key: 'deliveryType', label: '派送方式', visible: true, sortable: true },
-    { key: 'goodsInfo', label: '货物信息', visible: true, sortable: false },
-    { key: 'quantity', label: '数量', visible: true, sortable: true },
-    { key: 'weight', label: '重量(kg)', visible: true, sortable: true },
-    { key: 'transPikName', label: '运输公司', visible: true, sortable: true },
-    { key: 'pickUpTimeE', label: '预约提柜时间', visible: true, sortable: true },
+    { key: 'number' as keyof DeliveryItem, label: '柜号', visible: true, sortable: true },
+    { key: 'orderNo' as keyof DeliveryItem, label: '订单号', visible: true, sortable: true },
+    { key: 'actions' as 'actions', label: '操作', visible: true, sortable: false },
+    { key: 'sizeType' as keyof DeliveryItem, label: '货柜型号', visible: true, sortable: true },
+    { key: 'statuss' as keyof DeliveryItem, label: '状态', visible: true, sortable: true },
+    { key: 'deliveryType' as keyof DeliveryItem, label: '派送方式', visible: true, sortable: true },
+    { key: 'goodsInfo' as keyof DeliveryItem, label: '货物信息', visible: true, sortable: false },
+    { key: 'quantity' as keyof DeliveryItem, label: '数量', visible: true, sortable: true },
+    { key: 'weight' as keyof DeliveryItem, label: '重量(kg)', visible: true, sortable: true },
+    { key: 'transPikName' as keyof DeliveryItem, label: '运输公司', visible: true, sortable: true },
+    { key: 'pickUpTimeE' as keyof DeliveryItem, label: '预约提柜时间', visible: true, sortable: true },
   ])
 
   // 获取列表数据

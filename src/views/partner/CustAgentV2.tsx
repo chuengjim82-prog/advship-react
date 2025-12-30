@@ -141,7 +141,7 @@ export default function CustAgent() {
 
   return (
     <CrudTableV2<CustAgentData>
-      title="客户代理管理"
+      title="清关代理管理"
       apiUrl="/base/api/CustAgent"
       columns={columns}
       formSchema={custAgentSchema}

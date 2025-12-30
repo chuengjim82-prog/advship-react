@@ -38,7 +38,8 @@ const feeItemSchema = z.object({
   feeTypeId: z.number().nullable().optional(),
   feeTypeName: z.string().default(''),
   cnName: z.string().min(1, '请输入项目名称'),
-  enName: z.string().min(1, '请输入英文名称'),
+  // enName: z.string().min(1, '请输入英文名称'),
+  enName: z.string().default(''),
   itemType: z.number().default(0),
   itemUnit: z.string().default(''),
   isSale: z.boolean().default(true),
@@ -64,9 +65,9 @@ export default function FeeItem() {
 
   const columns: ColumnDef<FeeItemData>[] = [
     { accessorKey: 'id', header: '主键', size: 80 },
-    { accessorKey: 'feeTypeName', header: '费用类别', size: 200 },
-    { accessorKey: 'cnName', header: '项目名称', size: 150 },
-    { accessorKey: 'enName', header: '英文名称', size: 200 },
+    { accessorKey: 'feeTypeName', header: '费用类别', size: 150 },
+    { accessorKey: 'cnName', header: '项目名称', size: 300 },
+    { accessorKey: 'enName', header: '英文名称', size: 250 },
     {
       accessorKey: 'itemType',
       header: '费用方式',
@@ -78,7 +79,7 @@ export default function FeeItem() {
         return <Badge variant="warning">-</Badge>
       },
     },
-    { accessorKey: 'itemUnit', header: '费用单位', size: 100 },
+    { accessorKey: 'itemUnit', header: '费用单位', size: 120 },
     {
       accessorKey: 'isSale',
       header: '销售',
@@ -91,7 +92,7 @@ export default function FeeItem() {
       size: 80,
       cell: ({ getValue }) => getValue() ? <Badge variant="blue">是</Badge> : <Badge variant="outline">否</Badge>,
     },
-    { accessorKey: 'remark', header: '备注' },
+    { accessorKey: 'remark', header: '备注', size: 250 },
   ]
 
   const renderFormFields = useCallback((form: UseFormReturn<FeeItemData>) => {

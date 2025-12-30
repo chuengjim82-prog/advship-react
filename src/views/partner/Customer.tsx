@@ -85,14 +85,14 @@ export default function Customer() {
     { accessorKey: 'cityName', header: '城市', size: 80 },
     { accessorKey: 'contact', header: '联系人', size: 100 },
     { accessorKey: 'phone', header: '联系电话', size: 150 },
-    { accessorKey: 'address', header: '地址', size: 200 },
+    { accessorKey: 'address', header: '地址', size: 250 },
     {
       accessorKey: 'statusi',
       header: '状态',
       size: 80,
       cell: ({ getValue }) => getValue() === 1 ? <Badge variant="success">启用</Badge> : <Badge variant="destructive">停用</Badge>,
     },
-    { accessorKey: 'remark', header: '备注' },
+    { accessorKey: 'remark', header: '备注', size: 250 },
   ]
 
   const renderFormFields = useCallback((form: UseFormReturn<CustomerData>) => {

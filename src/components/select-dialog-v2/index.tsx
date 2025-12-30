@@ -153,7 +153,7 @@ function SelectDialogV2Inner<T extends object>(
           </Button>
         </div>
 
-        <div className="flex-1 overflow-auto rounded-md border h-[350px]">
+        <div className="flex-1 overflow-auto rounded-md border">
           <Table>
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (

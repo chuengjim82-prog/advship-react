@@ -11,13 +11,17 @@
 - ✅ **城市管理** - `/basic/city` - CRUD + 国家选择器
 - ✅ **币种管理** - `/basic/currency` - CRUD 完整功能
 - ✅ **服务项目** - `/basic/service` - CRUD 完整功能
+- ✅ **产品服务附件** - `/basic/serviceAttn` - CRUD 完整功能
 
 ### 费用管理模块 (2/2)
 - ✅ **费用类别** - `/basic/feeType` - CRUD + 服务选择器
 - ✅ **费用项目** - `/basic/feeItem` - CRUD + 费用类别选择器
 
 ### 合作方模块 (4/4)
-- ✅ **客户管理** - `/partner/customer` - CRUD + 嵌套表格（收件人/发件人/地址）
+- ✅ **客户管理** - `/partner/customer` - CRUD
+- ✅ **客户收件人** - `/partner/csReceiver` - CRUD
+- ✅ **客户发件人** - `/partner/csShipper` - CRUD
+- ✅ **客户收货地址** - `/partner/csConsignee` - CRUD
 - ✅ **供应商管理** - `/partner/supplier` - CRUD 完整功能
 - ✅ **船公司管理** - `/partner/shipping` - CRUD 完整功能
 - ✅ **客户代理** - `/partner/cust-agent` - CRUD 完整功能

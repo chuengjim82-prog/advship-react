@@ -41,7 +41,7 @@ export default function Service() {
     {
       accessorKey: 'isSale',
       header: '销售',
-      size: 100,
+      size: 80,
       cell: ({ getValue }) => (
         getValue() ? <Badge variant="blue">是</Badge> : <Badge variant="outline">否</Badge>
       ),
@@ -57,12 +57,12 @@ export default function Service() {
     {
       accessorKey: 'statusi',
       header: '状态',
-      size: 80,
+      size: 100,
       cell: ({ getValue }) => (
         getValue() === 1 ? <Badge variant="success">启用</Badge> : <Badge variant="destructive">停用</Badge>
       ),
     },
-    { accessorKey: 'remark', header: '备注' },
+    { accessorKey: 'remark', header: '备注', size: 300 },
   ]
 
   // Form fields renderer

@@ -1,0 +1,13 @@
+.select-dialog-content {
+  padding: 16px 0;
+}
+
+.dialog-toolbar {
+  margin-bottom: 16px;
+}
+
+.pagination-area {
+  margin-top: 16px;
+  display: flex;
+  justify-content: flex-end;
+}

@@ -92,13 +92,13 @@ export default function Customs() {
     { accessorKey: 'id', header: '主键', size: 80 },
     { accessorKey: 'code', header: '编码', size: 100 },
     { accessorKey: 'cnName', header: '中文名称', size: 150 },
-    { accessorKey: 'enName', header: '英文名称' },
+    { accessorKey: 'enName', header: '英文名称', size: 300 },
     { accessorKey: 'countryCode2', header: '国家', size: 100 },
     { accessorKey: 'cityName', header: '城市', size: 100 },
     { accessorKey: 'contact', header: '联系人', size: 100 },
     { accessorKey: 'phone', header: '联系电话', size: 150 },
-    { accessorKey: 'address', header: '地址' },
-    { accessorKey: 'remark', header: '备注' },
+    { accessorKey: 'address', header: '地址', size: 300 },
+    { accessorKey: 'remark', header: '备注', size: 300 },
   ]
 
   const renderFormFields = useCallback((form: UseFormReturn<CustomsData>) => {

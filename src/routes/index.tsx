@@ -1,10 +1,12 @@
 import { Loading } from '@/components/ui/spinner'
 import MainLayout from '@/layouts/MainLayout'
+import AuthGuard from '@/components/AuthGuard'
 import { lazy, Suspense } from 'react'
 import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom'
 
 // 懒加载视图组件
 const Login = lazy(() => import('@/views/Login'))
+const SsoCallback = lazy(() => import('@/views/SsoCallback'))
 const Home = lazy(() => import('@/views/Home'))
 
 // Basic Data Module
@@ -55,8 +57,16 @@ const router = createBrowserRouter([
     element: <Login />,
   },
   {
+    path: '/sso-callback',
+    element: <SsoCallback />,
+  },
+  {
     path: '/',
-    element: <MainLayout />,
+    element: (
+      <AuthGuard>
+        <MainLayout />
+      </AuthGuard>
+    ),
     children: [
       {
         index: true,
@@ -144,12 +154,12 @@ const router = createBrowserRouter([
       {
         path: 'partner/cust-agent',
         element: <CustAgent />,
-        handle: { title: '客户代理管理' },
+        handle: { title: '清关代理管理' },
       },
       {
         path: 'partner/trans-agent',
         element: <TransAgent />,
-        handle: { title: '中转代理管理' },
+        handle: { title: '运输公司' },
       },
       // Port & Customs Routes
       {

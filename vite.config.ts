@@ -1,33 +1,21 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import path from 'path'
-import { componentTagger } from 'lovable-tagger'
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import path from "path";
+import { componentTagger } from "lovable-tagger";
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => ({
-  plugins: [
-    react(),
-    mode === 'development' && componentTagger(),
-  ].filter(Boolean),
+  plugins: [react(), mode === "development" && componentTagger()].filter(
+    Boolean
+  ),
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, 'src')
-    }
+      "@": path.resolve(__dirname, "src"),
+    },
   },
   server: {
-    host: '::',
+    host: "::",
     port: 8080,
-    proxy: {
-      '/base': {
-        target: 'http://8.134.159.144:8001',
-        changeOrigin: true,
-        rewrite: (path) => path
-      },
-      '/bzss': {
-        target: 'http://8.134.159.144:8002',
-        changeOrigin: true,
-        rewrite: (path) => path
-      }
-    }
-  }
-}))
+    proxy: {},
+  },
+}));

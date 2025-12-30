@@ -37,6 +37,7 @@ export default {
     supplier: 'Supplier',
     shipping: 'Shipping',
     custAgent: 'Agent',
+    transAgent: 'TransAgent',
     portCustoms: 'Port & Customs',
     custPort: 'Port',
     customs: 'Customs',

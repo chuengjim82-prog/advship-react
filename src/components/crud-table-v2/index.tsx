@@ -149,7 +149,7 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
         pageIndex: pagination.pageIndex + 1, // API uses 1-based index
         pageSize: pagination.pageSize,
       }
-      
+
       // Use multi-field search if searchFields is configured
       if (searchFields && searchFields.length > 0) {
         Object.entries(searchParams).forEach(([key, value]) => {
@@ -158,7 +158,7 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
       } else {
         params.keyword = searchKeyword
       }
-      
+
       const res = await request.get<PageResult<T>>(apiUrl, { params })
       const items = res.data?.items || []
       setTableData(items)
@@ -355,8 +355,8 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
   // Calculate visible fields based on searchVisibleRows
   const fieldsPerRow = 4 // fields per row
   const maxVisibleFields = searchVisibleRows * fieldsPerRow
-  const visibleSearchFields = searchFields && !searchExpanded 
-    ? searchFields.slice(0, maxVisibleFields) 
+  const visibleSearchFields = searchFields && !searchExpanded
+    ? searchFields.slice(0, maxVisibleFields)
     : searchFields
   const hasMoreFields = searchFields && searchFields.length > maxVisibleFields
 
@@ -368,7 +368,7 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
             <div className="flex items-center justify-between">
               <CardTitle>{title}</CardTitle>
             </div>
-            
+
             {/* Search Area */}
             {searchFields && searchFields.length > 0 ? (
               <div className="flex flex-col gap-3">
@@ -412,9 +412,9 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
                     </Button>
                   </div>
                   {hasMoreFields && (
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
+                    <Button
+                      variant="ghost"
+                      size="sm"
                       onClick={() => setSearchExpanded(!searchExpanded)}
                     >
                       {searchExpanded ? '收起' : '展开'}
@@ -484,9 +484,9 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
                           {header.isPlaceholder
                             ? null
                             : flexRender(
-                                header.column.columnDef.header,
-                                header.getContext()
-                              )}
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
                         </TableHead>
                       ))}
                     </TableRow>

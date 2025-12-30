@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useRef, useCallback, useState } from 'react'
 import { z } from 'zod'
 import type { ColumnDef } from '@tanstack/react-table'
 import { MoreHorizontal } from 'lucide-react'
@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import type { UseFormReturn } from 'react-hook-form'
 import FeeTypeDialog, { type FeeTypeItem } from '@/components/FeeTypeDialog'
+import type { SelectDialogRef } from '@/components/SelectDialog'
 
 // Data type
 interface FeeItemData {
@@ -42,7 +43,7 @@ const feeItemSchema = z.object({
 })
 
 export default function FeeItem() {
-  const [feeTypeDialogOpen, setFeeTypeDialogOpen] = useState(false)
+  const feeTypeDialogRef = useRef<SelectDialogRef>(null)
   const [currentForm, setCurrentForm] = useState<UseFormReturn<FeeItemData> | null>(null)
 
   // TanStack Table columns
@@ -119,7 +120,7 @@ export default function FeeItem() {
                   />
                   <Button
                     type="button"
-                    onClick={() => setFeeTypeDialogOpen(true)}
+                    onClick={() => feeTypeDialogRef.current?.open()}
                   >
                     <MoreHorizontal className="mr-1 h-4 w-4" />
                     选择
@@ -249,7 +250,7 @@ export default function FeeItem() {
         />
       </>
     )
-  }, [])
+  }, [currentForm])
 
   // Default form values
   const defaultValues: FeeItemData = {
@@ -274,11 +275,7 @@ export default function FeeItem() {
         renderFormFields={renderFormFields}
         defaultValues={defaultValues}
       />
-      <FeeTypeDialog 
-        open={feeTypeDialogOpen} 
-        onOpenChange={setFeeTypeDialogOpen} 
-        onSelect={handleFeeTypeSelect} 
-      />
+      <FeeTypeDialog ref={feeTypeDialogRef} onSelect={handleFeeTypeSelect} />
     </>
   )
 }

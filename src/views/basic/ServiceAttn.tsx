@@ -62,8 +62,8 @@ export default function Service() {
   // TanStack Table columns
   const columns: ColumnDef<ServiceAttnData>[] = [
     { accessorKey: 'id', header: '主键', size: 80 },
-    { accessorKey: 'serviceName', header: '产品', size: 120 },
-    { accessorKey: 'fileName', header: '文件名称', size: 180 },
+    { accessorKey: 'serviceName', header: '产品', size: 150 },
+    { accessorKey: 'fileName', header: '文件名称', size: 250 },
     {
       accessorKey: 'dirtType',
       header: '收集/存入',
@@ -88,7 +88,7 @@ export default function Service() {
         getValue() === false ? <Badge variant="outline">否</Badge> : <Badge variant="blue">是</Badge>
       ),
     },
-    { accessorKey: 'remark', header: '备注' },
+    { accessorKey: 'remark', header: '备注', size: 300 },
   ]
 
   const renderFormFields = useCallback((form: UseFormReturn<ServiceAttnData>) => {

@@ -67,8 +67,8 @@ export default function CustAgent() {
     { accessorKey: 'countryCode2', header: '国家', size: 100 },
     { accessorKey: 'contact', header: '联系人', size: 120 },
     { accessorKey: 'phone', header: '联系电话', size: 150 },
-    { accessorKey: 'address', header: '地址' },
-    { accessorKey: 'remark', header: '备注' },
+    { accessorKey: 'address', header: '地址', size: 200 },
+    { accessorKey: 'remark', header: '备注', size: 200 },
   ]
 
   const renderFormFields = useCallback((form: UseFormReturn<CustAgentData>) => {
@@ -147,7 +147,7 @@ export default function CustAgent() {
   return (
     <>
       <CrudTableV2<CustAgentData>
-        title="客户代理管理"
+        title="清关代理管理"
         apiUrl="/base/api/CustAgent"
         columns={columns}
         formSchema={custAgentSchema}

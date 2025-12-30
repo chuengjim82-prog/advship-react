@@ -65,7 +65,7 @@ export default function City() {
     { accessorKey: 'code2', header: '二字码', size: 100 },
     { accessorKey: 'code3', header: '三字码', size: 100 },
     { accessorKey: 'cnName', header: '中文名称', size: 150 },
-    { accessorKey: 'enName', header: '英文名称' },
+    { accessorKey: 'enName', header: '英文名称', size: 150 },
   ]
 
   const handleCountrySelect = useCallback((country: CountryItem) => {
@@ -94,16 +94,16 @@ export default function City() {
     { accessorKey: 'customerName', header: '客户', size: 100 },
     { accessorKey: 'countryCode2', header: '国家', size: 80 },
     { accessorKey: 'cityName', header: '城市', size: 80 },
-    { accessorKey: 'contact', header: '联系人', size: 100 },
-    { accessorKey: 'phone', header: '联系电话', size: 100 },
-    { accessorKey: 'address', header: '联系地址', size: 120 },
+    { accessorKey: 'contact', header: '联系人', size: 120 },
+    { accessorKey: 'phone', header: '联系电话', size: 150 },
+    { accessorKey: 'address', header: '联系地址', size: 200 },
     {
       accessorKey: 'statusi',
       header: '状态',
       size: 80,
       cell: ({ getValue }) => getValue() === 1 ? <Badge variant="success">启用</Badge> : <Badge variant="destructive">停用</Badge>,
     },
-    { accessorKey: 'remark', header: '备注' },
+    { accessorKey: 'remark', header: '备注', size: 250 },
   ]
 
   const renderFormFields = useCallback((form: UseFormReturn<CsReceiverData>) => {

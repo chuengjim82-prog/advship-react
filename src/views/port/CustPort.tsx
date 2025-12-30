@@ -20,12 +20,22 @@ interface CustPortData {
   cityId?: number | null
   cityCode?: string
   cityName?: string
+  customsId?: number | null
+  customsName?: string
   contact: string
   phone: string
   address: string
   remark: string
 }
 
+interface CustomsItem {
+  id: number
+  code: string
+  cnName: string
+  enName: string
+  countryCode2: string
+  cityName: string
+}
 interface CountryItem {
   id: number
   code2: string
@@ -53,13 +63,24 @@ const custPortSchema = z.object({
   contact: z.string().default(''),
   phone: z.string().default(''),
   address: z.string().default(''),
+  customsId: z.number().nullable().optional(),
+  customsName: z.string().default(''),
   remark: z.string().default(''),
 })
 
 export default function CustPort() {
   const formRef = useRef<UseFormReturn<CustPortData> | null>(null)
+  const [customsDialogOpen, setCustomsDialogOpen] = useState(false)
   const [countryDialogOpen, setCountryDialogOpen] = useState(false)
   const [cityDialogOpen, setCityDialogOpen] = useState(false)
+
+  const customsColumns: ColumnDef<CustomsItem>[] = [
+    { accessorKey: 'code', header: '代码', size: 100 },
+    { accessorKey: 'cnName', header: '中文名称', size: 150 },
+    { accessorKey: 'enName', header: '英文名称' },
+    { accessorKey: 'countryCode2', header: '国家' },
+    { accessorKey: 'cityName', header: '城市' },
+  ]
 
   const countryColumns: ColumnDef<CountryItem>[] = [
     { accessorKey: 'code2', header: '代码', size: 100 },
@@ -72,6 +93,13 @@ export default function CustPort() {
     { accessorKey: 'cnName', header: '中文名称', size: 150 },
     { accessorKey: 'enName', header: '英文名称' },
   ]
+
+  const handleCustomsSelect = useCallback((customs: CustomsItem) => {
+    if (formRef.current) {
+      formRef.current.setValue('customsId', customs.id)
+      formRef.current.setValue('customsName', customs.cnName)
+    }
+  }, [])
 
   const handleCountrySelect = useCallback((country: CountryItem) => {
     if (formRef.current) {
@@ -92,13 +120,14 @@ export default function CustPort() {
     { accessorKey: 'id', header: '主键', size: 80 },
     { accessorKey: 'code', header: '编码', size: 100 },
     { accessorKey: 'cnName', header: '中文名称', size: 150 },
-    { accessorKey: 'enName', header: '英文名称' },
+    { accessorKey: 'enName', header: '英文名称', size: 150 },
+    { accessorKey: 'customsName', header: '海关', size: 120 },
     { accessorKey: 'countryCode2', header: '国家', size: 100 },
     { accessorKey: 'cityName', header: '城市', size: 100 },
     { accessorKey: 'contact', header: '联系人', size: 100 },
     { accessorKey: 'phone', header: '联系电话', size: 150 },
-    { accessorKey: 'address', header: '地址' },
-    { accessorKey: 'remark', header: '备注' },
+    { accessorKey: 'address', header: '地址', size: 200 },
+    { accessorKey: 'remark', header: '备注', size: 200 },
   ]
 
   const renderFormFields = useCallback((form: UseFormReturn<CustPortData>) => {
@@ -123,6 +152,18 @@ export default function CustPort() {
           <FormItem>
             <FormLabel>英文名称</FormLabel>
             <FormControl><Input placeholder="请输入英文名称" {...field} /></FormControl>
+            <FormMessage />
+          </FormItem>
+        )} />
+        <FormField control={form.control} name="customsName" render={({ field }) => (
+          <FormItem>
+            <FormLabel>海关</FormLabel>
+            <div className="flex gap-2">
+              <FormControl><Input placeholder="请选择海关" readOnly {...field} /></FormControl>
+              <Button type="button" variant="outline" size="icon" onClick={() => setCustomsDialogOpen(true)}>
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </div>
             <FormMessage />
           </FormItem>
         )} />
@@ -205,6 +246,14 @@ export default function CustPort() {
         formSchema={custPortSchema}
         renderFormFields={renderFormFields}
         defaultValues={defaultValues}
+      />
+      <SelectDialogV2<CustomsItem>
+        title="选择海关"
+        apiUrl="/base/api/Customs"
+        columns={customsColumns}
+        open={customsDialogOpen}
+        onOpenChange={setCustomsDialogOpen}
+        onSelect={handleCustomsSelect}
       />
       <SelectDialogV2<CountryItem>
         title="选择国家"

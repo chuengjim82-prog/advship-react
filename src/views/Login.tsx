@@ -10,6 +10,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Form } from '@/components/ui/form'
 import request from '@/utils/request'
 import { toast } from 'sonner'
+import { ssoApi } from '@/api/sso'
 
 const loginSchema = z.object({
   username: z.string().min(1, '请输入用户名'),
@@ -21,6 +22,7 @@ type LoginFormData = z.infer<typeof loginSchema>
 export default function Login() {
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
+  const [ssoLoading, setSsoLoading] = useState(false)
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -50,6 +52,27 @@ export default function Login() {
       toast.error(error.message || '登录失败')
     } finally {
       setLoading(false)
+    }
+  }
+
+  // SSO 单点登录
+  const handleSsoLogin = async () => {
+    setSsoLoading(true)
+    try {
+      // 获取 SSO 登录 URL
+      const result = await ssoApi.getLoginUrl(window.location.origin + '/sso-callback')
+
+      if (result.data?.authorizationUrl) {
+        // 保存 state 到 sessionStorage 用于验证
+        sessionStorage.setItem('sso_state', result.data.state)
+        // 跳转到 SSO 服务器登录页
+        window.location.href = result.data.authorizationUrl
+      } else {
+        throw new Error('获取 SSO 登录地址失败')
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'SSO 登录失败')
+      setSsoLoading(false)
     }
   }
 
@@ -84,61 +107,21 @@ export default function Login() {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold">AdvShip 管理系统</CardTitle>
-          <CardDescription>请输入您的账号密码登录</CardDescription>
         </CardHeader>
         <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="username"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>用户名</FormLabel>
-                    <FormControl>
-                      <Input placeholder="请输入用户名" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>密码</FormLabel>
-                    <FormControl>
-                      <Input type="password" placeholder="请输入密码" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? '登录中...' : '登录'}
-              </Button>
-            </form>
-          </Form>
 
-          <div className="relative my-4">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">或</span>
-            </div>
+          <div className="space-y-2">
+            <Button
+              type="button"
+              variant="default"
+              className="w-full bg-blue-600 hover:bg-blue-700"
+              onClick={handleSsoLogin}
+              disabled={loading || ssoLoading}
+            >
+              {ssoLoading ? '跳转中...' : 'SSO 单点登录'}
+            </Button>
+
           </div>
-
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full"
-            onClick={handleDemoLogin}
-            disabled={loading}
-          >
-            {loading ? "登录中..." : "一键演示登录（admin）"}
-          </Button>
         </CardContent>
       </Card>
     </div>

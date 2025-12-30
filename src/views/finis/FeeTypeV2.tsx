@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useRef, useCallback, useState } from 'react'
 import { z } from 'zod'
 import type { ColumnDef } from '@tanstack/react-table'
 import { MoreHorizontal } from 'lucide-react'
@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import type { UseFormReturn } from 'react-hook-form'
 import ServiceDialog, { type ServiceItem } from '@/components/ServiceDialog'
+import type { SelectDialogRef } from '@/components/SelectDialog'
 
 // Data type
 interface FeeTypeData {
@@ -40,7 +41,7 @@ const feeTypeSchema = z.object({
 })
 
 export default function FeeType() {
-  const [serviceDialogOpen, setServiceDialogOpen] = useState(false)
+  const serviceDialogRef = useRef<SelectDialogRef>(null)
   const [currentForm, setCurrentForm] = useState<UseFormReturn<FeeTypeData> | null>(null)
 
   // TanStack Table columns
@@ -139,7 +140,7 @@ export default function FeeType() {
                   />
                   <Button
                     type="button"
-                    onClick={() => setServiceDialogOpen(true)}
+                    onClick={() => serviceDialogRef.current?.open()}
                   >
                     <MoreHorizontal className="mr-1 h-4 w-4" />
                     选择
@@ -221,7 +222,7 @@ export default function FeeType() {
         />
       </>
     )
-  }, [])
+  }, [currentForm])
 
   // Default form values
   const defaultValues: FeeTypeData = {
@@ -252,11 +253,7 @@ export default function FeeType() {
         defaultValues={defaultValues}
         onBeforeSubmit={syncStatusText}
       />
-      <ServiceDialog 
-        open={serviceDialogOpen} 
-        onOpenChange={setServiceDialogOpen} 
-        onSelect={handleServiceSelect} 
-      />
+      <ServiceDialog ref={serviceDialogRef} onSelect={handleServiceSelect} />
     </>
   )
 }

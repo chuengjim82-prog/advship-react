@@ -37,18 +37,18 @@ export default function Shipping() {
   const columns: ColumnDef<ShippingData>[] = [
     { accessorKey: 'id', header: '主键', size: 80 },
     { accessorKey: 'code', header: '编码', size: 120 },
-    { accessorKey: 'sName', header: '简称', size: 150 },
-    { accessorKey: 'fName', header: '全称' },
-    { accessorKey: 'contact', header: '联系人', size: 120 },
+    { accessorKey: 'sName', header: '简称', size: 180 },
+    { accessorKey: 'fName', header: '全称', size: 200 },
+    { accessorKey: 'contact', header: '联系人', size: 150 },
     { accessorKey: 'phone', header: '联系电话', size: 150 },
-    { accessorKey: 'address', header: '地址' },
+    { accessorKey: 'address', header: '地址', size: 200 },
     {
       accessorKey: 'statusi',
       header: '状态',
       size: 80,
       cell: ({ getValue }) => getValue() === 1 ? <Badge variant="success">启用</Badge> : <Badge variant="destructive">停用</Badge>,
     },
-    { accessorKey: 'remark', header: '备注' },
+    { accessorKey: 'remark', header: '备注', size: 200 },
   ]
 
   const renderFormFields = useCallback((form: UseFormReturn<ShippingData>) => (

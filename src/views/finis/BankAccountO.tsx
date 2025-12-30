@@ -92,16 +92,16 @@ export default function BankAccountO() {
   const columns: ColumnDef<BankAccountOData>[] = [
     { accessorKey: 'id', header: '主键', size: 80 },
     { accessorKey: 'shortName', header: '账户简称', size: 150 },
-    { accessorKey: 'accountName', header: '账户名称', size: 150 },
+    { accessorKey: 'accountName', header: '账户名称', size: 180 },
     { accessorKey: 'depositBank', header: '开户银行', size: 200 },
     { accessorKey: 'accountNo', header: '账户号码', size: 200 },
     { accessorKey: 'currency', header: '币种', size: 100 },
-    { accessorKey: 'bankCode', header: '银行号码', size: 200 },
-    { accessorKey: 'branchCode', header: '分行代码', size: 200 },
+    { accessorKey: 'bankCode', header: '银行号码', size: 250 },
+    { accessorKey: 'branchCode', header: '分行代码', size: 250 },
     { accessorKey: 'swiftCode', header: 'Swift代码', size: 100 },
     { accessorKey: 'countryCode2', header: '账户地点', size: 100 },
     { accessorKey: 'cityName', header: '所在城市', size: 100 },
-    { accessorKey: 'cashierId', header: '账户出纳', size: 100 },
+    { accessorKey: 'cashierId', header: '账户出纳', size: 150 },
     { accessorKey: 'accountType', header: '账户类型', size: 100 },
     { accessorKey: 'latestTime', header: '最近交易', size: 100 },
     { accessorKey: 'dataSource', header: '数据来源', size: 100 },
@@ -109,9 +109,9 @@ export default function BankAccountO() {
       accessorKey: 'statusi',
       header: '状态',
       size: 80,
-      cell: ({ getValue }) => getValue() === 1 ? <Badge variant="default">启用</Badge> : <Badge variant="destructive">停用</Badge>,
+      cell: ({ getValue }) => getValue() === 1 ? <Badge variant="success">启用</Badge> : <Badge variant="destructive">停用</Badge>,
     },
-    { accessorKey: 'remark', header: '备注' },
+    { accessorKey: 'remark', header: '备注', size: 200 },
   ]
 
   const renderFormFields = useCallback((form: UseFormReturn<BankAccountOData>) => {
@@ -255,8 +255,12 @@ export default function BankAccountO() {
         formSchema={bankAccountOSchema}
         renderFormFields={renderFormFields}
         defaultValues={defaultValues}
-        actionButtonsOnNewLine={true}
+        // 3. 关键：提交前转换数据（适配CrudTableV2的通用钩子）
         onBeforeSubmit={transformSubmitData}
+      // 如果CrudTableV2不支持onBeforeSubmit，尝试以下备选方案：
+      // requestOptions={{
+      //   transformRequest: (data) => transformSubmitData(data)
+      // }}
       />
       <SelectDialogV2<CountryItem>
         title="选择国家"

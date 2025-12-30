@@ -133,7 +133,7 @@ const router = createBrowserRouter([
       {
         path: 'partner/cust-agent',
         element: <CustAgent />,
-        handle: { title: '客户代理管理' }
+        handle: { title: '清关代理管理' }
       },
       // Port & Customs Routes
       {

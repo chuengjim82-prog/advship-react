@@ -2,6 +2,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Menu, Globe, User } from 'lucide-react'
 import { useAppStore } from '@/store'
+import { toast } from 'sonner'
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -17,7 +18,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { useState, useEffect } from 'react'
 
 interface HeaderProps {
   collapsed: boolean
@@ -29,6 +37,32 @@ export default function Header({ collapsed: _, onToggleCollapse }: HeaderProps) 
   const navigate = useNavigate()
   const { t } = useTranslation()
   const { locale, setLocale } = useAppStore()
+  const [showProfile, setShowProfile] = useState(false)
+  const [userInfo, setUserInfo] = useState<any>(null)
+
+  useEffect(() => {
+    // 从 localStorage 读取用户信息
+    const storedUserInfo = localStorage.getItem('userInfo')
+    if (storedUserInfo) {
+      try {
+        setUserInfo(JSON.parse(storedUserInfo))
+      } catch (e) {
+        console.error('Failed to parse userInfo', e)
+      }
+    }
+  }, [])
+
+  // 获取显示的用户名
+  const displayName = userInfo?.nickName || userInfo?.userName || userInfo?.username || 'admin'
+
+  // 退出登录
+  const handleLogout = () => {
+    localStorage.removeItem('token')
+    localStorage.removeItem('userInfo')
+    sessionStorage.removeItem('sso_state')
+    toast.success('已退出登录')
+    navigate('/login')
+  }
 
   // Get current page title from route
   const getPageTitle = () => {
@@ -51,6 +85,7 @@ export default function Header({ collapsed: _, onToggleCollapse }: HeaderProps) 
       '/partner/supplier': t('menu.supplier'),
       '/partner/shipping': t('menu.shipping'),
       '/partner/cust-agent': t('menu.custAgent'),
+      '/partner/trans-agent': t('menu.transAgent'),
       '/port/customs': t('menu.customs'),
       '/port/cust-port': t('menu.custPort'),
       '/order/base-info': t('menu.orderList'),
@@ -122,18 +157,64 @@ export default function Header({ collapsed: _, onToggleCollapse }: HeaderProps) 
                   <User className="h-4 w-4" />
                 </AvatarFallback>
               </Avatar>
-              <span className="text-sm">{t('user.admin')}</span>
+              <span className="text-sm">{displayName}</span>
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem>{t('user.profile')}</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setShowProfile(true)}>
+              {t('user.profile')}
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-destructive">
+            <DropdownMenuItem className="text-destructive" onClick={handleLogout}>
               {t('user.logout')}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
+      {/* 个人中心对话框 */}
+      <Dialog open={showProfile} onOpenChange={setShowProfile}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t('user.profile')}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="flex items-center gap-4">
+              <Avatar className="h-16 w-16">
+                <AvatarFallback className="bg-primary/10 text-primary text-2xl">
+                  <User className="h-8 w-8" />
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <h3 className="text-lg font-semibold">{displayName}</h3>
+                {userInfo?.email && (
+                  <p className="text-sm text-muted-foreground">{userInfo.email}</p>
+                )}
+              </div>
+            </div>
+            <div className="space-y-2 text-sm">
+              {userInfo?.userId && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">用户ID:</span>
+                  <span>{userInfo.userId}</span>
+                </div>
+              )}
+              {userInfo?.userName && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">用户名:</span>
+                  <span>{userInfo.userName}</span>
+                </div>
+              )}
+              {userInfo?.phone && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">手机号:</span>
+                  <span>{userInfo.phone}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

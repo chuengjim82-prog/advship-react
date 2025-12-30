@@ -195,9 +195,10 @@ export default function Country() {
   }
   // 多字段搜索配置
   const searchFields: SearchField[] = [
-    { name: 'code2', label: '二字码', placeholder: '请输入二字码' },
-    { name: 'code3', label: '三字码', placeholder: '请输入三字码' },
-    { name: 'cnName', label: '国家', placeholder: '请输入国家' },
+    // { name: 'cnName', label: '中文名称', placeholder: '请输入中文名称' },
+    // { name: 'enName', label: '英文名称', placeholder: '请输入英文名称' },
+    // { name: 'code2', label: '二字码', placeholder: '请输入二字码' },
+    // { name: 'code3', label: '三字码', placeholder: '请输入三字码' },
   ]
 
   return (

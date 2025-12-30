@@ -144,7 +144,11 @@ export default function BankAccountT() {
 
   const columns: ColumnDef<BankAccountTData>[] = [
     { accessorKey: 'id', header: '主键', size: 80 },
-    { accessorKey: 'ownerType', header: '账户类型', size: 100 },
+    {
+      accessorKey: 'ownerType',
+      header: '账户类型',
+      size: 100,
+    },
     { accessorKey: 'ownerName', header: '所属对象', size: 100 },
     { accessorKey: 'accountName', header: '账户名称', size: 150 },
     { accessorKey: 'depositBank', header: '开户银行', size: 200 },
@@ -161,9 +165,9 @@ export default function BankAccountT() {
       accessorKey: 'statusi',
       header: '状态',
       size: 80,
-      cell: ({ getValue }) => getValue() === 1 ? <Badge variant="default">启用</Badge> : <Badge variant="destructive">停用</Badge>,
+      cell: ({ getValue }) => getValue() === 1 ? <Badge variant="success">启用</Badge> : <Badge variant="destructive">停用</Badge>,
     },
-    { accessorKey: 'remark', header: '备注' },
+    { accessorKey: 'remark', header: '备注', size: 250 },
   ]
 
   const renderFormFields = useCallback((form: UseFormReturn<BankAccountTData>) => {

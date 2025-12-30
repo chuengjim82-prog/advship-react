@@ -37,7 +37,8 @@ export default {
     csConsignee: '客户收货地址',
     supplier: '供应商管理',
     shipping: '船公司管理',
-    custAgent: '客户代理',
+    custAgent: '清关代理',
+    transAgent: '运输公司',
     portCustoms: '港口海关',
     custPort: '港口管理',
     customs: '海关管理',
@@ -145,7 +146,7 @@ export default {
     sNameRequired: '请输入简称',
   },
   custAgent: {
-    title: '客户代理管理',
+    title: '清关代理管理',
     code: '编码',
     name: '名称',
     contact: '联系人',

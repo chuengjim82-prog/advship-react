@@ -83,7 +83,7 @@ export default function FeeType() {
       size: 80,
       cell: ({ getValue }) => getValue() === 1 ? <Badge variant="success">启用</Badge> : <Badge variant="destructive">停用</Badge>,
     },
-    { accessorKey: 'remark', header: '备注' },
+    { accessorKey: 'remark', header: '备注', size: 300 },
   ]
 
   const renderFormFields = useCallback((form: UseFormReturn<FeeTypeData>) => {

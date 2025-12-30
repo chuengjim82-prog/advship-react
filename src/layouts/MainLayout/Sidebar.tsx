@@ -56,9 +56,10 @@ export default function Sidebar({ collapsed }: SidebarProps) {
         { key: '/partner/csReceiver', icon: 'PackageCheckOutlined', label: t('menu.csReceiver'), path: '/partner/csReceiver' },
         { key: '/partner/csShipper', icon: 'SendOutlined', label: t('menu.csShipper'), path: '/partner/csShipper' },
         { key: '/partner/csConsignee', icon: 'MapPinnedOutlined', label: t('menu.csConsignee'), path: '/partner/csConsignee' },
-        { key: '/partner/supplier', icon: 'ShopOutlined', label: t('menu.supplier'), path: '/partner/supplier' },
+        // { key: '/partner/supplier', icon: 'ShopOutlined', label: t('menu.supplier'), path: '/partner/supplier' },
         { key: '/partner/shipping', icon: 'RocketOutlined', label: t('menu.shipping'), path: '/partner/shipping' },
         { key: '/partner/cust-agent', icon: 'ContactsOutlined', label: t('menu.custAgent'), path: '/partner/cust-agent' },
+        { key: '/partner/trans-agent ', icon: 'ContactsOutlined', label: t('menu.transAgent'), path: '/partner/trans-agent' },
       ],
     },
     {

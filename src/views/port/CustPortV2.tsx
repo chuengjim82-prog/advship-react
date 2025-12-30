@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useRef, useCallback, useState } from 'react'
 import { z } from 'zod'
 import type { ColumnDef } from '@tanstack/react-table'
 import { MoreHorizontal } from 'lucide-react'
@@ -9,6 +9,7 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/comp
 import type { UseFormReturn } from 'react-hook-form'
 import CountryDialog, { type CountryItem } from '@/components/CountryDialog'
 import CityDialog, { type CityItem } from '@/components/CityDialog'
+import type { SelectDialogRef } from '@/components/SelectDialog'
 
 // Data type
 interface CustPortData {
@@ -43,8 +44,8 @@ const custPortSchema = z.object({
 })
 
 export default function CustPort() {
-  const [countryDialogOpen, setCountryDialogOpen] = useState(false)
-  const [cityDialogOpen, setCityDialogOpen] = useState(false)
+  const countryDialogRef = useRef<SelectDialogRef>(null)
+  const cityDialogRef = useRef<SelectDialogRef>(null)
   const [currentForm, setCurrentForm] = useState<UseFormReturn<CustPortData> | null>(null)
 
   // TanStack Table columns
@@ -145,7 +146,7 @@ export default function CustPort() {
                   />
                   <Button
                     type="button"
-                    onClick={() => setCountryDialogOpen(true)}
+                    onClick={() => countryDialogRef.current?.open()}
                   >
                     <MoreHorizontal className="mr-1 h-4 w-4" />
                     选择国家
@@ -178,7 +179,7 @@ export default function CustPort() {
                   />
                   <Button
                     type="button"
-                    onClick={() => setCityDialogOpen(true)}
+                    onClick={() => cityDialogRef.current?.open()}
                   >
                     <MoreHorizontal className="mr-1 h-4 w-4" />
                     选择城市
@@ -248,7 +249,7 @@ export default function CustPort() {
         />
       </>
     )
-  }, [])
+  }, [currentForm])
 
   // Default form values
   const defaultValues: CustPortData = {
@@ -275,16 +276,8 @@ export default function CustPort() {
         renderFormFields={renderFormFields}
         defaultValues={defaultValues}
       />
-      <CountryDialog 
-        open={countryDialogOpen} 
-        onOpenChange={setCountryDialogOpen} 
-        onSelect={handleCountrySelect} 
-      />
-      <CityDialog 
-        open={cityDialogOpen} 
-        onOpenChange={setCityDialogOpen} 
-        onSelect={handleCitySelect} 
-      />
+      <CountryDialog ref={countryDialogRef} onSelect={handleCountrySelect} />
+      <CityDialog ref={cityDialogRef} onSelect={handleCitySelect} />
     </>
   )
 }

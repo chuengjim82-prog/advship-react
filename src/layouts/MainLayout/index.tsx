@@ -10,9 +10,8 @@ export default function MainLayout() {
     <div className="flex h-screen overflow-hidden">
       {/* Sidebar */}
       <aside
-        className={`bg-sidebar shrink-0 overflow-hidden transition-all duration-300 ${
-          sidebarCollapsed ? 'w-16' : 'w-[220px]'
-        }`}
+        className={`bg-sidebar shrink-0 overflow-hidden transition-all duration-300 ${sidebarCollapsed ? 'w-16' : 'w-[220px]'
+          }`}
       >
         <Sidebar collapsed={sidebarCollapsed} />
       </aside>

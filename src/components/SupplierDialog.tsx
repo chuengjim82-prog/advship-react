@@ -1,5 +1,5 @@
-import type { ColumnDef } from '@tanstack/react-table'
-import SelectDialogV2 from '@/components/select-dialog-v2'
+import { forwardRef } from 'react'
+import SelectDialog, { type SelectDialogRef } from '@/components/SelectDialog'
 
 export interface SupplierItem {
   id: number
@@ -10,29 +10,32 @@ export interface SupplierItem {
 }
 
 interface SupplierDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  onSelect: (supplier: SupplierItem) => void
+  onSelect: (country: SupplierItem) => void
 }
 
-const supplierColumns: ColumnDef<SupplierItem>[] = [
-  { accessorKey: 'id', header: '主键', size: 80 },
-  { accessorKey: 'code', header: '编码', size: 140 },
-  { accessorKey: 'sName', header: '简称', size: 140 },
-  { accessorKey: 'fName', header: '全称', size: 120 },
-  { accessorKey: 'remark', header: '备注' }
-]
+const SupplierDialog = forwardRef<SelectDialogRef, SupplierDialogProps>((props, ref) => {
+  const { onSelect } = props
 
-export default function SupplierDialog({ open, onOpenChange, onSelect }: SupplierDialogProps) {
+  const columns = [
+    { title: '主键', dataIndex: 'id', width: 80 },
+    { title: '编码', dataIndex: 'code', width: 140 },
+    { title: '简称', dataIndex: 'sName', width: 140 },
+    { title: '全称', dataIndex: 'fName', width: 120 },
+    { title: '备注', dataIndex: 'remark' }
+  ]
+
   return (
-    <SelectDialogV2<SupplierItem>
+    <SelectDialog<SupplierItem>
+      ref={ref}
       title="选择供应商"
       apiUrl="/base/api/SupplierItem"
-      columns={supplierColumns}
-      open={open}
-      onOpenChange={onOpenChange}
+      columns={columns}
+      placeholder="请输入供应商名称或代码"
       onSelect={onSelect}
-      searchPlaceholder="请输入供应商名称或代码"
     />
   )
-}
+})
+
+SupplierDialog.displayName = 'SupplierDialog'
+
+export default SupplierDialog

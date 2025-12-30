@@ -12,6 +12,9 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 
 export default function ContainerPickup({
+  containerNo: propContainerNo,
+  pickupCode: propPickupCode = 'CSNU6927227',
+  containerType: propContainerType = '40尺',
   mode: propMode = 'create',
   initialData,
   onClose,
@@ -35,13 +38,13 @@ export default function ContainerPickup({
 
   // 表单状态（与后端字段一一对应）
   const [formData, setFormData] = useState({
-    appointmentTime: null as Date | null,
+    pickUpTimeA: null as Date | null,
     deliveryMethod: 'yard' as 'yard' | 'direct',
     remarks: '',
     transPikId: '0',
     vehicleNo: '',
-    transPikName: '',
-    transPikPhone: '',
+    transPikName: '', // 司机姓名
+    transPikPhone: '', // 司机电话（同时用于提货电话）
 
     // 堆场信息
     yardContact: '',
@@ -79,17 +82,14 @@ export default function ContainerPickup({
 
   // 初始化表单数据（edit / detail / create with item）
   useEffect(() => {
-    const data = (initialData || {}) as Partial<DeliveryItem>
+    const data: Partial<DeliveryItem> = initialData || {} // 确保类型安全
     if (!data) return
-
-    const appointmentTime = data.pickUpTimeE ? new Date(String(data.pickUpTimeE)) : null
-
     setFormData({
-      appointmentTime,
+      appointmentTime: data.pickUpTimeE,
       deliveryMethod: data.deliveryType === 2 ? 'direct' : 'yard',
       remarks: data.remark || '',
 
-      transPikId: data.transPikId != null ? String(data.transPikId) : '0',
+      transPikId: Number(data.transPikId) || 0, // 修复类型为 number
       vehicleNo: data.transportationNumber || '',
       transPikName: data.transPikName || '',
       transPikPhone: data.transPikPhone || '',
@@ -114,13 +114,14 @@ export default function ContainerPickup({
         const res = await request.get(`/bzss/api/ContainerDetails/${deliveryItem.id}GetByContainerId`, {
           params: { containerId: deliveryItem.id },
         })
-        const data: any = (res as any).data || {}
+        // const data = res?.data || {}
+        const data = res.data || {}
         setFormData((prev) => ({
           ...prev,
-          appointmentTime: data.pickUpTimeE ? new Date(String(data.pickUpTimeE)) : null,
+          appointmentTime: data.pickUpTimeE ? new Date(data.pickUpTimeE) : null,
           deliveryMethod: (data.deliveryType === 2 ? 'direct' : 'yard') as 'yard' | 'direct',
           remarks: data.remark || '',
-          transPikId: data.transPikId != null ? String(data.transPikId) : '0',
+          transPikId: Number(data.transPikId) || 0, // 修复类型为 number
           vehicleNo: data.transportationNumber || '',
           transPikName: data.transPikName || '',
           transPikPhone: data.transPikPhone || '',
@@ -187,7 +188,7 @@ export default function ContainerPickup({
         deliveryType: formData.deliveryMethod === 'direct' ? 2 : 1,
         statusi: 2,
         newStatusi: 2,
-        operationTime: formData.appointmentTime ? format(formData.appointmentTime, "yyyy-MM-dd'T'HH:mm:ss") : new Date().toISOString(),
+        operationTime: formData.pickUpTimeA ? format(formData.pickUpTimeA, "yyyy-MM-dd'T'HH:mm:ss") : new Date().toISOString(),
 
         orderContainer: {
           remark: formData.remarks,

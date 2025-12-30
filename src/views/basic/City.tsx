@@ -124,42 +124,42 @@ export default function City() {
   }
 
   // 保存搜索区国家选择的回调
-  const searchCountryOnChangeRef = useRef<((value: string) => void) | null>(null)
+  const searchCountryOnSearchRef = useRef<((immediateParams?: Record<string, string>) => void) | null>(null)
 
   // 搜索区显示的国家名称
   const [searchCountryName, setSearchCountryName] = useState('')
 
   // 多字段搜索配置
   const searchFields: SearchField[] = [
-    { name: 'code', label: '编码', placeholder: '请输入编码' },
-    { name: 'cnName', label: '中文名', placeholder: '请输入中文名' },
-    { 
-      name: 'countryId', 
-      label: '国家', 
-      type: 'custom',
-      render: (_value, onChange) => {
-        // 保存回调引用以便在弹窗选择后调用
-        searchCountryOnChangeRef.current = onChange
-        return (
-          <div className="flex gap-1">
-            <Input 
-              placeholder="请选择国家" 
-              readOnly 
-              value={searchCountryName}
-              className="flex-1"
-            />
-            <Button 
-              type="button" 
-              variant="outline" 
-              size="icon" 
-              onClick={() => setSearchCountryDialogOpen(true)}
-            >
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </div>
-        )
-      }
-    },
+    // { name: 'cnName', label: '中文名称', placeholder: '请输入中文名称' },
+    // { name: 'enName', label: '英文名称', placeholder: '请输入英文名称' },
+    // {
+    //   name: 'countryId',
+    //   label: '国家',
+    //   type: 'custom',
+    //   render: (_value, _onChange, onSearch) => {
+    //     // 保存回调引用以便在弹窗选择后调用
+    //     searchCountryOnSearchRef.current = onSearch
+    //     return (
+    //       <div className="flex gap-1">
+    //         <Input
+    //           placeholder="请选择国家"
+    //           readOnly
+    //           value={searchCountryName}
+    //           className="flex-1"
+    //         />
+    //         <Button
+    //           type="button"
+    //           variant="outline"
+    //           size="icon"
+    //           onClick={() => setSearchCountryDialogOpen(true)}
+    //         >
+    //           <MoreHorizontal className="h-4 w-4" />
+    //         </Button>
+    //       </div>
+    //     )
+    //   }
+    // },
   ]
 
   return (
@@ -193,9 +193,9 @@ export default function City() {
         onSelect={(country) => {
           // 更新显示的国家名称
           setSearchCountryName(country.cnName)
-          // 更新搜索参数值（点击搜索按钮时才过滤）
-          if (searchCountryOnChangeRef.current) {
-            searchCountryOnChangeRef.current(String(country.id))
+          // 直接调用搜索，传入国家ID作为立即参数
+          if (searchCountryOnSearchRef.current) {
+            searchCountryOnSearchRef.current({ countryId: String(country.id) })
           }
         }}
       />

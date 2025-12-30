@@ -155,7 +155,7 @@ export const fetchCustoms = async (): Promise<CustomsItem[]> => {
 
 export const fetchTransAgents = async (): Promise<AgentItem[]> => {
   try {
-    const res = await request.get<PageResult<AgentItem>>("/base/api/Shipping", {
+    const res = await request.get<PageResult<AgentItem>>("/base/api/TransAgent", {
       params: { pageIndex: 1, pageSize: 1000 },
     });
     return res.data?.items || [];

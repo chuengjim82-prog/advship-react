@@ -141,6 +141,8 @@ interface BaseInfoForm {
   remark: string
   statuss: string
   waybillNo: string
+  clearPayType: string
+  brokerAuthCode: string
   orgCountryId: number | null
   countryId: number | null
 }
@@ -288,6 +290,8 @@ const createBaseInfoForm = (): BaseInfoForm => ({
   remark: '',
   statuss: '',
   waybillNo: '',
+  clearPayType: '',
+  brokerAuthCode: '',
   orgCountryId: null,
   countryId: null
 })
@@ -1111,7 +1115,7 @@ useSmartEffect({
         return { ...prev, [attachmentId]: createDefaultExtractionNodes() }
       })
 
-      es.onmessage = (e) => {
+      es.onmessage = async (e) => {
         try {
           const payload = JSON.parse(e.data)
 
@@ -1151,14 +1155,14 @@ useSmartEffect({
             // mark all nodes done
             updateNodesForAttachment(attachmentId, (nodes) => nodes.map((n) => ({ ...n, done: true })))
 
-            // close EventSource for this attachment
+            // close EventSource and UI immediately to avoid reopening
             try { es.close() } catch {}
             delete eventSourcesRef.current[attachmentId]
-            toast.success('文件信息提取完成')
             if (extractingAttachmentId === attachmentId) {
               setExtractModalOpen(false)
               setExtractingAttachmentId(null)
             }
+            toast.success('文件信息提取完成')
           }
         } catch (err) {
           console.error('Failed to parse SSE message', err)
@@ -1314,7 +1318,17 @@ useSmartEffect({
                 </div>
                 <div className="space-y-2">
                   <Label>经纪商授权码</Label>
-                  <Input value={baseInfoForm.orderNo} onChange={(e) => setBaseInfoForm({ ...baseInfoForm, orderNo: e.target.value })} placeholder="请输入经纪商授权码" />
+                  <Input value={baseInfoForm.brokerAuthCode} onChange={(e) => setBaseInfoForm({ ...baseInfoForm, brokerAuthCode: e.target.value })} placeholder="请输入经纪商授权码" />
+                </div>
+                <div className="space-y-2">
+                  <Label>支付方式</Label>
+                  <Select value={baseInfoForm.clearPayType || ''} onValueChange={(value) => setBaseInfoForm({ ...baseInfoForm, clearPayType: value })}>
+                    <SelectTrigger><SelectValue placeholder="选择支付方式" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="银行转账">银行转账</SelectItem>
+                      <SelectItem value="政府保险">政府保险</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                  <div className="space-y-2">
                   <Label>申报类型</Label>
@@ -1393,17 +1407,21 @@ useSmartEffect({
                                 onChange={(e) => handleFileUpload(e.target.files, index)}
                                 disabled={uploading || !isEditMode}
                                 className="hidden"
-                              />
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => document.getElementById(`file-input-${index}`)?.click()}
-                                disabled={uploading || !isEditMode}
-                              >
-                                <Upload className="w-3 h-3 mr-1" />
-                                {uploading ? '上传中' : '选择'}
-                              </Button>
-                              {file.isUpload === 1 && file.neExtract === true && (
+                                />
+                                {file.isUpload !== 1 ? (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => document.getElementById(`file-input-${index}`)?.click()}
+                                    disabled={uploading || !isEditMode}
+                                  >
+                                    <Upload className="w-3 h-3 mr-1" />
+                                    {uploading ? '上传中' : '选择'}
+                                  </Button>
+                                ) : (
+                                  <span className="text-xs text-muted-foreground">已上传</span>
+                                )}
+                              {file.isUpload === 1 && file.neExtract === true && file.isExtract !== 1 && (
                                 <Button
                                   variant="outline"
                                   size="sm"
@@ -1424,26 +1442,7 @@ useSmartEffect({
                               />
                             </TableCell>
                             <TableCell className="text-sm">
-                              {file.isAudit === 1 ? '已审核' : file.isUpload === 1 ? '已上传':'待上传'}
-                              <div className="mt-2 space-y-2">
-                                <div className="text-xs text-muted-foreground">
-                                  {file.status ? `最新状态：${file.status}` : '暂无最新状态'}
-                                </div>
-                                {nodeList && nodeList.length > 0 ? (
-                                  <div className="max-h-32 space-y-1 overflow-y-auto rounded border bg-muted/40 p-2">
-                                    {nodeList.map((node) => (
-                                      <label key={`${numericAttachmentId ?? index}-${node.id}`} className="flex items-center space-x-2 text-xs">
-                                        <input type="checkbox" checked={node.done} readOnly className="h-3 w-3" />
-                                        <span className={node.done ? 'text-muted-foreground line-through' : ''}>{node.label}</span>
-                                      </label>
-                                    ))}
-                                  </div>
-                                ) : file.logs && file.logs.length > 0 ? (
-                                  <div className="text-xs text-muted-foreground">最新消息：{file.logs[file.logs.length - 1]}</div>
-                                ) : (
-                                  <div className="text-xs text-muted-foreground">暂无节点信息</div>
-                                )}
-                              </div>
+                              {file.isAudit === 1 ? '已审核' : file.isExtract === 1 ? '已提取' : file.isUpload === 1 ? '已上传':'待上传'}
                             </TableCell>
                             <TableCell>
                               <Input
@@ -1475,7 +1474,8 @@ useSmartEffect({
                                       fileNameN: '',
                                       fileNameO: '',
                                       fileType: '',
-                                      isUpload: 0
+                                      isUpload: 0,
+                                      isExtract: 0
                                     }
                                     setAttachments(updatedAttachments)
                                     const clearedAttachmentId =
@@ -1505,9 +1505,10 @@ useSmartEffect({
                                           isAudit: updatedAttachments[index].isAudit,
                                           fileType: updatedAttachments[index].fileType,
                                           neAudit: updatedAttachments[index].neAudit,
-                                          neExtract: updatedAttachments[index].neExtract,
+                                          neExtract: updatedAttachments[index].neExtract,                                      
                                           dirtType: updatedAttachments[index].dirtType,
                                           remark: updatedAttachments[index].remark || '',
+                                          isExtract: 0,
                                           isUpload: 0
                                         })
                                         toast.success('文件已清除')
