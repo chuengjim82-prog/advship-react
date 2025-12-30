@@ -71,13 +71,13 @@ export default function ContainerPickup({ onClose, onSubmit }: ContainerPickupPr
 
     const fetchExistingDelivery = async () => {
       try {
-        const res = await request.get(`/bzss/api/ContainerDetails/${deliveryItem.id}GetByContainerId`)
+        const res = await request.get<{ deliveryDateE?: string; pickUpTimeE?: string; remark?: string; deliveryCompanyId?: number; deliveryContact?: string; deliveryPlateNumber?: string; deliveryCall?: string; recipientContact?: string; shippingAddress?: string }>(`/bzss/api/ContainerDetails/${deliveryItem.id}GetByContainerId`)
         const item = res?.data
         if (!item) return
 
         let appointmentDate: Date | null = null
         if (item.deliveryDateE || item.pickUpTimeE) {
-          const dateStr = item.deliveryDateE || item.pickUpTimeE
+          const dateStr = item.deliveryDateE || item.pickUpTimeE || ''
           const date = new Date(dateStr)
           if (!isNaN(date.getTime())) {
             appointmentDate = date

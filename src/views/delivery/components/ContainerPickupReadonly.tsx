@@ -573,7 +573,7 @@ export default function ContainerDeliveryConfirm({
     const initData = async () => {
       try {
         debugger
-        const res = await request.get(`/bzss/api/ContainerDetails/${deliveryItem.id}GetByContainerId`)
+        const res = await request.get<{ items?: any[]; pickUpTimeE?: string; deliveryDateE?: string; remark?: string; transDlvId?: number; transPikId?: number; transDlvPlateNumber?: string; deliveryPlateNumber?: string; transportationNumber?: string; transDlvName?: string; deliveryContact?: string; transPikName?: string; transDlvPhone?: string; deliveryCall?: string; transPikPhone?: string; yardContact?: string; yardPhone?: string; yardAddress?: string; destinationContact?: string; destinationPhone?: string; destinationAddress?: string; recipientContact?: string; recipientPhone?: string; shippingAddress?: string }>(`/bzss/api/ContainerDetails/${deliveryItem.id}GetByContainerId`)
         const item = res?.data?.items?.[0] || deliveryItem
 
         let appointmentTime: Date | null = null
@@ -673,7 +673,8 @@ export default function ContainerDeliveryConfirm({
   }
 
   const hasYardInfo = formData.yardContact || formData.yardPhone || formData.yardAddress
-  const hasDestinationInfo = formData.destinationContact || formData.destinationPhone || formData.destinationAddress
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const _hasDestinationInfo = formData.destinationContact || formData.destinationPhone || formData.destinationAddress
 
   return (
     <div className="bg-white">
