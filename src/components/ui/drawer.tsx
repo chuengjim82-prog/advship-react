@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils'
-import React from 'react'
+import type React from 'react'
 
 interface DrawerProps {
   open: boolean
@@ -29,18 +29,20 @@ export const Drawer: React.FC<DrawerProps> = ({ open, onOpenChange, position = '
 
 interface DrawerContentProps {
   children: React.ReactNode
+  className?: string
 }
 
-export const DrawerContent: React.FC<DrawerContentProps> = ({ children }) => {
-  return <div className="p-4">{children}</div>
+export const DrawerContent: React.FC<DrawerContentProps> = ({ children, className }) => {
+  return <div className={cn("p-4", className)}>{children}</div>
 }
 
 interface DrawerHeaderProps {
   children: React.ReactNode
+  className?: string
 }
 
-export const DrawerHeader: React.FC<DrawerHeaderProps> = ({ children }) => {
-  return <div className="border-b p-4 font-semibold text-lg">{children}</div>
+export const DrawerHeader: React.FC<DrawerHeaderProps> = ({ children, className }) => {
+  return <div className={cn("border-b p-4 font-semibold text-lg", className)}>{children}</div>
 }
 
 interface DrawerTitleProps {

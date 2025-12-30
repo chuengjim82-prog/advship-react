@@ -133,6 +133,7 @@ export default function OrderDetail() {
     document.body.removeChild(textarea)
   }, [])
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleCopyBillNo = useCallback(async () => {
     try {
       await copyText(displayBillNo)
@@ -152,6 +153,7 @@ export default function OrderDetail() {
     document.body.removeChild(link)
   }, [])
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleDownload = useCallback(() => {
     const selected = attachments.filter((a) => selectedAttachments.has(a.id))
     selected.forEach((file) => {
@@ -254,6 +256,7 @@ export default function OrderDetail() {
     loadAttachments()
   }, [loadOrderBaseInfo, loadInvoiceGoods, loadAttachments])
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const toggleAttachment = (id: number) => {
     setSelectedAttachments((prev) => {
       const next = new Set(prev)
@@ -266,6 +269,7 @@ export default function OrderDetail() {
     })
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const toggleAllAttachments = () => {
     if (selectedAttachments.size === attachments.length) {
       setSelectedAttachments(new Set())

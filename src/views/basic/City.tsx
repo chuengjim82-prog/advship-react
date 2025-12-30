@@ -124,9 +124,11 @@ export default function City() {
   }
 
   // 保存搜索区国家选择的回调
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const searchCountryOnSearchRef = useRef<((immediateParams?: Record<string, string>) => void) | null>(null)
 
-  // 搜索区显示的国家名称
+  // 搜索区显示的国家名称（暂未使用，保留以便后续启用国家搜索）
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [searchCountryName, setSearchCountryName] = useState('')
 
   // 多字段搜索配置

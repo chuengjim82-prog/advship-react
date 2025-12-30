@@ -1385,7 +1385,8 @@ useSmartEffect({
                               : typeof file.id === 'string' && file.id.trim() !== ''
                                 ? Number(file.id)
                                 : null
-                          const nodeList =
+                          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                          const _nodeList =
                             typeof numericAttachmentId === 'number' && !Number.isNaN(numericAttachmentId)
                               ? extractNodesMap[numericAttachmentId]
                               : undefined

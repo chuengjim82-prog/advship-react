@@ -89,6 +89,7 @@ export default function ClearanceList() {
     deliveryMethod: 'direct',
   })
   const [completionTime, setCompletionTime] = useState('')
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleChange = (field: keyof typeof formData, value: string | Date | null) => {
     setFormData((prev) => ({
       ...prev,
@@ -232,12 +233,14 @@ export default function ClearanceList() {
   }
 
   // 打开上传对话框
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const openUploadDialog = (row: RowData) => {
     setSelectedRow(row)
     setShowUploadDialog(true)
   }
 
   // 处理提单号点击，跳转到详情页
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleBillNoClick = (row: RowData) => {
     navigate(`/clearance/OrderDetail?id=${row.id}&billNo=${row.waybillNo}`)
   }
@@ -304,7 +307,16 @@ export default function ClearanceList() {
   // 更新预约提柜信息
   const handleUpdatePickupInfo = (
     index: number,
-    field: 'pickUpTimeE' | 'remark' | 'transPikId' | 'transDlvName' | 'transportationNumber' | 'transPikPhone',
+    field:
+      | 'pickUpTimeE'
+      | 'remark'
+      | 'transPikId'
+      | 'transDlvName'
+      | 'transportationNumber'
+      | 'transPikPhone'
+      | 'transPikName'
+      | 'transportMode'
+      | 'deliveryType',
     value: string | number | Date
   ) => {
     const newPickupData = [...pickupData]
