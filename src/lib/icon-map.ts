@@ -45,6 +45,7 @@ import {
   MapPinned,
   Wallet,
   ArrowLeftRight,
+  Truck,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -85,6 +86,7 @@ export const iconMap: Record<string, LucideIcon> = {
   MapPinnedOutlined: MapPinned,
   WalletOutlined: Wallet,
   ArrowLeftRightOutlined: ArrowLeftRight,
+  TruckOutlined: Truck,
 
   // Action icons
   LeftOutlined: ChevronLeft,
