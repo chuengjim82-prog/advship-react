@@ -95,8 +95,6 @@ export default function ContainerDeliveryConfirm({
         // }
         const res = await request.get<{ items?: any[]; pickUpTimeE?: string; deliveryDateE?: string; giveBackTimeE?: string; deliveryType?: number; remark?: string; transPikId?: number; transportationNumber?: string; deliveryPlateNumber?: string; transPikName?: string; transPikPhone?: string; yardContact?: string; yardPhone?: string; yardAddress?: string; recipientContact?: string; recipientPhone?: string; shippingAddress?: string; returnContact?: string; returnPhone?: string; returnAddress?: string; giveBackTime?: string }>(`/bzss/api/ContainerDetails/${deliveryItem.id}GetByContainerId`)
         const item = res?.data?.items?.[0] || res?.data || {}
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const _hasYardInfo = formData.yardContact || formData.yardPhone || formData.yardAddress
         let appointmentTime: Date | null = null
         const timeStr = item.pickUpTimeE || item.deliveryDateE || item.giveBackTimeE
         if (timeStr) {
@@ -213,12 +211,6 @@ export default function ContainerDeliveryConfirm({
         return 5 // fallback，防止意外
     }
   }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const _hasReturnInfo = formData.returnContact || formData.returnPhone || formData.returnAddress
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const _hasYardInfo = formData.yardContact || formData.yardPhone || formData.yardAddress
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const _hasDestinationInfo = formData.destinationContact || formData.destinationPhone || formData.destinationAddress
 
   return (
     <div className="bg-white min-h-screen flex flex-col">
@@ -351,7 +343,7 @@ export default function ContainerDeliveryConfirm({
           </>
         )}
         {/* 堆场信息 - 有数据才显示整个块 */}
-        {confirmType != 'return' && !_hasYardInfo && formData.yardContact != '' && (
+        {confirmType != 'return' && formData.yardContact && (
           <section className="space-y-4">
             <h3 className="text-base font-semibold">堆场信息</h3>
             <div className="space-y-6">

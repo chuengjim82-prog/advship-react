@@ -129,7 +129,7 @@ export default function City() {
 
   // 搜索区显示的国家名称（暂未使用，保留以便后续启用国家搜索）
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [searchCountryName, setSearchCountryName] = useState('')
+  const [_searchCountryName, _setSearchCountryName] = useState('')
 
   // 多字段搜索配置
   const searchFields: SearchField[] = [
@@ -194,7 +194,7 @@ export default function City() {
         onOpenChange={setSearchCountryDialogOpen}
         onSelect={(country) => {
           // 更新显示的国家名称
-          setSearchCountryName(country.cnName)
+          _setSearchCountryName(country.cnName)
           // 直接调用搜索，传入国家ID作为立即参数
           if (searchCountryOnSearchRef.current) {
             searchCountryOnSearchRef.current({ countryId: String(country.id) })
