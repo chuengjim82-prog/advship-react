@@ -56,97 +56,133 @@ export default function OrderAuditDrawer({ visible, orderId, onClose, onSuccess 
   const [submitLoading, setSubmitLoading] = useState(false);
 
   // 获取当前用户信息（本地缓存）
-  const getCurrentUser = () => {
+  const getStoredUserInfo = () => {
     try {
-      const userInfoStr = localStorage.getItem('userInfo');
-      if (userInfoStr) {
-        return JSON.parse(userInfoStr);
-      }
+      const userInfoStr = localStorage.getItem('userInfo')
+      if (!userInfoStr) return null
+      return JSON.parse(userInfoStr)
     } catch (e) {
-      console.error('[OrderAuditDrawer] Failed to parse userInfo', e);
+      console.error('[OrderAuditDrawer] Failed to parse userInfo', e)
+      return null
     }
-    return null;
-  };
+  }
 
-  // 确保拿到当前用户（本地没有则用 token 去拉取一次）
-  const ensureCurrentUser = async () => {
-    const cached = getCurrentUser();
-    if (cached) return cached;
+  const normalizeUser = (raw: any) => {
+    if (!raw) return null
+    // 兼容 { accessToken, userInfo: { ... } } 这类结构
+    if (raw.userInfo && typeof raw.userInfo === 'object') return raw.userInfo
+    return raw
+  }
 
-    try {
-      const res = await ssoApi.getUserInfo();
-      localStorage.setItem('userInfo', JSON.stringify(res.data));
-      return res.data;
-    } catch (e) {
-      console.error('[OrderAuditDrawer] Failed to fetch userInfo', e);
-      return null;
-    }
-  };
+  // 获取用户ID (支持 number 和 string 类型，兼容多种字段名)
+  const getUserId = (raw: any): number => {
+    const user = normalizeUser(raw)
+    if (!user) return 0
 
-  // 获取用户ID (支持 number 和 string 类型)
-  const getUserId = (user: any): number => {
-    if (!user) return 0;
-    // 尝试多种可能的字段名
-    const id = user.userId ?? user.id ?? user.user_id ?? 0;
-    return typeof id === 'string' ? parseInt(id, 10) || 0 : id;
-  };
+    const id = user.userId ?? user.userid ?? user.UserId ?? user.id ?? user.user_id ?? user.uid ?? 0
+    if (typeof id === 'number') return id
+    if (typeof id === 'string') return Number(id) || 0
+    return 0
+  }
 
   // 获取用户昵称
-  const getUserName = (user: any): string => {
-    if (!user) return "未知用户";
-    return user.nickName || user.userName || user.username || user.name || "未知用户";
-  };
+  const getUserName = (raw: any): string => {
+    const user = normalizeUser(raw)
+    if (!user) return '未知用户'
+
+    return user.nickName || user.userName || user.username || user.name || '未知用户'
+  }
+
+  // 确保拿到当前用户（本地没有 / 本地缺少 userId 时用 token 去拉取一次）
+  const ensureCurrentUser = async () => {
+    const cached = getStoredUserInfo()
+    if (cached && getUserId(cached)) return cached
+
+    try {
+      const res = await ssoApi.getUserInfo()
+      // 统一缓存成“纯 userInfo 对象”
+      localStorage.setItem('userInfo', JSON.stringify(res.data))
+      return res.data
+    } catch (e) {
+      console.error('[OrderAuditDrawer] Failed to fetch userInfo', e)
+      return cached
+    }
+  }
 
   // 完成审核并提交
   const handleSubmitAudit = async () => {
-    if (!orderId) return;
-    const currentUser = await ensureCurrentUser();
-    setSubmitLoading(true);
+    if (!orderId) return
+
+    const currentUser = await ensureCurrentUser()
+    const updaterId = getUserId(currentUser)
+    const updaterNic = getUserName(currentUser)
+
+    if (!updaterId) {
+      console.warn('[OrderAuditDrawer] Missing updaterId, userInfo=', currentUser)
+      toast.error('无法获取当前登录用户ID，请退出后重新登录')
+      return
+    }
+
+    setSubmitLoading(true)
     try {
-      await request.post("/bzss/api/BaseInfo/ChangeStatus", {
+      console.log('[OrderAuditDrawer] submit audit user resolved', { updaterId, updaterNic, currentUser })
+
+      await request.post('/bzss/api/BaseInfo/ChangeStatus', {
         id: orderId,
         statusi: 2,
-        statuss: "资料已审核",
+        statuss: '资料已审核',
         updateTime: new Date().toISOString(),
-        updaterId: getUserId(currentUser),
-        updaterNic: getUserName(currentUser),
-      });
-      toast.success("审核提交成功");
-      onSuccess?.(orderId);
-      onClose();
+        updaterId,
+        updaterNic,
+      })
+      toast.success('审核提交成功')
+      onSuccess?.(orderId)
+      onClose()
     } catch (err) {
-      console.error("submit audit failed", err);
-      toast.error("审核提交失败");
+      console.error('submit audit failed', err)
+      toast.error('审核提交失败')
     } finally {
-      setSubmitLoading(false);
+      setSubmitLoading(false)
     }
-  };
+  }
 
   // 审核文件
   const handleAuditFile = async () => {
-    if (!auditingFile) return;
-    const currentUser = await ensureCurrentUser();
-    setAuditLoading(true);
+    if (!auditingFile) return
+
+    const currentUser = await ensureCurrentUser()
+    const auditerId = getUserId(currentUser)
+    const auditerName = getUserName(currentUser)
+
+    if (!auditerId) {
+      console.warn('[OrderAuditDrawer] Missing auditerId, userInfo=', currentUser)
+      toast.error('无法获取当前登录用户ID，请退出后重新登录')
+      return
+    }
+
+    setAuditLoading(true)
     try {
-      await request.post("/bzss/api/Attachment/Audit", {
+      console.log('[OrderAuditDrawer] audit file user resolved', { auditerId, auditerName, currentUser })
+
+      await request.post('/bzss/api/Attachment/Audit', {
         id: auditingFile.id,
         auditTime: new Date().toISOString(),
-        auditerId: getUserId(currentUser),
-        auditerName: getUserName(currentUser),
+        auditerId,
+        auditerName,
         auditMemo: auditMemo,
         auditResult: parseInt(auditResult),
-      });
-      toast.success(auditResult === "1" ? "审核通过" : "审核不通过");
+      })
+      toast.success(auditResult === '1' ? '审核通过' : '审核不通过')
       // 刷新附件列表
-      loadDetail(orderId);
-      closeAuditDialog();
+      loadDetail(orderId)
+      closeAuditDialog()
     } catch (err) {
-      console.error("audit failed", err);
-      toast.error("审核操作失败");
+      console.error('audit failed', err)
+      toast.error('审核操作失败')
     } finally {
-      setAuditLoading(false);
+      setAuditLoading(false)
     }
-  };
+  }
 
   // 打开审核弹窗
   const openAuditDialog = (file: any) => {
