@@ -141,7 +141,21 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
     defaultValues: defaultValues as any,
   })
 
-  // Load data
+  // 用于追踪是否已初始化（第一次搜索）
+  const isInitializedRef = useRef(false)
+  // 用于追踪是否由 handleSearch 触发的分页变化
+  const isSearchTriggeredRef = useRef(false)
+  // 用于存储待搜索的参数（解决自定义字段异步更新问题）
+  const pendingSearchRef = useRef<Record<string, string> | null>(null)
+  // 使用 ref 存储搜索参数，避免 loadData 因参数变化而改变引用
+  const searchKeywordRef = useRef(searchKeyword)
+  const searchParamsRef = useRef(searchParams)
+  
+  // 同步 ref 与 state
+  searchKeywordRef.current = searchKeyword
+  searchParamsRef.current = searchParams
+
+  // Load data (使用 ref 获取搜索参数，避免依赖 state 变化)
   const loadData = useCallback(async () => {
     setLoading(true)
     try {
@@ -152,11 +166,11 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
 
       // Use multi-field search if searchFields is configured
       if (searchFields && searchFields.length > 0) {
-        Object.entries(searchParams).forEach(([key, value]) => {
+        Object.entries(searchParamsRef.current).forEach(([key, value]) => {
           if (value) params[key] = value
         })
       } else {
-        params.keyword = searchKeyword
+        params.keyword = searchKeywordRef.current
       }
 
       const res = await request.get<PageResult<T>>(apiUrl, { params })
@@ -170,14 +184,7 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
     } finally {
       setLoading(false)
     }
-  }, [apiUrl, pagination.pageIndex, pagination.pageSize, searchKeyword, searchParams, searchFields, onLoaded])
-
-  // 用于追踪是否已初始化（第一次搜索）
-  const isInitializedRef = useRef(false)
-  // 用于追踪是否由 handleSearch 触发的分页变化
-  const isSearchTriggeredRef = useRef(false)
-  // 用于存储待搜索的参数（解决自定义字段异步更新问题）
-  const pendingSearchRef = useRef<Record<string, string> | null>(null)
+  }, [apiUrl, pagination.pageIndex, pagination.pageSize, searchFields, onLoaded])
 
   // Load data on pagination changes (only after first search)
   useEffect(() => {
@@ -202,7 +209,7 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
       // 如果传入了立即参数，先更新 searchParams
       if (immediateParams) {
         setSearchParams((prev) => ({ ...prev, ...immediateParams }))
-        pendingSearchRef.current = { ...searchParams, ...immediateParams }
+        pendingSearchRef.current = { ...searchParamsRef.current, ...immediateParams }
       }
 
       setPagination((prev) => {
@@ -216,7 +223,7 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
         return { ...prev, pageIndex: 0 }
       })
     },
-    [searchParams, loadData]
+    [loadData]
   )
 
   // Handle clear search
