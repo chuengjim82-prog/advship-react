@@ -3,11 +3,10 @@ import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Form } from '@/components/ui/form'
 import request from '@/utils/request'
 import { toast } from 'sonner'
 import { ssoApi } from '@/api/sso'
@@ -42,7 +41,6 @@ export default function Login() {
         expiresAt: string
       }>('/sso/api/Auth/login', values)
 
-      // 保存 token 到 localStorage
       localStorage.setItem('token', result.data.accessToken)
       localStorage.setItem('userInfo', JSON.stringify(result.data))
 
@@ -59,13 +57,10 @@ export default function Login() {
   const handleSsoLogin = async () => {
     setSsoLoading(true)
     try {
-      // 获取 SSO 登录 URL
       const result = await ssoApi.getLoginUrl(window.location.origin + '/sso-callback')
 
       if (result.data?.authorizationUrl) {
-        // 保存 state 到 sessionStorage 用于验证
         sessionStorage.setItem('sso_state', result.data.state)
-        // 跳转到 SSO 服务器登录页
         window.location.href = result.data.authorizationUrl
       } else {
         throw new Error('获取 SSO 登录地址失败')
@@ -102,28 +97,69 @@ export default function Login() {
     }
   }
 
+  const disableAll = loading || ssoLoading
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold">AdvShip 管理系统</CardTitle>
-        </CardHeader>
-        <CardContent>
+    <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-background to-muted p-6">
+      <section className="w-full max-w-md">
+        <Card>
+          <CardHeader className="space-y-2">
+            <CardTitle className="text-2xl">AdvShip 管理系统</CardTitle>
+            <CardDescription>使用账号密码登录或通过 SSO 单点登录</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
+                <FormField
+                  control={form.control}
+                  name="username"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>用户名</FormLabel>
+                      <FormControl>
+                        <Input placeholder="请输入用户名" autoComplete="username" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-          <div className="space-y-2">
-            <Button
-              type="button"
-              variant="default"
-              className="w-full bg-blue-600 hover:bg-blue-700"
-              onClick={handleSsoLogin}
-              disabled={loading || ssoLoading}
-            >
-              {ssoLoading ? '跳转中...' : 'SSO 单点登录'}
-            </Button>
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>密码</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="password"
+                          placeholder="请输入密码"
+                          autoComplete="current-password"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+                <Button type="submit" className="w-full" disabled={disableAll}>
+                  {loading ? '登录中...' : '登录'}
+                </Button>
+              </form>
+            </Form>
+
+            <div className="grid grid-cols-2 gap-2">
+              <Button type="button" variant="secondary" onClick={handleDemoLogin} disabled={disableAll}>
+                演示登录
+              </Button>
+              <Button type="button" variant="outline" onClick={handleSsoLogin} disabled={disableAll}>
+                {ssoLoading ? '跳转中...' : 'SSO 单点登录'}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </section>
+    </main>
   )
 }
