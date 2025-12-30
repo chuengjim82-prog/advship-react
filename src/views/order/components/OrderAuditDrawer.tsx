@@ -54,9 +54,23 @@ export default function OrderAuditDrawer({ visible, orderId, onClose, onSuccess 
   const [auditLoading, setAuditLoading] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
 
+  // 获取当前用户信息
+  const getCurrentUser = () => {
+    try {
+      const userInfoStr = localStorage.getItem('userInfo');
+      if (userInfoStr) {
+        return JSON.parse(userInfoStr);
+      }
+    } catch (e) {
+      console.error('Failed to parse userInfo', e);
+    }
+    return null;
+  };
+
   // 完成审核并提交
   const handleSubmitAudit = async () => {
     if (!orderId) return;
+    const currentUser = getCurrentUser();
     setSubmitLoading(true);
     try {
       await request.post("/bzss/api/BaseInfo/ChangeStatus", {
@@ -64,8 +78,8 @@ export default function OrderAuditDrawer({ visible, orderId, onClose, onSuccess 
         statusi: 2,
         statuss: "资料已审核",
         updateTime: new Date().toISOString(),
-        updaterId: 0,
-        updaterNic: "当前用户",
+        updaterId: currentUser?.userId ?? 0,
+        updaterNic: currentUser?.nickName || currentUser?.userName || currentUser?.username || "未知用户",
       });
       toast.success("审核提交成功");
       onSuccess?.(orderId);
@@ -81,12 +95,14 @@ export default function OrderAuditDrawer({ visible, orderId, onClose, onSuccess 
   // 审核文件
   const handleAuditFile = async () => {
     if (!auditingFile) return;
+    const currentUser = getCurrentUser();
     setAuditLoading(true);
     try {
       await request.post("/bzss/api/Attachment/Audit", {
         id: auditingFile.id,
         auditTime: new Date().toISOString(),
-        auditerId: 0,
+        auditerId: currentUser?.userId ?? 0,
+        auditerName: currentUser?.nickName || currentUser?.userName || currentUser?.username || "未知用户",
         auditMemo: auditMemo,
         auditResult: parseInt(auditResult),
       });
