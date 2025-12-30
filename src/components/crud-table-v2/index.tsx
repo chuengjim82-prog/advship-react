@@ -172,13 +172,20 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
     }
   }, [apiUrl, pagination.pageIndex, pagination.pageSize, searchKeyword, searchParams, searchFields, onLoaded])
 
+  // 用于追踪是否由 handleSearch 触发的分页变化
+  const isSearchTriggeredRef = useRef(false)
+  // 用于存储待搜索的参数（解决自定义字段异步更新问题）
+  const pendingSearchRef = useRef<Record<string, string> | null>(null)
+
   // Load data on mount and when pagination/search changes
   useEffect(() => {
+    // 如果是 handleSearch 触发的且在第一页，跳过（handleSearch 已经手动调用了 loadData）
+    if (isSearchTriggeredRef.current && pagination.pageIndex === 0) {
+      isSearchTriggeredRef.current = false
+      return
+    }
     loadData()
   }, [loadData])
-
-  // 用于存储待搜索的参数（解决自定义字段异步更新问题）
-  const pendingSearchRef = React.useRef<Record<string, string> | null>(null)
 
   // Handle search
   const handleSearch = useCallback(
@@ -195,6 +202,8 @@ function CrudTableV2<T extends FieldValues = FieldValues>(
           queueMicrotask(() => loadData())
           return prev
         }
+        // 标记这次分页变化是由搜索触发的
+        isSearchTriggeredRef.current = true
         return { ...prev, pageIndex: 0 }
       })
     },
